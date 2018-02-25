@@ -1,0 +1,102 @@
+version: "3.3"
+services:
+  db:
+    build: ./build/postgres
+    restart: always
+    networks:
+      - back
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=mr_root
+
+  app:
+    build: ./build/nextcloud
+    networks:
+      - back
+    volumes:
+      - appasset:/var/www/html
+      - appdata:/var/data
+    depends_on:
+      - db
+    restart: always
+
+  web:
+    build: ./build/web
+    networks:
+      - front
+      - back
+    environment:
+      - VIRTUAL_HOST=${HOST},localhost
+      - LETSENCRYPT_HOST=${HOST}
+      - LETSENCRYPT_EMAIL=${EMAIL}
+    volumes:
+      - appasset:/var/www/html:ro
+    depends_on:
+      - app
+    restart: always
+
+  proxy:
+    build: ./build/proxy
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+    labels:
+      com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy: "true"
+    volumes:
+      - certs:/etc/nginx/certs:ro
+      - conf.d:/etc/nginx/conf.d
+      - vhost.d:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    networks:
+      - front
+
+  letsencrypt-companion:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    restart: always
+    volumes:
+      - certs:/etc/nginx/certs
+      - conf.d:/etc/nginx/conf.d
+      - vhost.d:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - front
+    depends_on:
+      - proxy
+
+volumes:
+  certs:
+    driver: local-persist
+    driver_opts:
+      mountpoint: ${BASE_PATH}/certs
+  conf.d:
+    driver: local-persist
+    driver_opts:
+      mountpoint: ${BASE_PATH}/conf.d
+  vhost.d:
+    driver: local-persist
+    driver_opts:
+      mountpoint: ${BASE_PATH}/vhost.d
+  html:
+    driver: local-persist
+    driver_opts:
+      mountpoint: ${BASE_PATH}/html
+  appasset:
+    driver: local-persist
+    driver_opts:
+      mountpoint: ${BASE_PATH}/appasset
+  appdata:
+    driver: local-persist
+    driver_opts:
+      mountpoint: ${BASE_PATH}/appdata
+  dbdata:
+    driver: local-persist
+    driver_opts:
+      mountpoint: ${BASE_PATH}/dbdata
+
+networks:
+  front:
+  back:
