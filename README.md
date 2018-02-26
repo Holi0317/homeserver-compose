@@ -151,6 +151,14 @@ docker-compose exec db /bin/bash
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER"
 ```
 
+## occ (OwnCloud console)
+`occ` is the command interface for managing nextcloud instance. Especially for maintenance work.
+See [documentation](https://docs.nextcloud.com/server/13/admin_manual/configuration_server/occ_command.html).
+
+```bash
+docker-compose exec -u www-data app php occ
+```
+
 ### Compose commands
 ```bash
 # Start all services
