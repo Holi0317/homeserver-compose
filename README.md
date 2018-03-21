@@ -108,9 +108,6 @@ After setting up, go to configuration page and change the following settings:
  - Additional settings -> Email server
  - Additional settings -> Maximum upload size
 
-Edit `${BASE_PATH}/appasset/config/config.php` on host as root. Add `'enable_previews' => false,`
-to line before last line.
-
 ## In case of...
 ### Forgot database password
 After starting up all services, [get shell access to postgresql](#get-sql-shell-access).
