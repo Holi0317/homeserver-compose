@@ -13,6 +13,4 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
   && mkdir /var/log/supervisord /var/run/supervisord \
   && chown www-data:www-data /var/log/supervisord /var/run/supervisord /supervisord.conf
 
-USER www-data
-
 CMD ["/usr/bin/supervisord", "-c", "/supervisord.conf"]
