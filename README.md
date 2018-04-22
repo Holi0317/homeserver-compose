@@ -1,6 +1,10 @@
 # Nextcloud compose
 Run nextcloud in docker environment, using docker-compose
 
+__NOTE__: This project is not an official project of nextcloud or docker.
+I am not a developer from nextcloud nor docker. I start this project
+for my own use only.
+
 ## Introduction
 This is a docker compose configuration for [nextcloud]. This include:
  - Nginx as proxy
@@ -9,6 +13,8 @@ This is a docker compose configuration for [nextcloud]. This include:
 
 Major aims of this README is to remind me and assist my debugging in the future.
 Some information may get outdated but this document may not update.
+
+[nextcloud]: https://nextcloud.com/
 
 ## Requirement
  - [Docker]
@@ -54,7 +60,7 @@ First, spin up Postgres in root in order to create database properly.
 docker-compose run -u root --rm -e POSTGRES_PASSWORD=INSERT_RANDOM db
 ```
 
-Terminate the process after init process completed.
+Terminate the process after initialization process completed.
 
 Then, we need to add database user for nextcloud. Run the following command to start database.
 
@@ -68,7 +74,7 @@ Start another terminal and execute:
 docker-compose exec db /bin/bash
 ```
 
-When a shell starts up, execute the following commands in contianer:
+When a shell starts up, execute the following commands in container:
 
 ```bash
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
@@ -79,7 +85,8 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
 EOSQL
 ```
 
-Replace `''` with a random password for nextcloud user. We will not use superuser in the app.
+Replace `''` on third line with a random password for nextcloud user.
+We will not use superuser in the app.
 
 Kill both process after the command finish.
 
@@ -92,7 +99,7 @@ This should start all services and the web server is ready to go.
 
 On first run, nginx-proxy will generate a key and may cause spike. After that, the system should have lower load.
 
-Navgate, on your browser, to localhost or the domain on `HOST` in `.env`. On the setup page, fill in following information:
+Navigate, on your browser, to localhost or the domain on `HOST` in `.env`. On the setup page, fill in following information:
 
  - Admin user and password: As you like
  - Data folder: `/var/data`
@@ -119,6 +126,10 @@ ALTER USER nextcloud WITH PASSWORD 'NEW_PASSWORD';
 
 ### Reset nextcloud
 To change data path inside container, nextcloud installation must be reset.
+
+This process is only necessary for misconfiguration in first run!
+If you wish to change data storage path on host afterwards,
+just copy all files to new destination and change variable in `.env`.
 
 1. Stop all services
 2. Remove nextcloud data by clearing `${BASE_PATH}/appasset` and `${BASE_PATH}appdata`
@@ -156,7 +167,7 @@ See [documentation](https://docs.nextcloud.com/server/13/admin_manual/configurat
 docker-compose exec -u www-data app php occ
 ```
 
-### Compose commands
+### Common docker-compose commands
 ```bash
 # Start all services
 docker-compose up -d
