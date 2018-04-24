@@ -12,7 +12,7 @@ This is a docker compose configuration for [nextcloud]. This include:
  - PostgreSQL for database
 
 Major aims of this README is to remind me and assist my debugging in the future.
-Some information may get outdated but this document may not update.
+Some information may get outdated as this document is not maintained often.
 
 [nextcloud]: https://nextcloud.com/
 
@@ -50,6 +50,19 @@ docker-compose build --pull
 In case of full rebuild, add `--no-cache` flag to build command.
 
 ## First run
+### Add host user accounts (optional)
+In the images, `nextcloud (uid = 2000)` user would be used.
+The host system may add nextcloud user for easier management in filesystem.
+
+Check the documentation of your distribution for instruction on adding user.
+
+ - uid: 2000
+ - gid: 2000
+ - group: nextcloud
+ - Shell: nologin
+
+Remember for setting up login shell for better security!
+
 ### Database initialization
 Postgres need extra setup on first run.
 
@@ -164,7 +177,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER"
 See [documentation](https://docs.nextcloud.com/server/13/admin_manual/configuration_server/occ_command.html).
 
 ```bash
-docker-compose exec -u www-data app php occ
+docker-compose exec -u 2000 app php occ
 ```
 
 ### Common docker-compose commands
