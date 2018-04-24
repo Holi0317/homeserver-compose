@@ -15,7 +15,8 @@ RUN addgroup -g 2000 nextcloud \
   && docker-php-ext-enable imagick \
   && docker-php-ext-install bz2 \
   && apk del autoconf alpine-sdk \
-  && mkdir -p /var/log/supervisord /var/run/supervisord
+  && mkdir -p /var/log/supervisord /var/run/supervisord \
+  && mv /var/spool/cron/crontabs/www-data /var/spool/cron/crontabs/nextcloud
 
 COPY supervisord.conf /supervisord.conf
 COPY www.conf /usr/local/etc/php-fpm.d/www.conf
