@@ -54,7 +54,7 @@ services:
       - front
 
   letsencrypt-companion:
-    image: jrcs/letsencrypt-nginx-proxy-companion
+    image: jrcs/letsencrypt-nginx-proxy-companion:latest
     restart: always
     volumes:
       - certs:/etc/nginx/certs
