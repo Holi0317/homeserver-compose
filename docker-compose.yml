@@ -46,6 +46,7 @@ services:
       com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy: "true"
     volumes:
       - certs:/etc/nginx/certs:ro
+      - dhparam:/etc/nginx/dhparam
       - conf.d:/etc/nginx/conf.d
       - vhost.d:/etc/nginx/vhost.d
       - html:/usr/share/nginx/html
@@ -72,6 +73,10 @@ volumes:
     driver: local-persist
     driver_opts:
       mountpoint: ${BASE_PATH}/certs
+  dhparam:
+    driver: local-persist
+    driver_opts:
+      mountpoint: ${BASE_PATH}/dhparam
   conf.d:
     driver: local-persist
     driver_opts:
