@@ -39,4 +39,7 @@ docker-compose down
 
 # Check logs
 docker-compose logs -f
+
+# Rebuild and pull docker images
+docker-compose build --pull --no-cache && docker-compose pull
 ```

@@ -27,8 +27,8 @@ services:
       - front
       - nextcloud
     environment:
-      - VIRTUAL_HOST=${HOST},localhost
-      - LETSENCRYPT_HOST=${HOST}
+      - VIRTUAL_HOST=${NEXTCLOUD_HOST}
+      - LETSENCRYPT_HOST=${NEXTCLOUD_HOST}
       - LETSENCRYPT_EMAIL=${EMAIL}
     volumes:
       - appasset:/var/www/html:ro
