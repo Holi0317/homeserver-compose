@@ -179,18 +179,3 @@ See [documentation](https://docs.nextcloud.com/server/13/admin_manual/configurat
 ```bash
 docker-compose exec -u 2000 app php occ
 ```
-
-### Common docker-compose commands
-```bash
-# Start all services
-docker-compose up -d
-
-# Stop all services
-docker-compose stop
-
-# Remove all services container
-docker-compose down
-
-# Check logs
-docker-compose logs -f
-```

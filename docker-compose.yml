@@ -1,31 +1,31 @@
 version: "3.3"
 services:
-  db:
+  postgres:
     build: ./build/postgres
     restart: always
     networks:
-      - back
+      - nextcloud
     volumes:
       - dbdata:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER=mr_root
 
-  app:
+  nextcloud:
     build: ./build/nextcloud
     networks:
-      - back
+      - nextcloud
     volumes:
       - appasset:/var/www/html
       - appdata:/var/data
     depends_on:
-      - db
+      - postgres
     restart: always
 
-  web:
-    build: ./build/web
+  nextcloud-web:
+    build: ./build/nextcloud-web
     networks:
       - front
-      - back
+      - nextcloud
     environment:
       - VIRTUAL_HOST=${HOST},localhost
       - LETSENCRYPT_HOST=${HOST}
@@ -33,7 +33,7 @@ services:
     volumes:
       - appasset:/var/www/html:ro
     depends_on:
-      - app
+      - nextcloud
     restart: always
 
   proxy:
@@ -104,4 +104,4 @@ volumes:
 
 networks:
   front:
-  back:
+  nextcloud:
