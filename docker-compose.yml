@@ -15,8 +15,8 @@ services:
     networks:
       - nextcloud
     volumes:
-      - appasset:/var/www/html
-      - appdata:/var/data
+      - nextcloud-asset:/var/www/html
+      - nextcloud-data:/var/data
     depends_on:
       - postgres
     restart: always
@@ -31,7 +31,7 @@ services:
       - LETSENCRYPT_HOST=${NEXTCLOUD_HOST}
       - LETSENCRYPT_EMAIL=${EMAIL}
     volumes:
-      - appasset:/var/www/html:ro
+      - nextcloud-asset:/var/www/html:ro
     depends_on:
       - nextcloud
     restart: always
@@ -89,14 +89,14 @@ volumes:
     driver: local-persist
     driver_opts:
       mountpoint: ${BASE_PATH}/html
-  appasset:
+  nextcloud-asset:
     driver: local-persist
     driver_opts:
-      mountpoint: ${BASE_PATH}/appasset
-  appdata:
+      mountpoint: ${BASE_PATH}/nextcloud-asset
+  nextcloud-data:
     driver: local-persist
     driver_opts:
-      mountpoint: ${BASE_PATH}/appdata
+      mountpoint: ${BASE_PATH}/nextcloud-data
   dbdata:
     driver: local-persist
     driver_opts:
