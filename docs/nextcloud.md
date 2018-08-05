@@ -132,5 +132,5 @@ Resetting nextcloud is not required in this process.
 See [documentation](https://docs.nextcloud.com/server/13/admin_manual/configuration_server/occ_command.html).
 
 ```bash
-docker-compose exec -u 2000 app php occ
+docker-compose exec -u 2000 nextcloud php occ
 ```
