@@ -4,7 +4,7 @@ services:
     build: ./build/postgres
     restart: always
     networks:
-      - nextcloud
+      - db
     volumes:
       - dbdata:/var/lib/postgresql/data
     environment:
@@ -14,6 +14,7 @@ services:
     build: ./build/nextcloud
     networks:
       - nextcloud
+      - db
     volumes:
       - nextcloud-asset:/var/www/html
       - nextcloud-data:/var/data
@@ -75,6 +76,35 @@ services:
       - gitlab-runner:/etc/gitlab-runner
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
+  gitea:
+    image: gitea/gitea:latest
+    environment:
+      - USER_UID=2000
+      - USER_GID=2000
+      - DISABLE_SSH="true"
+      - SSH_PORT="0"
+
+      - DB_TYPE="postgres"
+      - DB_HOST="postgres:5432"
+      - DB_USER="gitea"
+
+      - DISABLE_REGISTRATION="true"
+      - REQUIRE_SIGNIN_VIEW="true"
+      - ROOT_URL="https://${GITEA_HOST}"
+      - RUN_MODE="prod"
+      - VIRTUAL_HOST=${GITEA_HOST}
+      - VIRTUAL_PORT=3000
+      - LETSENCRYPT_HOST=${GITEA_HOST}
+      - LETSENCRYPT_EMAIL=${EMAIL}
+    restart: always
+    networks:
+      - db
+      - front
+    volumes:
+      - gitea:/data
+    depends_on:
+      - postgres
+
 volumes:
   certs:
     driver: local-persist
@@ -112,7 +142,12 @@ volumes:
     driver: local-persist
     driver_opts:
       mountpoint: ${BASE_PATH}/gitlab-runner
+  gitea:
+    driver: local-persist
+    driver_opts:
+      mountpoint: ${BASE_PATH}/gitea
 
 networks:
   front:
   nextcloud:
+  db:

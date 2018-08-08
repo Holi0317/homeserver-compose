@@ -23,9 +23,12 @@ BASE_PATH=
 
 # Host name to be served for nextcloud service
 NEXTCLOUD_HOST=
+
+# Host name to be served for gitea service
+GITEA_HOST=
 ```
 
-## Not on hostname
+## Note on hostname
 All variable with `_HOST` suffix are hostname, which are host to listen to for each service.
 
 Unless otherwise specified, all external facing services would be proxied by `nginx` in `proxy` service.

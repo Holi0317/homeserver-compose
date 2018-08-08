@@ -77,7 +77,7 @@ This should start all services and the web server is ready to go.
 
 On first run, nginx-proxy will generate a key and may cause spike. After that, the system should have lower load.
 
-Navigate, on your browser, to localhost or the domain on `HOST` in `.env`. On the setup page, fill in following information:
+Navigate, on your browser, to the domain on `NEXTCLOUD_HOST` in `.env`. On the setup page, fill in following information:
 
  - Admin user and password: As you like
  - Data folder: `/var/data`
