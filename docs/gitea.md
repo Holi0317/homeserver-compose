@@ -43,7 +43,7 @@ Navigate to domain specified in `GITEA_HOST` and press login.
 A setup page should be shown. Input the following information:
 
  - Database password: the password above
- - SSH port: 0 (Disable)
+ - SSH port: 17022
  - Administrator account information
 
 Then check for the form to see if there is any incorrect information (e.g. Host address)
