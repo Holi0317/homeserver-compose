@@ -26,6 +26,9 @@ NEXTCLOUD_HOST=
 
 # Host name to be served for gitea service
 GITEA_HOST=
+
+# Host name to be served for trilium service
+TRILIUM_HOST=
 ```
 
 ## Note on hostname
