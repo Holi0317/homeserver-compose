@@ -20,5 +20,6 @@ RUN addgroup -g 2000 nextcloud \
 
 COPY supervisord.conf /supervisord.conf
 COPY www.conf /usr/local/etc/php-fpm.d/www.conf
+COPY php.ini /usr/local/etc/php/
 
 CMD ["/usr/bin/supervisord", "-c", "/supervisord.conf"]
