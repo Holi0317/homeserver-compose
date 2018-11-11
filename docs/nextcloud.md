@@ -93,6 +93,25 @@ After setting up, go to configuration page and change the following settings:
  - Additional settings -> Email server
  - Additional settings -> Maximum upload size
 
+### Nextcloud config.php modification
+Edit `${BASE_DIR}/nextcloud-asset/config.config.php` and append the following snippet to the end, before the line (`);`)
+
+```
+  'csrf.optout' =>
+  array (
+    0 => '/^WebDAVFS/',
+    1 => '/^Microsoft-WebDAV-MiniRedir/',
+    2 => '/Thunderbird/',
+    3 => '/^DAVdroid/',
+  ),
+  'trusted_proxies'   => ['172.31.0.0/24'],
+  'overwriteprotocol' => 'https',
+```
+
+Remark: I am not sure what to fill in to the `trusted_proxies` key as ip of the container should not be fixed.
+Just remember to test reverse proxy is aware by nextcloud by issuing an invalid login and check the log.
+If the log entry shows correct ip address, then the configuration should be fine.
+
 ## In case of...
 ### Reset nextcloud
 To change data path inside container, nextcloud installation must be reset.
@@ -127,6 +146,7 @@ Not to be confused with container location.
 Resetting nextcloud is not required in this process.
 
 ## Management commands
+
 ## occ (OwnCloud console)
 `occ` is the command interface for managing nextcloud instance. Especially for maintenance work.
 See [documentation](https://docs.nextcloud.com/server/13/admin_manual/configuration_server/occ_command.html).
