@@ -112,6 +112,8 @@ Remark: I am not sure what to fill in to the `trusted_proxies` key as ip of the 
 Just remember to test reverse proxy is aware by nextcloud by issuing an invalid login and check the log.
 If the log entry shows correct ip address, then the configuration should be fine.
 
+(Update: Starting from Nextcloud 15, IP mask on `trusted_proxies` would be available. The given range should be fine)
+
 ## In case of...
 ### Reset nextcloud
 To change data path inside container, nextcloud installation must be reset.
