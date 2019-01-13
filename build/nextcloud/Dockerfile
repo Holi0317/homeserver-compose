@@ -11,8 +11,6 @@ RUN addgroup -g 2000 nextcloud \
     imagemagick-dev \
     libtool \
     libltdl \
-  && pecl install imagick \
-  && docker-php-ext-enable imagick \
   && docker-php-ext-install bz2 \
   && apk del autoconf alpine-sdk \
   && mkdir -p /var/log/supervisord /var/run/supervisord \
