@@ -106,22 +106,6 @@ services:
     depends_on:
       - postgres
 
-  polaris:
-    image: ogarcia/polaris:latest
-    environment:
-      - VIRTUAL_HOST=${POLARIS_HOST}
-      - VIRTUAL_PORT=5050
-      - LETSENCRYPT_HOST=${POLARIS_HOST}
-      - LETSENCRYPT_EMAIL=${EMAIL}
-    restart: always
-    tty: true
-    networks:
-      - front
-    volumes:
-      - polaris-music:/music
-      - polaris-db:/var/lib/polaris
-
-
 volumes:
   certs:
     driver: local-persist
@@ -163,14 +147,6 @@ volumes:
     driver: local-persist
     driver_opts:
       mountpoint: ${BASE_PATH}/gitea
-  polaris-music:
-    driver: local-persist
-    driver_opts:
-      mountpoint: ${BASE_PATH}/polaris-music
-  polaris-db:
-    driver: local-persist
-    driver_opts:
-      mountpoint: ${BASE_PATH}/polaris-db
 
 networks:
   front:

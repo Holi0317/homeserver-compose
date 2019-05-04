@@ -26,9 +26,6 @@ NEXTCLOUD_HOST=
 
 # Host name to be served for gitea service
 GITEA_HOST=
-
-# Host name to be served for polaris service
-POLARIS_HOST=
 ```
 
 ## Note on hostname
