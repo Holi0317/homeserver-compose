@@ -39,7 +39,7 @@ docker-compose up -d
 
 This should start all services in this package.
 
-Navigate to domain specified in `GITEA_HOST` and press login.
+Navigate to `git.holi0317.net` and press login.
 A setup page should be shown. Input the following information:
 
  - Database password: the password above

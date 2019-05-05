@@ -1,4 +1,6 @@
-FROM jwilder/nginx-proxy:alpine
+FROM linuxserver/letsencrypt:latest
 
-COPY uploadsize.conf /etc/nginx/conf.d/uploadsize.conf
-COPY no-server-header.conf /etc/nginx/conf.d/no-server-header.conf
+COPY ssl.conf /etc/nginx/
+COPY proxy.conf /etc/nginx/
+COPY conf.d/ /etc/nginx/conf.d/
+COPY default /defaults/

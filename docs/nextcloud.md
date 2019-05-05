@@ -1,10 +1,6 @@
 # docker-compose for NextCloud
 Run [nextcloud] in docker environment, using docker-compose
 
-__NOTE__: This project is not an official project of nextcloud or docker.
-I am not a developer from nextcloud nor docker. I start this project
-for my own use only.
-
 [nextcloud]: https://nextcloud.com/
 
 ## Introduction
@@ -26,6 +22,7 @@ Some information may get outdated as this document is not maintained often.
 [local-presist]: https://github.com/CWSpear/local-persist
 
 ## First run
+
 ### Add host user accounts (optional)
 In the images, `nextcloud (uid = 2000)` user would be used.
 The host system may add nextcloud user for easier management in filesystem.
@@ -75,9 +72,7 @@ docker-compose up -d
 
 This should start all services and the web server is ready to go.
 
-On first run, nginx-proxy will generate a key and may cause spike. After that, the system should have lower load.
-
-Navigate, on your browser, to the domain on `NEXTCLOUD_HOST` in `.env`. On the setup page, fill in following information:
+Navigate, on your browser, to `nc.holi0317.net`. On the setup page, fill in the following information:
 
  - Admin user and password: As you like
  - Data folder: `/var/data`
@@ -104,15 +99,13 @@ Edit `${BASE_DIR}/nextcloud-asset/config.config.php` and append the following sn
     2 => '/Thunderbird/',
     3 => '/^DAVdroid/',
   ),
-  'trusted_proxies'   => ['172.31.0.0/24'],
+  'trusted_proxies'   => ['172.30.0.0/24'],
   'overwriteprotocol' => 'https',
 ```
 
 Remark: I am not sure what to fill in to the `trusted_proxies` key as ip of the container should not be fixed.
 Just remember to test reverse proxy is aware by nextcloud by issuing an invalid login and check the log.
 If the log entry shows correct ip address, then the configuration should be fine.
-
-(Update: Starting from Nextcloud 15, IP mask on `trusted_proxies` would be available. The given range should be fine)
 
 ## In case of...
 ### Reset nextcloud

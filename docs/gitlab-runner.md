@@ -25,7 +25,7 @@ docker-compose run --rm gitlab-runner register
 Follow the [instruction] and complete registration process. Remember to select `docker` for runner
 executor.
 
-[instruction]: https://docs.gitlab.com/runner/register/index.html#gnu-linux<Paste>
+[instruction]: https://docs.gitlab.com/runner/register/index.html#gnu-linux
 
 ## Get access to gitlab runner script
 This show how to get `help` command for gitlab runner. Replace `help` with others for your purpose.

@@ -13,6 +13,10 @@ If you choose to use this configuration file, please be noted that I may introdu
 now and then without notice. Migration guide would _NOT_ be provided. Only initial setup guide is guaranteed
 to be updated with configuration changes.
 
+## General assumption
+The configuration assumes the domain would be `holi0317.net`. Please amend it if you would like to
+use this configuration.
+
 ## Navigation
 Other than the provided `docker-compose.yml` file, this repository also serves as a collection
 of documentation for setting up services for _my use case_. Here are some general advice for

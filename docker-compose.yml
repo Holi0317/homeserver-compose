@@ -1,5 +1,25 @@
 version: "3.3"
 services:
+  proxy:
+    build: ./build/proxy
+    restart: always
+    networks:
+      - front
+    ports:
+      - 80:80
+      - 443:443
+    environment:
+      - PUID=2000
+      - PGID=2000
+      - TZ=Asia/Hong_Kong
+      - URL=holi0317.net
+      - SUBDOMAINS=nc,git
+      - VALIDATION=http
+      - EMAIL=${EMAIL}
+      - ONLY_SUBDOMAINS=false
+    volumes:
+      - nginx-config:/config
+
   postgres:
     build: ./build/postgres
     restart: always
@@ -27,47 +47,11 @@ services:
     networks:
       - front
       - nextcloud
-    environment:
-      - VIRTUAL_HOST=${NEXTCLOUD_HOST}
-      - LETSENCRYPT_HOST=${NEXTCLOUD_HOST}
-      - LETSENCRYPT_EMAIL=${EMAIL}
     volumes:
       - nextcloud-asset:/var/www/html:ro
     depends_on:
       - nextcloud
     restart: always
-
-  proxy:
-    build: ./build/proxy
-    restart: always
-    ports:
-      - 80:80
-      - 443:443
-    labels:
-      com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy: "true"
-    volumes:
-      - certs:/etc/nginx/certs:ro
-      - dhparam:/etc/nginx/dhparam
-      - conf.d:/etc/nginx/conf.d
-      - vhost.d:/etc/nginx/vhost.d
-      - html:/usr/share/nginx/html
-      - /var/run/docker.sock:/tmp/docker.sock:ro
-    networks:
-      - front
-
-  letsencrypt-companion:
-    image: jrcs/letsencrypt-nginx-proxy-companion:latest
-    restart: always
-    volumes:
-      - certs:/etc/nginx/certs
-      - conf.d:/etc/nginx/conf.d
-      - vhost.d:/etc/nginx/vhost.d
-      - html:/usr/share/nginx/html
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    networks:
-      - front
-    depends_on:
-      - proxy
 
   gitlab-runner:
     image: gitlab/gitlab-runner:alpine
@@ -91,12 +75,8 @@ services:
 
       - DISABLE_REGISTRATION="true"
       - REQUIRE_SIGNIN_VIEW="true"
-      - ROOT_URL="https://${GITEA_HOST}"
+      - ROOT_URL="https://git.holi0317.net"
       - RUN_MODE="prod"
-      - VIRTUAL_HOST=${GITEA_HOST}
-      - VIRTUAL_PORT=3000
-      - LETSENCRYPT_HOST=${GITEA_HOST}
-      - LETSENCRYPT_EMAIL=${EMAIL}
     restart: always
     networks:
       - db
@@ -107,26 +87,10 @@ services:
       - postgres
 
 volumes:
-  certs:
+  nginx-config:
     driver: local-persist
     driver_opts:
-      mountpoint: ${BASE_PATH}/certs
-  dhparam:
-    driver: local-persist
-    driver_opts:
-      mountpoint: ${BASE_PATH}/dhparam
-  conf.d:
-    driver: local-persist
-    driver_opts:
-      mountpoint: ${BASE_PATH}/conf.d
-  vhost.d:
-    driver: local-persist
-    driver_opts:
-      mountpoint: ${BASE_PATH}/vhost.d
-  html:
-    driver: local-persist
-    driver_opts:
-      mountpoint: ${BASE_PATH}/html
+      mountpoint: ${BASE_PATH}/nginx-config
   nextcloud-asset:
     driver: local-persist
     driver_opts:

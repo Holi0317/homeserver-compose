@@ -18,22 +18,4 @@ EMAIL=
 # THERE IS NO TAILING SLASH
 # e.g. `/srv/selfhost`, NOT `/srv/selfhost/`
 BASE_PATH=
-
-# For all hostnames, use comma (without space) to separate multiple host names.
-
-# Host name to be served for nextcloud service
-NEXTCLOUD_HOST=
-
-# Host name to be served for gitea service
-GITEA_HOST=
 ```
-
-## Note on hostname
-All variable with `_HOST` suffix are hostname, which are host to listen to for each service.
-
-Unless otherwise specified, all external facing services would be proxied by `nginx` in `proxy` service.
-This implies the service could listen to multiple hostname. Use a `,`(without space) to separate the
-hostnames to listen to.
-
-__IMPORTANT__: After changing the hostname, shut down proxy service and _remove_ `${BASE_PATH}/conf.d/default.conf` and restart.
-Sometimes proxy could not catch up changes and re-generate config for new hostname
