@@ -86,6 +86,26 @@ services:
     depends_on:
       - postgres
 
+
+  synapse:
+    image: matrixdotorg/synapse:latest
+    environment:
+      - SYNAPSE_SERVER_NAME=holi0317.net
+      - SYNAPSE_REPORT_STATS=yes
+      - SYNAPSE_NO_TLS=1
+      - SYNAPSE_MAX_UPLOAD_SIZE=200M
+      - POSTGRES_HOST=postgres
+      - POSTGRES_USER=matrix
+      - POSTGRES_PASSWORD=${SYNAPSE_DB_PASSWORD}
+    restart: always
+    depends_on:
+      - postgres
+    networks:
+      - db
+      - front
+    volumes:
+      - synapse-data:/data
+
 volumes:
   nginx-config:
     driver: local-persist
@@ -111,6 +131,10 @@ volumes:
     driver: local-persist
     driver_opts:
       mountpoint: ${BASE_PATH}/gitea
+  synapse-data:
+    driver: local-persist
+    driver_opts:
+      mountpoint: ${BASE_PATH}/synapse-data
 
 networks:
   front:

@@ -18,4 +18,7 @@ EMAIL=
 # THERE IS NO TAILING SLASH
 # e.g. `/srv/selfhost`, NOT `/srv/selfhost/`
 BASE_PATH=
+
+# Password for matrix user in postgres database
+SYNAPSE_DB_PASSWORD=
 ```
