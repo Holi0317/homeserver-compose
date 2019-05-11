@@ -69,3 +69,34 @@ docker-compose run -e SYNAPSE_ENABLE_REGISTRATION=1 synapse
 ```
 
 Register using a matrix client. Then terminate the process after registration.
+
+## Set an account as admin
+
+Adapted from [Official synapse doc](https://github.com/matrix-org/synapse/blob/master/docs/admin_api/README.rst).
+
+Synapse could be running or powered off. But postgres must be running for the modification.
+
+Get a postgres shell by running the following commands
+
+```bash
+# In the host
+docker-compose exec postgres /bin/bash
+# In the spawned shell in container
+psql --username "$POSTGRES_USER"
+```
+
+Then run the following command to connect to synapse database and list all
+users.
+
+```sql
+\c synapse;
+SELECT name, admin FROM users;
+```
+
+To update a user, use the following SQL command:
+
+```sql
+UPDATE users SET admin=1 WHERE name='@name:example.com';
+```
+
+Obviously, replace the name with matrix ID.
