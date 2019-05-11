@@ -45,7 +45,19 @@ Update `SYNAPSE_DB_PASSWORD` variable to the password in `.env` file.
 ### Directory preparation
 
 Create a directory under `${BASE_DIR}/synapse-data`. Change the owner of the
-directory to `991:991`.
+directory to `2000:2000`.
+
+### Configuration generation
+
+Run the following command
+
+```bash
+docker-compose run --rm synapse generate
+```
+
+This will generate configuration file `homeser.yml` to `${BASE_DIR}/synapse-data`.
+
+To amend configuration later, directly modify the generated yml file.
 
 ## Register new user
 

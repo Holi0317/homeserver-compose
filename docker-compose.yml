@@ -90,13 +90,16 @@ services:
   synapse:
     image: matrixdotorg/synapse:latest
     environment:
-      - SYNAPSE_SERVER_NAME=holi0317.net
-      - SYNAPSE_REPORT_STATS=yes
-      - SYNAPSE_NO_TLS=1
-      - SYNAPSE_MAX_UPLOAD_SIZE=200M
-      - POSTGRES_HOST=postgres
-      - POSTGRES_USER=matrix
-      - POSTGRES_PASSWORD=${SYNAPSE_DB_PASSWORD}
+      #- SYNAPSE_SERVER_NAME=holi0317.net
+      #- SYNAPSE_REPORT_STATS=yes
+      #- SYNAPSE_NO_TLS=1
+      #- SYNAPSE_MAX_UPLOAD_SIZE=200M
+      #- POSTGRES_HOST=postgres
+      #- POSTGRES_USER=matrix
+      #- POSTGRES_PASSWORD=${SYNAPSE_DB_PASSWORD}
+      - SYNAPSE_CONFIG_PATH=/data/homeserver.yaml
+      - UID=2000
+      - GID=2000
     restart: always
     depends_on:
       - postgres
