@@ -19,6 +19,7 @@ services:
       - ONLY_SUBDOMAINS=false
     volumes:
       - nginx-config:/config
+      - nginx-static:/static
 
   postgres:
     build: ./build/postgres
@@ -92,6 +93,10 @@ volumes:
     driver: local-persist
     driver_opts:
       mountpoint: ${BASE_PATH}/nginx-config
+  nginx-static:
+    driver: local-persist
+    driver_opts:
+      mountpoint: ${BASE_PATH}/nginx-static
   nextcloud-asset:
     driver: local-persist
     driver_opts:
