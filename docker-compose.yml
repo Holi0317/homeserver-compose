@@ -64,11 +64,12 @@ services:
   gitea:
     image: gitea/gitea:latest
     ports:
-      - "17022:22"
+      - "17022:17022"
     environment:
       - USER_UID=2000
       - USER_GID=2000
       - SSH_PORT="17022"
+      - START_SSH_SERVER="true"
 
       - DB_TYPE="postgres"
       - DB_HOST="postgres:5432"
