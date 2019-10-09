@@ -6,7 +6,6 @@ __NOTE__: I am not an official maintainer of any of the project used here.
 Following services are available:
  - [Nextcloud](docs/nextcloud.md)
  - [Gitea](docs/gitea.md)
- - [Gitlab runner](docs/gitlab-runner.md)
 
 ## WARNING FOR BREAKING CHANGES
 If you choose to use this configuration file, please be noted that I may introduce breaking changes

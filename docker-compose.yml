@@ -54,13 +54,6 @@ services:
       - nextcloud
     restart: always
 
-  gitlab-runner:
-    image: gitlab/gitlab-runner:alpine
-    restart: always
-    volumes:
-      - gitlab-runner:/etc/gitlab-runner
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-
   gitea:
     image: gitea/gitea:latest
     ports:
@@ -110,10 +103,6 @@ volumes:
     driver: local-persist
     driver_opts:
       mountpoint: ${BASE_PATH}/dbdata
-  gitlab-runner:
-    driver: local-persist
-    driver_opts:
-      mountpoint: ${BASE_PATH}/gitlab-runner
   gitea:
     driver: local-persist
     driver_opts:
