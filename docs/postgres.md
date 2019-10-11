@@ -28,7 +28,7 @@ Services need a database (Not guaranteed up to date):
 Remember to start postgres service before running the command.
 
 ```bash
-docker-compose exec db /bin/bash
+docker-compose exec postgres /bin/bash
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER"
 ```
 
