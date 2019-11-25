@@ -81,6 +81,19 @@ services:
     depends_on:
       - postgres
 
+  murmur:
+    image: goofball222/murmur
+    ports:
+      - "64738:64738"
+      - "64738:64738/udp"
+    volumes:
+      - murmur-cert:/opt/murmur/cert
+      - murmur-config:/opt/murmur/config
+      - murmur-data:/opt/murmur/data
+      - murmur-log:/opt/murmur/log
+    environment:
+      - PGID=2000
+      - PUID=2000
 
 volumes:
   nginx-config:
@@ -107,6 +120,22 @@ volumes:
     driver: local-persist
     driver_opts:
       mountpoint: ${BASE_PATH}/gitea
+  murmur-cert:
+    driver: local-persist
+    driver_opts:
+      mountpoint: ${BASE_PATH}/murmur/cert
+  murmur-config:
+    driver: local-persist
+    driver_opts:
+      mountpoint: ${BASE_PATH}/murmur/config
+  murmur-data:
+    driver: local-persist
+    driver_opts:
+      mountpoint: ${BASE_PATH}/murmur/data
+  murmur-log:
+    driver: local-persist
+    driver_opts:
+      mountpoint: ${BASE_PATH}/murmur/log
 
 networks:
   front:

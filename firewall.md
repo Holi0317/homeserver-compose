@@ -5,3 +5,5 @@ Please allow the following ports to bypass firewall:
  - 80
  - 443
  - 17022
+ - 64738
+ - 64738/udp
