@@ -1,0 +1,64 @@
+version: "3.5"
+
+services:
+  gitea:
+    image: gitea/gitea:latest
+    ports:
+      - "17022:17022"
+    environment:
+      - USER_UID=2000
+      - USER_GID=2000
+      - SSH_PORT="17022"
+      - START_SSH_SERVER="true"
+
+      - DB_TYPE="postgres"
+      - DB_HOST="postgres:5432"
+      - DB_USER="gitea"
+      - DB_PASSWD=${GITEA_DB_PASS?"Gitea database password not defined"}
+
+      - DISABLE_REGISTRATION="true"
+      - REQUIRE_SIGNIN_VIEW="true"
+      - ROOT_URL="https://git.holi0317.net"
+      - RUN_MODE="prod"
+    restart: always
+    volumes:
+      - gitea:/data
+    depends_on:
+      - postgres
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gitea.rule=Host(`gitea.holi0317.net`)"
+      - "traefik.http.routers.gitea.entrypoints=websecure"
+      - "traefik.http.routers.gitea.tls.certresolver=myhttpchallenge"
+      - "traefik.http.routers.gitea.tls.options.default.minVersion=VersionTLS12"
+      - "traefik.http.routers.gitea.tls.options.default.sniStrict=true"
+      - "traefik.http.middlewares.headers.headers.accessControlAllowOrigin=null"
+      - "traefik.http.middlewares.headers.headers.sslRedirect=true"
+      - "traefik.http.middlewares.headers.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.headers.headers.browserXssFilter=true"
+      - "traefik.http.middlewares.headers.headers.contentSecurityPolicy=upgrade-insecure-requests"
+      - "traefik.http.middlewares.headers.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.headers.headers.framedeny=true"
+      - "traefik.http.middlewares.httpsredirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.httpsredirect.redirectscheme.permanent=true"
+      - "traefik.http.middlewares.compress.compress=true"
+
+  postgres:
+    build: postgres:12-alpine
+    restart: always
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=gitea
+      - POSTGRES_DB=gitea
+      - POSTGRES_PASSWORD=${GITEA_DB_PASS?"Gitea database password not defined"}
+
+volumes:
+  gitea:
+    driver: local-persist
+    driver_opts:
+      mountpoint: ${BASE_PATH?"Base path not defined"}/gitea/data
+  postgres:
+    driver: local-persist
+    driver_opts:
+      mountpoint: ${BASE_PATH?"Base path not defined"}/gitea/postgres
