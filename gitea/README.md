@@ -16,6 +16,8 @@ docker-compose up -d
 
 This should start all services in this package.
 
+Remember to start traefik before proceeding.
+
 Navigate to `git.holi0317.net` and press login.
 A setup page should be shown where some config is pre-populated. Don't touch
 them.
