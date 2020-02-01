@@ -2,10 +2,12 @@ version: "3.5"
 
 services:
   postgres:
-    build: postgres:12-alpine
+    image: postgres:12-alpine
     restart: always
     volumes:
       - postgres:/var/lib/postgresql/data
+    networks:
+      - default
     environment:
       - POSTGRES_USER=nextcloud
       - POSTGRES_DB=nextcloud
@@ -18,6 +20,8 @@ services:
       - data:/var/data
     depends_on:
       - postgres
+    networks:
+      - default
     restart: always
     environment:
       - POSTGRES_DB="nextcloud"
@@ -33,22 +37,25 @@ services:
     depends_on:
       - nextcloud-fpm
     restart: always
+    networks:
+      - default
+      - traefik
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.gitea.rule=Host(`nc.holi0317.net`)"
-      - "traefik.http.routers.gitea.entrypoints=websecure"
-      - "traefik.http.routers.gitea.tls.certresolver=myhttpchallenge"
-      - "traefik.http.routers.gitea.tls.options.default.minVersion=VersionTLS12"
-      - "traefik.http.routers.gitea.tls.options.default.sniStrict=true"
-      - "traefik.http.middlewares.headers.headers.accessControlAllowOrigin=null"
-      - "traefik.http.middlewares.headers.headers.sslRedirect=true"
-      - "traefik.http.middlewares.headers.headers.contentTypeNosniff=true"
-      - "traefik.http.middlewares.headers.headers.browserXssFilter=true"
-      - "traefik.http.middlewares.headers.headers.contentSecurityPolicy=upgrade-insecure-requests"
-      - "traefik.http.middlewares.headers.headers.stsSeconds=31536000"
-      - "traefik.http.middlewares.headers.headers.framedeny=true"
-      - "traefik.http.middlewares.httpsredirect.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.httpsredirect.redirectscheme.permanent=true"
+      - "traefik.docker.network=traefik"
+      - "traefik.http.routers.nc.rule=Host(`nc.holi0317.net`)"
+      - "traefik.http.routers.nc.entrypoints=web,websecure"
+      - "traefik.http.routers.nc.tls.certresolver=myhttpchallenge"
+      - "traefik.http.routers.nc.middlewares=nc-headers,compress,https-redirect"
+      - "traefik.http.middlewares.nc-headers.headers.accessControlAllowOrigin=null"
+      - "traefik.http.middlewares.nc-headers.headers.sslRedirect=true"
+      - "traefik.http.middlewares.nc-headers.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.nc-headers.headers.browserXssFilter=true"
+      - "traefik.http.middlewares.nc-headers.headers.contentSecurityPolicy=upgrade-insecure-requests"
+      - "traefik.http.middlewares.nc-headers.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.nc-headers.headers.customrequestheaders.X-Frame-Options=SAMEORIGIN"
+      - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.https-redirect.redirectscheme.permanent=true"
       - "traefik.http.middlewares.compress.compress=true"
 
 volumes:
@@ -64,3 +71,9 @@ volumes:
     driver: local-persist
     driver_opts:
       mountpoint: ${BASE_PATH?"Base path not defined"}/nextcloud/postgres
+
+networks:
+  traefik:
+    external:
+      name: traefik
+  default:
