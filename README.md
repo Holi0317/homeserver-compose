@@ -2,7 +2,7 @@
 
 My homeserver docker-compose file and their documentation.
 
-Update in progress. Documentation may not be up to date.
+This branch, `traefik` is in migration process. Docs may not be up-to-date.
 
 __NOTE__: I am not an official maintainer of any of the project used here.
 
@@ -31,14 +31,14 @@ of documentation for setting up services for _my use case_. Here are some genera
  1. If you want to replicate my set up, read through __ALL__ documents and look for setup guide.
     I am not making a separate "quickstart guide" because you __must__ understand how to manage
     all service before deploy. There is no "set and forget" in hosting world.
- 2. It is _highly recommended_ to fork this repository if you wish to use my setup. Because I will not provide
-    support on migration between commits.
- 3. Documentation for each services are provided under `docs/` directory, including what they depends and their
-    configuration file. In case of any failure, consult the service documentation and look for solution.
- 4. For documentation that does not belongs to any service (Like `.env` configuration file), they would be placed
-    under repository root. Usually you only need to read them when initializing your setup.
+ 2. It is _highly recommended_ to fork this repository if you wish to use my 
+    setup. Because I will not provide support on migration between commits. 
+ 3. Documentation for non-service configuration are provided under `docs/` 
+    directory. For each services, there's a `README.md` file for setup and 
+    troubleshooting. In case of failure, consult the official documentation.
 
 ## General docker-compose command reminder
+
 ```bash
 # Start all services
 docker-compose up -d
