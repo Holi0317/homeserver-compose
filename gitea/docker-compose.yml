@@ -26,29 +26,36 @@ services:
       - gitea:/data
     depends_on:
       - postgres
+    networks:
+      - traefik
+      - default
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.gitea.rule=Host(`gitea.holi0317.net`)"
+      - "traefik.http.services.gitea.loadbalancer.server.port=3000"
+      - "traefik.docker.network=traefik"
+      - "traefik.http.routers.gitea.rule=Host(`git.holi0317.net`)"
       - "traefik.http.routers.gitea.entrypoints=websecure"
       - "traefik.http.routers.gitea.tls.certresolver=myhttpchallenge"
-      - "traefik.http.routers.gitea.tls.options.default.minVersion=VersionTLS12"
-      - "traefik.http.routers.gitea.tls.options.default.sniStrict=true"
-      - "traefik.http.middlewares.headers.headers.accessControlAllowOrigin=null"
-      - "traefik.http.middlewares.headers.headers.sslRedirect=true"
-      - "traefik.http.middlewares.headers.headers.contentTypeNosniff=true"
-      - "traefik.http.middlewares.headers.headers.browserXssFilter=true"
-      - "traefik.http.middlewares.headers.headers.contentSecurityPolicy=upgrade-insecure-requests"
-      - "traefik.http.middlewares.headers.headers.stsSeconds=31536000"
-      - "traefik.http.middlewares.headers.headers.framedeny=true"
-      - "traefik.http.middlewares.httpsredirect.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.httpsredirect.redirectscheme.permanent=true"
-      - "traefik.http.middlewares.compress.compress=true"
+      # - "traefik.http.routers.gitea.tls.options.default.minVersion=VersionTLS12"
+      # - "traefik.http.routers.gitea.tls.options.default.sniStrict=true"
+      # - "traefik.http.middlewares.headers.headers.accessControlAllowOrigin=null"
+      # - "traefik.http.middlewares.headers.headers.sslRedirect=true"
+      # - "traefik.http.middlewares.headers.headers.contentTypeNosniff=true"
+      # - "traefik.http.middlewares.headers.headers.browserXssFilter=true"
+      # - "traefik.http.middlewares.headers.headers.contentSecurityPolicy=upgrade-insecure-requests"
+      # - "traefik.http.middlewares.headers.headers.stsSeconds=31536000"
+      # - "traefik.http.middlewares.headers.headers.framedeny=true"
+      # - "traefik.http.middlewares.httpsredirect.redirectscheme.scheme=https"
+      # - "traefik.http.middlewares.httpsredirect.redirectscheme.permanent=true"
+      # - "traefik.http.middlewares.compress.compress=true"
 
   postgres:
     image: postgres:12-alpine
     restart: always
     volumes:
       - postgres:/var/lib/postgresql/data
+    networks:
+      - default
     environment:
       - POSTGRES_USER=gitea
       - POSTGRES_DB=gitea
@@ -63,3 +70,9 @@ volumes:
     driver: local-persist
     driver_opts:
       mountpoint: ${BASE_PATH?"Base path not defined"}/gitea/postgres
+
+networks:
+  traefik:
+    external:
+      name: traefik
+  default:

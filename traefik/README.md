@@ -14,6 +14,15 @@ The following ports need to be exposed:
  - `80/tcp`: HTTP traffic
  - `443/tcp`: HTTPS traffic
 
+# Configuration - Docker network
+
+Run the following command before starting this service or any service depends 
+on traefik
+
+```bash
+docker network create -d bridge traefik
+```
+
 Do not expose port 8080 to public internet. That should be kept private.
 
 # Starting
