@@ -1,0 +1,32 @@
+version: "3.5"
+
+services:
+  traefik:
+    image: "traefik:v2.1.3"
+    container_name: "traefik"
+    command:
+      - "--api.insecure=true"
+
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+
+      - "--certificatesresolvers.myhttpchallenge.acme.httpchallenge=true"
+      - "--certificatesresolvers.myhttpchallenge.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.myhttpchallenge.acme.email=${EMAIL}"
+      - "--certificatesresolvers.myhttpchallenge.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "letsencrypt:/letsencrypt"
+
+volumes:
+  letsencrypt:
+    driver: local-persist
+    driver_opts:
+      mountpoint: ${BASE_PATH:?"Base path not defined"}/letsencrypt
