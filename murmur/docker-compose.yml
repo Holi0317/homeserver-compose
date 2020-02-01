@@ -19,16 +19,16 @@ volumes:
   murmur-cert:
     driver: local-persist
     driver_opts:
-      mountpoint: ${BASE_PATH}/murmur/cert
+      mountpoint: ${BASE_PATH?"Base path not defined"}/murmur/cert
   murmur-config:
     driver: local-persist
     driver_opts:
-      mountpoint: ${BASE_PATH}/murmur/config
+      mountpoint: ${BASE_PATH?"Base path not defined"}/murmur/config
   murmur-data:
     driver: local-persist
     driver_opts:
-      mountpoint: ${BASE_PATH}/murmur/data
+      mountpoint: ${BASE_PATH?"Base path not defined"}/murmur/data
   murmur-log:
     driver: local-persist
     driver_opts:
-      mountpoint: ${BASE_PATH}/murmur/log
+      mountpoint: ${BASE_PATH?"Base path not defined"}/murmur/log
