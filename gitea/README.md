@@ -4,6 +4,16 @@
 
 This document will guide how to set up Gitea service.
 
+# Configuration - Firewall
+
+The following ports need to be exposed:
+
+ - `17022/tcp`: SSH for read-write of repository
+
+Note that this module depends on [traefik] for outbound HTTP access.
+
+[traefik]: (../traefik/README.md)
+
 # Configuration - Environment config
 
 Ensure `GITEA_DB_PASS` is populated in `.envrc`
@@ -16,7 +26,7 @@ docker-compose up -d
 
 This should start all services in this package.
 
-Remember to start traefik before proceeding.
+Remember to start [traefik] before proceeding.
 
 Navigate to `git.holi0317.net` and press login.
 A setup page should be shown where some config is pre-populated. Don't touch

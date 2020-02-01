@@ -7,9 +7,14 @@
 Any HTTP service requires this service to be started for serving in the 
 Internet.
 
-# Configuration
+# Configuration - Firewall
 
-There is no configuration required for this service
+The following ports need to be exposed:
+
+ - `80/tcp`: HTTP traffic
+ - `443/tcp`: HTTPS traffic
+
+Do not expose port 8080 to public internet. That should be kept private.
 
 # Starting
 

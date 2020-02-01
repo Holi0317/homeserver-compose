@@ -15,6 +15,13 @@ There are 3 services for this module:
 [php-fpm]: https://hub.docker.com/\_/php/
 [nginx]: https://hub.docker.com/\_/nginx
 
+# Configuration - Firewall
+
+No extra port is required. However, this module depends on [traefik] for
+outbound HTTP access.
+
+[traefik]: ../traefik/README.md
+
 # Configuration - Environment config
 
 Ensure `NC_DB_PASS` is populated in `.envrc`
@@ -41,7 +48,7 @@ Start all services by:
 docker-compose up -d
 ```
 
-Remember to start traefik before proceeding
+Remember to start [traefik] before proceeding
 
 Navigate to `nc.holi0317.net` and setup page should be shown. Input following 
 information. Some fields may be already filled:

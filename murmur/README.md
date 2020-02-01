@@ -7,7 +7,16 @@
 
 This document will guide how to setup murmur service
 
-Note that murmur does not require traefik as it is not a HTTP service
+Note that murmur does not require [traefik] as it is not a HTTP service
+
+[traefik]: ../traefik/README.md
+
+# Configuration - Firewall
+
+The following ports need to be exposed:
+
+ - `64738/tcp`: murmur access
+ - `64738/udp`: murmur access
 
 # Configuration - First run
 
