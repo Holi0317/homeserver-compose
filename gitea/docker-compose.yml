@@ -37,6 +37,7 @@ services:
       - "traefik.http.routers.gitea.entrypoints=web,websecure"
       - "traefik.http.routers.gitea.tls.certresolver=myhttpchallenge"
       - "traefik.http.routers.gitea.middlewares=gitea-headers,compress,https-redirect"
+      - "traefik.http.routers.gitea.tls.options=default@file"
       - "traefik.http.middlewares.gitea-headers.headers.accessControlAllowOrigin=null"
       - "traefik.http.middlewares.gitea-headers.headers.sslRedirect=true"
       - "traefik.http.middlewares.gitea-headers.headers.contentTypeNosniff=true"
