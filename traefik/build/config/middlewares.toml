@@ -11,3 +11,6 @@
     contentSecurityPolicy = "upgrade-insecure-requests"
     stsSeconds = 31536000
     framedeny = true
+
+    [http.middlewares.secure_head.headers.customResponseHeaders]
+      Referrer-Policy = "no-referrer"
