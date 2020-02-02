@@ -36,15 +36,7 @@ services:
       - "traefik.http.routers.gitea.rule=Host(`git.holi0317.net`)"
       - "traefik.http.routers.gitea.entrypoints=websecure"
       - "traefik.http.routers.gitea.tls.certresolver=myhttpchallenge"
-      - "traefik.http.routers.gitea.middlewares=gitea-headers,compress"
-      - "traefik.http.middlewares.gitea-headers.headers.accessControlAllowOrigin=null"
-      - "traefik.http.middlewares.gitea-headers.headers.sslRedirect=true"
-      - "traefik.http.middlewares.gitea-headers.headers.contentTypeNosniff=true"
-      - "traefik.http.middlewares.gitea-headers.headers.browserXssFilter=true"
-      - "traefik.http.middlewares.gitea-headers.headers.contentSecurityPolicy=upgrade-insecure-requests"
-      - "traefik.http.middlewares.gitea-headers.headers.stsSeconds=31536000"
-      - "traefik.http.middlewares.gitea-headers.headers.framedeny=true"
-      - "traefik.http.middlewares.compress.compress=true"
+      - "traefik.http.routers.gitea.middlewares=compress@file,secure_head@file"
 
   postgres:
     image: postgres:12-alpine

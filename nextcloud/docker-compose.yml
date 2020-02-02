@@ -46,17 +46,8 @@ services:
       - "traefik.http.routers.nc.rule=Host(`nc.holi0317.net`)"
       - "traefik.http.routers.nc.entrypoints=websecure"
       - "traefik.http.routers.nc.tls.certresolver=myhttpchallenge"
-      - "traefik.http.routers.nc.middlewares=nc-headers,compress,https-redirect"
-      - "traefik.http.middlewares.nc-headers.headers.accessControlAllowOrigin=null"
-      - "traefik.http.middlewares.nc-headers.headers.sslRedirect=true"
-      - "traefik.http.middlewares.nc-headers.headers.contentTypeNosniff=true"
-      - "traefik.http.middlewares.nc-headers.headers.browserXssFilter=true"
-      - "traefik.http.middlewares.nc-headers.headers.contentSecurityPolicy=upgrade-insecure-requests"
-      - "traefik.http.middlewares.nc-headers.headers.stsSeconds=31536000"
-      - "traefik.http.middlewares.nc-headers.headers.customrequestheaders.X-Frame-Options=SAMEORIGIN"
-      - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.https-redirect.redirectscheme.permanent=true"
-      - "traefik.http.middlewares.compress.compress=true"
+      - "traefik.http.routers.nc.middlewares=compress@file,secure_head@file,nc-headers"
+      - "traefik.http.middlewares.nc-headers.headers.customFrameOptionsValue=SAMEORIGIN"
 
 volumes:
   asset:

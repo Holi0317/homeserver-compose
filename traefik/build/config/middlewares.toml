@@ -1,0 +1,13 @@
+[http.middlewares]
+  # Middleware compress@file - Enable gzip compress
+  [http.middlewares.compress.compress]
+
+  # Middleware secure_head@file - Security headers
+  [http.middlewares.secure_head.headers]
+    accessControlAllowOrigin = "null"
+    sslRedirect = true
+    contentTypeNosniff = true
+    browserXssFilter = true
+    contentSecurityPolicy = "upgrade-insecure-requests"
+    stsSeconds = 31536000
+    framedeny = true
