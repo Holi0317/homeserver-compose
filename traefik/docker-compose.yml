@@ -19,6 +19,14 @@ services:
       - "--certificatesresolvers.myhttpchallenge.acme.httpchallenge.entrypoint=web"
       - "--certificatesresolvers.myhttpchallenge.acme.email=${EMAIL}"
       - "--certificatesresolvers.myhttpchallenge.acme.storage=/letsencrypt/acme.json"
+
+    labels:
+      traefik.enable: true
+      traefik.http.routers.http_catchall.rule: HostRegexp(`{any:.+}`)
+      traefik.http.routers.http_catchall.entrypoints: web
+      traefik.http.routers.http_catchall.middlewares: https_redirect
+      traefik.http.middlewares.https_redirect.redirectscheme.scheme: https
+      traefik.http.middlewares.https_redirect.redirectscheme.permanent: true
     ports:
       - "80:80"
       - "443:443"

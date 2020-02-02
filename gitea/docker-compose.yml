@@ -34,10 +34,9 @@ services:
       - "traefik.http.services.gitea.loadbalancer.server.port=3000"
       - "traefik.docker.network=traefik"
       - "traefik.http.routers.gitea.rule=Host(`git.holi0317.net`)"
-      - "traefik.http.routers.gitea.entrypoints=web,websecure"
+      - "traefik.http.routers.gitea.entrypoints=websecure"
       - "traefik.http.routers.gitea.tls.certresolver=myhttpchallenge"
-      - "traefik.http.routers.gitea.middlewares=gitea-headers,compress,https-redirect"
-      - "traefik.http.routers.gitea.tls.options=default@file"
+      - "traefik.http.routers.gitea.middlewares=gitea-headers,compress"
       - "traefik.http.middlewares.gitea-headers.headers.accessControlAllowOrigin=null"
       - "traefik.http.middlewares.gitea-headers.headers.sslRedirect=true"
       - "traefik.http.middlewares.gitea-headers.headers.contentTypeNosniff=true"
@@ -45,8 +44,6 @@ services:
       - "traefik.http.middlewares.gitea-headers.headers.contentSecurityPolicy=upgrade-insecure-requests"
       - "traefik.http.middlewares.gitea-headers.headers.stsSeconds=31536000"
       - "traefik.http.middlewares.gitea-headers.headers.framedeny=true"
-      - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.https-redirect.redirectscheme.permanent=true"
       - "traefik.http.middlewares.compress.compress=true"
 
   postgres:
