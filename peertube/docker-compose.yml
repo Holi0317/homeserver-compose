@@ -2,7 +2,7 @@ version: "3.5"
 
 services:
   peertube:
-    image: chocobozzz/peertube:production-stretch
+    image: chocobozzz/peertube:production-buster
     restart: always
     environment:
       - PEERTUBE_DB_USERNAME=peertube
