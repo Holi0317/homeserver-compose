@@ -9,7 +9,6 @@ re() {
 }
 
 re gitea
-re jellyfin
 re murmur
 re nextcloud
 re peertube
