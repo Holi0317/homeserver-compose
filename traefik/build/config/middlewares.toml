@@ -14,3 +14,4 @@
 
     [http.middlewares.secure_head.headers.customResponseHeaders]
       Referrer-Policy = "no-referrer"
+      X-Powered-By = ""
