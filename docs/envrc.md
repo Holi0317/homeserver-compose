@@ -41,4 +41,9 @@ export GITEA_DB_PASS=
 # Generate a random string here if nextcloud services will be started
 # Otherwise leave this as blank
 export NC_DB_PASS=
+
+# Password for peertube service's database
+# Generate a random string here if peertube services will be started
+# Otherwise leave this as blank
+export PEERTUBE_DB_PASS=
 ```
