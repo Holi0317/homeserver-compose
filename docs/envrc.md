@@ -46,4 +46,19 @@ export NC_DB_PASS=
 # Generate a random string here if peertube services will be started
 # Otherwise leave this as blank
 export PEERTUBE_DB_PASS=
+
+# Password for wallabag service's database
+# Generate a random string here if wallabag services will be started
+# Otherwise leave this as blank
+export WALLABAG_DB_PASS=
+
+# Password for wallabag service's redis
+# Generate a random string here if wallabag services will be started
+# Otherwise leave this as blank
+export WALLABAG_REDIS_PASS=
+
+# Wallbag secret for secret-related operations
+# Generate a random string here if wallabag service will be started
+# Oterwise leave this as blank
+export WALLABAG_SECRET=
 ```

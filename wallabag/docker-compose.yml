@@ -1,0 +1,77 @@
+version: "3.5"
+
+services:
+  wallabag:
+    image: wallabag/wallabag
+    environment:
+      - MYSQL_ROOT_PASSWORD=${WALLABAG_DB_PASS?"WALLABAG_DB_PASS undefined"}
+
+      - SYMFONY__ENV__DATABASE_DRIVER=pdo_mysql
+      - SYMFONY__ENV__DATABASE_HOST=mariadb
+      - SYMFONY__ENV__DATABASE_PORT=3306
+      - SYMFONY__ENV__DATABASE_NAME=wallabag
+      - SYMFONY__ENV__DATABASE_USER=wallabag
+      - SYMFONY__ENV__DATABASE_PASSWORD=${WALLABAG_DB_PASS?"WALLABAG_DB_PASS undefined"}
+      - SYMFONY__ENV__DATABASE_CHARSET=utf8mb4
+
+      - "SYMFONY__ENV__DOMAIN_NAME=https://bag.holi0317.net"
+      - SYMFONY__ENV__SECRET=${WALLABAG_SECRET?"Wallabag secret not defined"}
+      - SYMFONY__ENV__FOSUSER_REGISTRATION=false
+      - SYMFONY__ENV__FOSUSER_CONFIRMATION=false
+
+      - SYMFONY__ENV__REDIS_HOST=redis
+      - SYMFONY__ENV__REDIS_PASSWORD=${WALLABAG_REDIS_PASS?"WALLABAG_REDIS_PASS undefined"}
+    restart: always
+    volumes:
+      - wallabag-imgs:/var/www/wallabag/web/assets/images
+    depends_on:
+      - mariadb
+      - redis
+    networks:
+      - traefik
+      - default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+      - "traefik.http.routers.wallabag.rule=Host(`bag.holi0317.net`)"
+      - "traefik.http.routers.wallabag.entrypoints=websecure"
+      - "traefik.http.routers.wallabag.tls.certresolver=myhttpchallenge"
+      - "traefik.http.routers.wallabag.middlewares=compress@file,secure_head@file"
+
+
+  mariadb:
+    image: mariadb:10
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=${WALLABAG_DB_PASS?"WALLABAG_DB_PASS undefined"}
+    volumes:
+      - mariadb:/var/lib/mysql
+    networks:
+      - default
+
+  redis:
+    image: redis:alpine
+    restart: always
+    volumes:
+      - redis:/data
+    command: "redis-server --appendonly yes --requirepass ${WALLABAG_REDIS_PASS?'WALLABAG_REDIS_PASS undefined'}"
+
+volumes:
+  wallabag-imgs:
+    driver: local-persist
+    driver_opts:
+      mountpoint: ${BASE_PATH?"Base path not defined"}/wallabag/images
+  mariadb:
+    driver: local-persist
+    driver_opts:
+      mountpoint: ${BASE_PATH?"Base path not defined"}/wallabag/mariadb
+  redis:
+    driver: local-persist
+    driver_opts:
+      mountpoint: ${BASE_PATH?"Base path not defined"}/wallabag/redis
+
+networks:
+  traefik:
+    external:
+      name: traefik
+  default:
