@@ -48,6 +48,7 @@ services:
       - "traefik.http.routers.nc.tls.certresolver=myhttpchallenge"
       - "traefik.http.routers.nc.middlewares=compress@file,secure_head@file,nc-headers"
       - "traefik.http.middlewares.nc-headers.headers.customFrameOptionsValue=SAMEORIGIN"
+      - "traefik.http.middlewares.nc-headers.headers.stsSeconds=31536000"
 
 volumes:
   asset:
