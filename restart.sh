@@ -12,5 +12,4 @@ re gitea
 re murmur
 re nextcloud
 re peertube
-re wallabag
 re traefik
