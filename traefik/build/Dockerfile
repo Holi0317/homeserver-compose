@@ -1,3 +1,3 @@
-FROM traefik:v2.1
+FROM traefik
 
 COPY config /traefik-cfgs
