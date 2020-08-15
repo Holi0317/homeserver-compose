@@ -24,7 +24,7 @@ services:
       - redis
       # - postfix
     labels:
-      traefik.enable: true
+      traefik.enable: "true"
       traefik.http.services.peertube.loadbalancer.server.port: 9000
       traefik.docker.network: traefik
       traefik.http.routers.peertube.rule: Host(`pt.holi0317.net`)
@@ -45,16 +45,11 @@ services:
       - POSTGRES_PASSWORD=${PEERTUBE_DB_PASS?"Peertube database password not defined"}
 
   redis:
-    image: redis:5-alpine
+    image: redis:6-alpine
     volumes:
       - redis:/data
     restart: always
-
-  # postfix:
-  #   image: mwader/postfix-relay
-  #   labels:
-  #     traefik.enable: "false"
-  #   restart: "always"
+    command: ["redis-server", "--appendonly", "yes"]
 
 volumes:
   peertube-config:
