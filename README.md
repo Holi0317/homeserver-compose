@@ -9,7 +9,6 @@ __NOTE__: I am not an official maintainer of any of the project used here.
 Following services are available:
  - [Nextcloud](docs/nextcloud.md)
  - [Gitea](docs/gitea.md)
- - [Murmur](docs/murmur.md)
 
 ## WARNING FOR BREAKING CHANGES
 
