@@ -39,7 +39,7 @@ services:
       - "traefik.http.routers.gitea.middlewares=compress@file,secure_head@file"
 
   postgres:
-    image: postgres:12-alpine
+    image: postgres:13-alpine
     restart: always
     volumes:
       - postgres:/var/lib/postgresql/data

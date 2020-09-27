@@ -19,28 +19,43 @@ Luckily, there are some effort for making upgrade in docker easier and manageabl
 
 ## 1. Stop all services using the database
 
-Just run down on the module
+Just run `down` on the module
 
 ```bash
 docker-compose down
 ```
 
-## 1. Preparation - Backup and rename folder
+## 2. Preparation - Backup postgres
 
-Backup using [pg_dump]. Then rename the database directory.
+Backup using [pg_dump]. Adopt the following snippet and run it:
 
-In this example, we will simulate upgrading from version 11 to 12.
+```bash
+docker-compose up -d postgres
+docker-compose exec postgres pg_dump -U myuser -F t myser > dump.tar
+docker-compose down
+```
 
-The directory for old database file is `dbdata-11` and the new one is `dbdata-12`.
+That would create a dump to `dump.tar`. Save it in case the migration failed.
 
 [pg_dump]: https://www.postgresql.org/docs/current/app-pgdump.html
 
+## 3. Preparation - Rename folder
+
+The data folder for old and new postgres is expected to be different.
+
+In this example, we will simulate upgrading from version 11 to 12.
+
+The directory for old database file is `pg11` and the new one is `pg12`.
+
 The new database folder could be empty as the docker container will initialize new database.
 
-## 2. Preparation - Fix permission
+## 4. Preparation - Fix permission
 
-Seems that the script will fix permission for us. But for the reference, change all folders
-and files owner and group to `999:999` in both old and new database folder.
+Seems that the script is based on debian instead of alpine. Therefore postgres user is
+at ID `999:999` instead of `70:70`.
+
+Although the script will fix permission for us, we would like to play safe.
+Change all folders and files permission to `999:999` in both new and old database folder
 
 # Execution
 
@@ -53,8 +68,8 @@ Run the following script (Assuming 11 to 12)
 ```bash
 docker run --rm \
   -e PGUSER=myuser -e POSTGRES_INITDB_ARGS="-U myuser" \
-  --mount type=bind,source="$(pwd)/dbdata-11",target=/var/lib/postgresql/11/data \
-  --mount type=bind,source="$(pwd)/dbdata-12",target=/var/lib/postgresql/12/data \
+  --mount type=bind,source="$(pwd)/pg11",target=/var/lib/postgresql/11/data \
+  --mount type=bind,source="$(pwd)/pg12",target=/var/lib/postgresql/12/data \
   tianon/postgres-upgrade:11-to-12
 ```
 
@@ -73,7 +88,15 @@ user name. See the description in [tianon/docker-postgres-upgrade#10].
 ## Permission
 
 Remember we used `999:999` for owner and group? Revert those change and use 
-`root:root` for owners.
+`70:70` for owners.
+
+## Folder rename
+
+Rename the folder `pg12` to `postgres` so that compose file can reference to it correctly.
+
+## Upgrade image tag in compose
+
+Just upgrade the image tag to the new version. We are upgrading to a new version, right?
 
 ## Fixing pg_hba.conf error
 
@@ -82,3 +105,13 @@ in order to make things to work.
 
 After upgrading, diff the `pg_hba.conf` file and update new file accordingly. Otherwise, services may
 fail to connect to database.
+
+That should add the following line at the end of the file:
+
+```
+host all all all md5
+```
+
+# Validate and remove backup
+
+Try the running the service. If everything is fine, remove the old database folder and backup.
