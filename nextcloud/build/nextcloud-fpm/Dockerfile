@@ -8,7 +8,7 @@ RUN addgroup -g 2000 nextcloud \
     alpine-sdk \
     supervisor \
     bzip2-dev \
-    imagemagick-dev \
+    imagemagick6-dev \
     libtool \
     libltdl \
   && docker-php-ext-install bz2 \
