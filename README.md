@@ -7,8 +7,9 @@ This branch, `traefik` is in migration process. Docs may not be up-to-date.
 __NOTE__: I am not an official maintainer of any of the project used here.
 
 Following services are available:
- - [Nextcloud](docs/nextcloud.md)
- - [Gitea](docs/gitea.md)
+
+- [Nextcloud](nextcloud/README.md)
+- [Gitea](gitea/README.md)
 
 ## WARNING FOR BREAKING CHANGES
 
