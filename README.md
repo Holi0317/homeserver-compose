@@ -4,7 +4,7 @@ My homeserver docker-compose file and their documentation.
 
 This branch, `traefik` is in migration process. Docs may not be up-to-date.
 
-__NOTE__: I am not an official maintainer of any of the project used here.
+**NOTE**: I am not an official maintainer of any of the project used here.
 
 Following services are available:
 
@@ -16,7 +16,7 @@ Following services are available:
 ## WARNING FOR BREAKING CHANGES
 
 If you choose to use this configuration file, please be noted that I may introduce breaking changes
-now and then without notice. Migration guide would _NOT_ be provided. Only 
+now and then without notice. Migration guide would _NOT_ be provided. Only
 initial setup guide is guaranteed to be updated with configuration changes.
 
 ## General assumption
@@ -30,13 +30,13 @@ Other than the provided `docker-compose.yml` file, this repository also serves a
 of documentation for setting up services for _my use case_. Here are some general advice for
 "How to use this repository".
 
- 1. If you want to replicate my set up, read through __ALL__ documents and look for setup guide.
-    I am not making a separate "quickstart guide" because you __must__ understand how to manage
+1.  If you want to replicate my set up, read through **ALL** documents and look for setup guide.
+    I am not making a separate "quickstart guide" because you **must** understand how to manage
     all service before deploy. There is no "set and forget" in hosting world.
- 2. It is _highly recommended_ to fork this repository if you wish to use my 
-    setup. Because I will not provide support on migration between commits. 
- 3. Documentation for non-service configuration are provided under `docs/` 
-    directory. For each services, there's a `README.md` file for setup and 
+2.  It is _highly recommended_ to fork this repository if you wish to use my
+    setup. Because I will not provide support on migration between commits.
+3.  Documentation for non-service configuration are provided under `docs/`
+    directory. For each services, there's a `README.md` file for setup and
     troubleshooting. In case of failure, consult the official documentation.
 
 ## General docker-compose command reminder

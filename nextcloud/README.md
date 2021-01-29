@@ -12,8 +12,8 @@ There are 3 services for this module:
 - nextcloud: [nginx] reverse proxy for serving fpm and static assets
 - postgres: Database for php
 
-[php-fpm]: https://hub.docker.com/\_/php/
-[nginx]: https://hub.docker.com/\_/nginx
+[php-fpm]: https://hub.docker.com/_/php/
+[nginx]: https://hub.docker.com/_/nginx
 
 # Configuration - Firewall
 
@@ -35,10 +35,10 @@ The host system may add nextcloud user for easier management in filesystem.
 
 Check the documentation of your distribution for instruction on adding user.
 
- - uid: 2000
- - gid: 2000
- - group: nextcloud
- - Shell: nologin
+- uid: 2000
+- gid: 2000
+- group: nextcloud
+- Shell: nologin
 
 ## 2. Run initialize process of nextcloud
 
@@ -50,27 +50,27 @@ docker-compose up -d
 
 Remember to start [traefik] before proceeding
 
-Navigate to `nc.holi0317.net` and setup page should be shown. Input following 
+Navigate to `nc.holi0317.net` and setup page should be shown. Input following
 information. Some fields may be already filled:
 
- - Admin user and password: As you like
- - Data folder: `/var/data`
- - Database: `PostgreSQL`
- - Database user: `nextcloud`
- - Database password: `NC_DB_PASS` in `.envrc`
- - Database name: `nextcloud`
- - Database host: `postgres:5432`
+- Admin user and password: As you like
+- Data folder: `/var/data`
+- Database: `PostgreSQL`
+- Database user: `nextcloud`
+- Database password: `NC_DB_PASS` in `.envrc`
+- Database name: `nextcloud`
+- Database host: `postgres:5432`
 
 ## 3. Configure nextcloud
 
 Set the following in nextcloud settings:
 
- - Basic settings -> Background jobs: Cron
- - Basic settings -> Email server
+- Basic settings -> Background jobs: Cron
+- Basic settings -> Email server
 
 ## 4. Edit `config.php`
 
-Edit `${BASE_DIR}/nextcloud/asset/config/config.php` and append the following 
+Edit `${BASE_DIR}/nextcloud/asset/config/config.php` and append the following
 snippet to the end, before the line `);`
 
 ```php
@@ -85,7 +85,7 @@ snippet to the end, before the line `);`
   'overwriteprotocol' => 'https',
 ```
 
-Remark: I am not sure what to fill in to the `trusted_proxies` key as ip of the 
+Remark: I am not sure what to fill in to the `trusted_proxies` key as ip of the
 container should not be fixed.
 Just remember to test reverse proxy is aware by nextcloud by issuing an invalid login and check the log.
 If the log entry shows correct ip address, then the configuration should be fine.
@@ -96,20 +96,20 @@ If the log entry shows correct ip address, then the configuration should be fine
 
 To change data path inside container, nextcloud installation must be reset.
 
-This process is only necessary for *misconfiguration* in first run!
+This process is only necessary for _misconfiguration_ in first run!
 
-For correct configuration (with correct data folder set in setup), change data 
+For correct configuration (with correct data folder set in setup), change data
 storage path would be:
 
 1. Move all files to new destination
 2. Change variable `$BASE_PATH` in `.envrc`
 
-For misconfiguration, stop nextcloud and remove `${BASE_PATH}/nextcloud`. Then 
+For misconfiguration, stop nextcloud and remove `${BASE_PATH}/nextcloud`. Then
 restart nextcloud and run configuration process
 
 ## Management command (occ)
 
-`occ` is the command interface for managing nextcloud instance. Especially for 
+`occ` is the command interface for managing nextcloud instance. Especially for
 maintenance work.
 See [documentation](https://docs.nextcloud.com/server/13/admin_manual/configuration_server/occ_command.html).
 

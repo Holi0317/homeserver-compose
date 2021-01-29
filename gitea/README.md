@@ -8,7 +8,7 @@ This document will guide how to set up Gitea service.
 
 The following ports need to be exposed:
 
- - `17022/tcp`: SSH for read-write of repository
+- `17022/tcp`: SSH for read-write of repository
 
 Note that this module depends on [traefik] for outbound HTTP access.
 

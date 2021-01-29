@@ -1,6 +1,6 @@
 # Upgrading major version of postgreSQL
 
-This documentation applies to services that requires postgreSQL database. 
+This documentation applies to services that requires postgreSQL database.
 Including [nextcloud] and [gitea].
 
 [nextcloud]: ../nextcloud/README.md
@@ -75,7 +75,7 @@ docker run --rm \
 
 Change version number accordingly for actual upgrade combination.
 
-Replace `myuser` with the service name. We are using service name as the 
+Replace `myuser` with the service name. We are using service name as the
 username in database.
 
 Note that we have added a few environment variables as we are not using `postgres` as root
@@ -87,7 +87,7 @@ user name. See the description in [tianon/docker-postgres-upgrade#10].
 
 ## Permission
 
-Remember we used `999:999` for owner and group? Revert those change and use 
+Remember we used `999:999` for owner and group? Revert those change and use
 `70:70` for owners.
 
 ## Folder rename
