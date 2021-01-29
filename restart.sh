@@ -12,3 +12,4 @@ re gitea
 re nextcloud
 re peertube
 re traefik
+re ddns
