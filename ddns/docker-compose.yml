@@ -1,0 +1,8 @@
+version: "3.5"
+
+services:
+  cf-ddns:
+    image: "registry.gitlab.com/holi0317/cf-ddns"
+    restart: "always"
+    volumes:
+      - "./cf-ddns.toml:/cf-ddns.toml"

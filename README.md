@@ -10,6 +10,8 @@ Following services are available:
 
 - [Nextcloud](nextcloud/README.md)
 - [Gitea](gitea/README.md)
+- [peertube](peertube/README.md)
+- [cf-ddns](ddns/README.md)
 
 ## WARNING FOR BREAKING CHANGES
 
