@@ -44,6 +44,26 @@ services:
       - POSTGRES_DB=peertube
       - POSTGRES_PASSWORD=${PEERTUBE_DB_PASS?"Peertube database password not defined"}
 
+  pgbackups:
+    image: "prodrigestivill/postgres-backup-local:13-alpine"
+    restart: "always"
+    volumes:
+      - "pgbackups:/backups"
+    depends_on:
+      - "postgres"
+    networks:
+      - "default"
+    environment:
+      - "POSTGRES_HOST=postgres"
+      - "POSTGRES_DB=peertube"
+      - "POSTGRES_USER=peertube"
+      - "POSTGRES_PASSWORD=${PEERTUBE_DB_PASS?'Peertube database password not defined'}"
+      - "POSTGRES_EXTRA_OPTS=-Z9 --schema=public --blobs"
+      - "SCHEDULE=@daily"
+      - "BACKUP_KEEP_DAYS=7"
+      - "BACKUP_KEEP_WEEKS=4"
+      - "BACKUP_KEEP_MONTHS=6"
+
   redis:
     image: redis:6-alpine
     volumes:
@@ -64,6 +84,10 @@ volumes:
     driver: local-persist
     driver_opts:
       mountpoint: ${BASE_PATH?"Base path not defined"}/peertube/postgres
+  pgbackups:
+    driver: "local-persist"
+    driver_opts:
+      mountpoint: ${BASE_PATH?"Base path not defined"}/peertube/pg_backups
   redis:
     driver: local-persist
     driver_opts:
