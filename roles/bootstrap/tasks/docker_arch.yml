@@ -1,0 +1,9 @@
+---
+- name: "Install docker"
+  community.general.pacman:
+    name:
+      - "docker"
+      - "python-docker"
+    # Use present instead of latest as we don't want to upgrading the whole system every time
+    state: "present"
+    update_cache: true

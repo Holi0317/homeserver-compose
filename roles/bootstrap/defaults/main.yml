@@ -1,0 +1,4 @@
+---
+# defaults file for bootstrap
+service_base_path: "{{ (storage_root, service_name) | path_join }}"
+service_network: "{{ service_name }}"

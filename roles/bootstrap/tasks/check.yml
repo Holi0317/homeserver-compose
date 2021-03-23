@@ -1,0 +1,18 @@
+---
+# Sanity check for bootstrap role
+- name: "Fail if we are not in x86_64"
+  assert:
+    fail_msg: "Only x86_64 architecture is supported at the moment"
+    that:
+      - "ansible_architecture == 'x86_64'"
+
+- name: "Fail if required variables are undefined"
+  loop:
+    - "storage_root"
+    - "service_name"
+  assert:
+    fail_msg: "Required variable {{ item }} should be defined and must not be empty string"
+    that:
+      - "item in vars"
+      - "vars[item] is not none"
+      - "vars[item] | length > 0"

@@ -1,0 +1,33 @@
+---
+# tasks file for bootstrap
+- import_tasks: "{{ role_path }}/tasks/check.yml"
+
+- include_tasks: "{{ role_path }}/tasks/docker_arch.yml"
+  when: "ansible_distribution == 'ArchLinux'"
+
+- include_tasks: "{{ role_path }}/tasks/docker_ubuntu.yml"
+  when: "ansible_distribution == 'Ubuntu'"
+
+- name: "Ensure Docker is started"
+  service:
+    name: "docker"
+    state: "started"
+    enabled: true
+
+- name: "Create base directory"
+  become: true
+  when: "service_base_path | default('', true) | length > 0 "
+  file:
+    path: "{{ service_base_path }}"
+    owner: "root"
+    group: "root"
+    mode: "755"
+    state: "directory"
+
+- name: "Create service docker network"
+  when: "service_network | default('', true) | length > 0"
+  community.docker.docker_network:
+    name: "{{ service_network }}"
+    driver: "bridge"
+    scope: "local"
+    state: "present"
