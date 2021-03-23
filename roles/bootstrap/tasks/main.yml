@@ -9,6 +9,7 @@
   when: "ansible_distribution == 'Ubuntu'"
 
 - name: "Ensure Docker is started"
+  become: true
   service:
     name: "docker"
     state: "started"
@@ -25,6 +26,7 @@
     state: "directory"
 
 - name: "Create service docker network"
+  become: true
   when: "service_network | default('', true) | length > 0"
   community.docker.docker_network:
     name: "{{ service_network }}"
