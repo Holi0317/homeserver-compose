@@ -20,6 +20,7 @@ for other roles.
 
 - Distribution is Arch or Ubuntu. Others distribution can still run this role.
   But need to setup docker by themselves
+- Ansible >= 2.10 (Tested on 2.10)
 
 ## Input role variables
 
