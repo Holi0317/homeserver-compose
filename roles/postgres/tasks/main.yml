@@ -1,0 +1,73 @@
+---
+# tasks file for postgres
+- import_tasks: "{{ role_path }}/tasks/check.yml"
+
+- name: "Create postgres directories"
+  become: true
+  loop:
+    - "{{ postgres_base_path }}"
+    - "{{ postgres_data_path }}"
+    - "{{ postgres_backup_path }}"
+  file:
+    path: "{{ item }}"
+    owner: "70"
+    group: "70"
+    mode: "700"
+    state: "directory"
+
+- name: "Create docker network for postgres containers"
+  become: true
+  community.docker.docker_network:
+    name: "{{ postgres_network }}"
+    driver: "bridge"
+    scope: "local"
+    state: "present"
+
+- name: "Start postgres container"
+  become: true
+  community.docker.docker_container:
+    state: "started"
+    name: "{{ postgres_container_name }}"
+
+    image: "{{ postgres_image }}"
+    pull: true
+
+    # Prepare for docker plugin v2 change
+    container_default_behavior: "no_defaults"
+    auto_remove: false
+    detach: true
+    init: false
+    interactive: false
+    memory: "0"
+    paused: false
+    privileged: false
+    read_only: false
+    tty: false
+
+    restart_policy: "on-failure"
+    restart_retries: 3
+    user: "70:70"
+    network_mode: "{{ postgres_network }}"
+    networks:
+      - name: "{{ postgres_network }}"
+        aliases:
+          - "postgres"
+    mounts:
+      - source: "{{ postgres_data_path }}"
+        target: "/var/lib/postgresql/data"
+        type: "bind"
+    env:
+      POSTGRES_USER: "{{ postgres_user }}"
+      POSTGRES_DB: "{{ postgres_database }}"
+      POSTGRES_PASSWORD: "{{ postgres_password }}"
+      POSTGRES_INITDB_ARGS: "{{ postgres_initdb_args }}"
+
+# This assumes the docker command is targeting the same host as docker ansible modules.
+# Which might not always be the case.
+- name: "Wait for postgres to be up"
+  become: true
+  command: "docker exec {{ postgres_container_name|quote }} pg_isready"
+  register: "pg_up"
+  until: "pg_up.rc == 0"
+  retries: 20
+  delay: 3

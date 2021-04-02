@@ -1,0 +1,9 @@
+---
+# Sanity check for postgres role
+
+- name: "Ensure password is set"
+  assert:
+    fail_msg: "Required variable postgres_password is empty. Please set it as role parameter"
+    that:
+      - "postgres_password | length > 0"
+

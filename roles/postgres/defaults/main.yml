@@ -1,0 +1,21 @@
+---
+# defaults file for postgres
+postgres_version: "13"
+postgres_image: "postgres:{{ postgres_version }}-alpine"
+postgres_container_name: "{{ service_name }}_postgres_1"
+postgres_user: "postgres"
+postgres_database: "{{ postgres_user }}"
+postgres_password: ""
+postgres_network: "{{ service_network }}"
+postgres_initdb_args: ""
+
+postgres_base_path: "{{ (service_base_path, 'postgres') | path_join }}"
+postgres_data_path: "{{ (postgres_base_path, postgres_version) | path_join }}"
+postgres_backup_path: "{{ (postgres_base_path, 'backups') | path_join }}"
+
+postgres_backup_extra_opts: "-Z9 --schema=public --blobs"
+postgres_backup_schedule: "@daily"
+postgres_backup_keep:
+  days: "7"
+  weeks: "4"
+  months: "6"
