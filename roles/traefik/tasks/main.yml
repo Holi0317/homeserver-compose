@@ -1,0 +1,97 @@
+---
+# tasks file for traefik
+
+- name: "Create directory for storing let's encrypt certs"
+  become: true
+  file:
+    path: "{{ traefik_le_path }}"
+    state: "directory"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+- name: "Create traefik build directory"
+  become: true
+  file:
+    path: "{{ traefik_build_path }}"
+    state: "directory"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+- name: "Copy traefik Dockerfile and required files"
+  become: true
+  copy:
+    src: "{{ role_path }}/files/"
+    dest: "{{ traefik_build_path }}"
+
+- name: "Build traefik container image"
+  become: true
+  community.docker.docker_image:
+    name: "registry.gitlab.com/holi0317/homeserver-compose/traefik"
+    build:
+      path: "{{ traefik_build_path }}"
+      pull: true
+    source: "build"
+    state: "present"
+
+- name: "Create traefik container"
+  become: true
+  community.docker.docker_container:
+    state: "started"
+    name: "traefik"
+    image: "registry.gitlab.com/holi0317/homeserver-compose/traefik"
+
+    # Prepare for docker plugin v2 change
+    container_default_behavior: "no_defaults"
+    auto_remove: false
+    detach: true
+    init: false
+    interactive: false
+    memory: "0"
+    paused: false
+    privileged: false
+    read_only: false
+    tty: false
+
+    restart_policy: "on-failure"
+    restart_retries: 3
+    network_mode: "{{ service_network }}"
+    networks:
+      - name: "{{ service_network }}"
+    mounts:
+      - source: "/var/run/docker.sock"
+        target: "/var/run/docker.sock"
+        type: "bind"
+        read_only: true
+      - source: "{{ traefik_le_path }}"
+        target: "/letsencrypt"
+        type: "bind"
+    published_ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+
+    command:
+      - "--api.insecure=true"
+      # - "--log.level=DEBUG"
+      - "--providers.file.directory=/traefik-cfgs"
+
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+
+      - "--certificatesresolvers.myhttpchallenge.acme.httpchallenge=true"
+      - "--certificatesresolvers.myhttpchallenge.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.myhttpchallenge.acme.email={{ traefik_email }}"
+      - "--certificatesresolvers.myhttpchallenge.acme.storage=/letsencrypt/acme.json"
+
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.http_catchall.rule: "HostRegexp(`{any:.+}`)"
+      traefik.http.routers.http_catchall.entrypoints: "web"
+      traefik.http.routers.http_catchall.middlewares: "https_redirect"
+      traefik.http.middlewares.https_redirect.redirectscheme.scheme: "https"
+      traefik.http.middlewares.https_redirect.redirectscheme.permanent: "true"
