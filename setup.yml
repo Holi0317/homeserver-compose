@@ -1,0 +1,14 @@
+---
+- name: "Setup homeserver"
+  hosts: "all"
+  vars:
+    storage_root: "/srv/services-dbg"
+  vars_files:
+    - "secret_vars.yml"
+  roles:
+    - role: "traefik"
+      # Variable traefik_email is set in secret_vars
+    # - role: "postgres"
+    #   vars:
+    #     service_name: "ascii"
+    #     postgres_password: "123"
