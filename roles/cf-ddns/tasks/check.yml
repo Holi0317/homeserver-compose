@@ -1,0 +1,20 @@
+---
+# Sanity check for cf-ddns role
+- name: "Ensure cloudflare api token is set"
+  assert:
+    fail_msg: "Required variable ddns_cf_api_token is not set"
+    that:
+      - "ddns_cf_api_token | length > 0"
+
+- name: "Ensure cloudflare zone ID is set"
+  assert:
+    fail_msg: "Required variable ddns_cf_zone_id is not set"
+    that:
+      - "ddns_cf_zone_id | length > 0"
+
+- name: "Ensure ddns domains is set"
+  assert:
+    fail_msg: "Required variable ddns_domains is not set to be a list"
+    that: >
+      ( ddns_domains is defined ) and ( ddns_domains is not mapping )
+      and ( ddns_domains is iterable ) and ( ddns_domains is not string )

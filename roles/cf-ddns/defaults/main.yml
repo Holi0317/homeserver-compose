@@ -1,0 +1,3 @@
+---
+# defaults file for cf-ddns
+ddns_conf_path: "{{ (service_base_path, 'cf-ddns.toml') | path_join }}"
