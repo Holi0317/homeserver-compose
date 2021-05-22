@@ -1,5 +1,5 @@
 ---
-# Sanity check for cf-ddns role
+# Sanity check for ddns role
 - name: "Ensure cloudflare api token is set"
   assert:
     fail_msg: "Required variable ddns_cf_api_token is not set"

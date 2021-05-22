@@ -10,11 +10,11 @@
       group: "root"
       mode: "0400"
 
-- name: "Create cf-ddns container"
+- name: "Create ddns container"
   become: true
   community.docker.docker_container:
     state: "started"
-    name: "cf-ddns"
+    name: "ddns"
     image: "registry.gitlab.com/holi0317/cf-ddns"
 
     # Prepare for docker plugin v2 change

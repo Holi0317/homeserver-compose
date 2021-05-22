@@ -1,11 +1,8 @@
-# cf-ddns
+# ddns
 
 Setup [cf-ddns] service in docker as DDNS service for cloudflare.
 
 [cf-ddns]: https://gitlab.com/holi0317/cf-ddns/
-
-Note: The namespace of the service used is `ddns` instead of `cf-ddns`. The
-docker network and container created are called `ddns` instead of `cf-ddns`
 
 ## Synopsis
 
@@ -62,7 +59,7 @@ Including an example of how to use your role (for instance, with variables passe
 ```yaml
 - hosts: "servers"
   roles:
-    - role: "cf-ddns"
+    - role: "ddns"
       vars:
         ddns_cf_api_token: "hunter2"
         ddns_cf_zone_id: "123"
