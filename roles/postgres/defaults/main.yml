@@ -13,6 +13,8 @@ postgres_base_path: "{{ (service_base_path, 'postgres') | path_join }}"
 postgres_data_path: "{{ (postgres_base_path, postgres_version) | path_join }}"
 postgres_backup_path: "{{ (postgres_base_path, 'backups') | path_join }}"
 
+postgres_backup_container_name: "{{ service_name }}_pgbackup"
+postgres_backup_image: "prodrigestivill/postgres-backup-local:{{ postgres_version }}-alpine"
 postgres_backup_extra_opts: "-Z9 --schema=public --blobs"
 postgres_backup_schedule: "@daily"
 postgres_backup_keep:

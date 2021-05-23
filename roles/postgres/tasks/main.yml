@@ -71,3 +71,46 @@
   until: "pg_up.rc == 0"
   retries: 20
   delay: 3
+
+- name: "Start postgres backup container"
+  become: true
+  docker_container:
+    state: "started"
+    name: "{{ postgres_backup_container_name }}"
+
+    image: "{{ postgres_backup_image }}"
+    pull: true
+
+    # Prepare for docker plugin v2 change
+    container_default_behavior: "no_defaults"
+    auto_remove: false
+    detach: true
+    init: false
+    interactive: false
+    memory: "0"
+    paused: false
+    privileged: false
+    read_only: false
+    tty: false
+
+    restart_policy: "on-failure"
+    restart_retries: 3
+    user: "70:70"
+    network_mode: "{{ postgres_network }}"
+    networks:
+      - name: "{{ postgres_network }}"
+    mounts:
+      - source: "{{ postgres_backup_path }}"
+        target: "/backups"
+        type: "bind"
+    env:
+      POSTGRES_HOST: "postgres"
+      POSTGRES_USER: "{{ postgres_user }}"
+      POSTGRES_DB: "{{ postgres_database }}"
+      POSTGRES_PASSWORD: "{{ postgres_password }}"
+      POSTGRES_EXTRA_OPTS: "{{ postgres_backup_extra_opts }}"
+
+      SCHEDULE: "{{ postgres_backup_schedule }}"
+      BACKUP_KEEP_DAYS: "{{ postgres_backup_keep.days }}"
+      BACKUP_KEEP_WEEKS: "{{ postgres_backup_keep.weeks }}"
+      BACKUP_KEEP_MONTHS: "{{ postgres_backup_keep.months }}"
