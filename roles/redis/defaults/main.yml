@@ -1,0 +1,8 @@
+---
+# defaults file for redis
+redis_version: "6"
+redis_image: "redis:{{ redis_version }}-alpine"
+redis_container_name: "{{ service_name }}_redis"
+redis_network: "{{ service_network }}"
+
+redis_persist_path: "{{ (service_base_path, 'redis') | path_join }}"
