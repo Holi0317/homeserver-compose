@@ -1,0 +1,68 @@
+---
+# tasks file for gitea
+- name: "Create gitea data directories"
+  become: true
+  file:
+    path: "{{ gitea_data_dir }}"
+    owner: "2000"
+    group: "2000"
+    mode: "755"
+    state: "directory"
+
+- name: "Create gitea container"
+  become: true
+  docker_container:
+    state: "started"
+    name: "{{ service_name }}_gitea"
+    image: "gitea/gitea"
+
+    # Prepare for docker plugin v2 change
+    container_default_behavior: "no_defaults"
+    auto_remove: false
+    detach: true
+    init: false
+    interactive: false
+    memory: "0"
+    paused: false
+    privileged: false
+    read_only: false
+    tty: false
+
+    restart_policy: "on-failure"
+    restart_retries: 3
+    network_mode: "{{ service_network }}"
+    networks:
+      - name: "{{ service_network }}"
+      - name: "traefik"
+    ports:
+      - "{{ gitea_ssh_port }}:{{ gitea_ssh_port }}"
+    env:
+      USER_UID: "2000"
+      USER_GID: "2000"
+
+      SSH_PORT: "{{ gitea_ssh_port | string }}"
+      START_SSH_SERVER: "true"
+
+      LFS_START_SERVER: "true"
+
+      DB_TYPE: "postgres"
+      DB_HOST: "postgres:5432"
+      DB_USER: "gitea"
+      DB_PASSWD: "{{ postgres_password }}"
+
+      DISABLE_REGISTRATION: "true"
+      REQUIRE_SIGNIN_VIEW: "true"
+      ROOT_URL: "https://{{ gitea_domain }}"
+      RUN_MODE: "prod"
+    mounts:
+      - source: "{{ gitea_data_dir }}"
+        target: "/data"
+        type: "bind"
+    labels:
+      traefik.enable: "true"
+      traefik.http.services.gitea.loadbalancer.server.port: "3000"
+      traefik.docker.network: "traefik"
+      traefik.http.routers.gitea.rule: "Host(`{{ gitea_domain }}`)"
+      traefik.http.routers.gitea.entrypoints: "websecure"
+      traefik.http.routers.gitea.tls.certresolver: "myhttpchallenge"
+      traefik.http.routers.gitea.middlewares: "compress@file,secure_head@file"
