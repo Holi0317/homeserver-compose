@@ -53,8 +53,9 @@ available, read the `defaults/main.yml` file directly.
 - hosts: servers
   roles:
     - role: "postgres"
-      postgres_password: "hunter2"
-      postgres_user: "some_service_name"
+      vars:
+        postgres_password: "hunter2"
+        postgres_user: "some_service_name"
 ```
 
 ## License
