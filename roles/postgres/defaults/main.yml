@@ -2,7 +2,7 @@
 # defaults file for postgres
 postgres_version: "13"
 postgres_image: "postgres:{{ postgres_version }}-alpine"
-postgres_container_name: "{{ service_name }}_postgres_1"
+postgres_container_name: "{{ service_name }}_postgres"
 postgres_user: "postgres"
 postgres_database: "{{ postgres_user }}"
 postgres_password: ""
