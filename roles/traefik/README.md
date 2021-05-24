@@ -8,6 +8,8 @@ Setup [traefik] service in docker.
 
 - Build a traefik docker image with our own configuration
 - Create docker network with name `traefik` for other services to attach into
+  - The network will have subnet of `172.18.0.0/16`. Set the service to trust
+    request from this subnet if required
 - Create a docker container running traefik
 
 ## Requirements

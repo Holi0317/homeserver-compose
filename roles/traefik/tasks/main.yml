@@ -25,6 +25,16 @@
     src: "{{ role_path }}/files/"
     dest: "{{ traefik_build_path }}"
 
+- name: "Create docker network for traefik"
+  become: true
+  docker_network:
+    name: "{{ traefik_network }}"
+    driver: "bridge"
+    scope: "local"
+    state: "present"
+    ipam_config:
+      - subnet: "172.18.0.0/16"
+
 - name: "Build traefik container image"
   become: true
   community.docker.docker_image:
@@ -56,9 +66,9 @@
 
     restart_policy: "on-failure"
     restart_retries: 3
-    network_mode: "{{ service_network }}"
+    network_mode: "{{ traefik_network }}"
     networks:
-      - name: "{{ service_network }}"
+      - name: "{{ traefik_network }}"
     mounts:
       - source: "/var/run/docker.sock"
         target: "/var/run/docker.sock"
