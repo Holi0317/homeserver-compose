@@ -53,7 +53,7 @@
         type: "bind"
     command:
       - "redis-server"
-      - "--apendonly"
+      - "--appendonly"
       - "yes"
       - "--auto-aof-rewrite-percentage"
       - "20"
