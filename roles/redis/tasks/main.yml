@@ -23,9 +23,13 @@
   docker_container:
     state: "started"
     name: "{{ redis_container_name }}"
-
     image: "{{ redis_image }}"
     pull: true
+    comparisons:
+      image: "strict"
+      env: "strict"
+      volumes: "allow_more_present"
+      networks: "allow_more_present"
 
     # Prepare for docker plugin v2 change
     container_default_behavior: "no_defaults"

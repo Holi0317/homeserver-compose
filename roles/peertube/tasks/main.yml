@@ -29,6 +29,11 @@
     name: "{{ service_name }}_peertube"
     image: "chocobozzz/peertube:production-buster"
     pull: true
+    comparisons:
+      image: "strict"
+      env: "strict"
+      volumes: "allow_more_present"
+      networks: "allow_more_present"
 
     # Prepare for docker plugin v2 change
     container_default_behavior: "no_defaults"

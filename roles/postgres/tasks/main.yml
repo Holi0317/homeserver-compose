@@ -28,9 +28,13 @@
   community.docker.docker_container:
     state: "started"
     name: "{{ postgres_container_name }}"
-
     image: "{{ postgres_image }}"
     pull: true
+    comparisons:
+      image: "strict"
+      env: "strict"
+      volumes: "allow_more_present"
+      networks: "allow_more_present"
 
     # Prepare for docker plugin v2 change
     container_default_behavior: "no_defaults"
@@ -77,9 +81,13 @@
   docker_container:
     state: "started"
     name: "{{ postgres_backup_container_name }}"
-
     image: "{{ postgres_backup_image }}"
     pull: true
+    comparisons:
+      image: "strict"
+      env: "strict"
+      volumes: "allow_more_present"
+      networks: "allow_more_present"
 
     # Prepare for docker plugin v2 change
     container_default_behavior: "no_defaults"
