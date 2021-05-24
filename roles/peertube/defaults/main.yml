@@ -1,0 +1,5 @@
+---
+# defaults file for peertube
+peertube_data_dir: "{{ (service_base_path, 'data') | path_join }}"
+peertube_config_dir: "{{ (service_base_path, 'config') | path_join }}"
+peertube_domain: "pt.holi0317.net"

@@ -1,0 +1,65 @@
+---
+# TODO: Add check: Require peertube_domain var
+- import_tasks: "{{ role_path }}/tasks/check.yml"
+
+- name: "Create peertube directories"
+  become: true
+  loop:
+    - "{{ peertube_data_dir }}"
+    - "{{ peertube_config_dir }}"
+  file:
+    path: "{{ item }}"
+    owner: "999"
+    group: "999"
+    mode: "700"
+    state: "directory"
+
+- name: "Create peertube configuration"
+  become: true
+  template:
+      dest: "{{ (peertube_config_dir, 'production.yaml') | path_join }}"
+      src: "config/production.yaml"
+      owner: "999"
+      group: "999"
+
+- name: "Create peertube container"
+  become: true
+  docker_container:
+    state: "started"
+    name: "{{ service_name }}_peertube"
+    image: "chocobozzz/peertube:production-buster"
+
+    # Prepare for docker plugin v2 change
+    container_default_behavior: "no_defaults"
+    auto_remove: false
+    detach: true
+    init: false
+    interactive: false
+    memory: "0"
+    paused: false
+    privileged: false
+    read_only: false
+    tty: false
+
+    restart_policy: "on-failure"
+    restart_retries: 3
+    network_mode: "{{ service_network }}"
+    networks:
+      - name: "{{ service_network }}"
+      - name: "traefik"
+    mounts:
+      - source: "{{ peertube_config_dir }}"
+        target: "/config"
+        type: "bind"
+        # Don't use ro mount here as the container will write stuff to config folder
+      - source: "{{ peertube_data_dir }}"
+        target: "/data"
+        type: "bind"
+    labels:
+      traefik.enable: "true"
+      traefik.http.services.peertube.loadbalancer.server.port: "9000"
+      traefik.docker.network: "traefik"
+      traefik.http.routers.peertube.rule: "Host(`{{ peertube_domain }}`)"
+      traefik.http.routers.peertube.entrypoints: "websecure"
+      traefik.http.routers.peertube.tls.certresolver: "myhttpchallenge"
+      traefik.http.routers.peertube.middlewares: "compress@file,secure_head@file"
