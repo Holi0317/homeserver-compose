@@ -28,6 +28,7 @@
     state: "started"
     name: "{{ service_name }}_peertube"
     image: "chocobozzz/peertube:production-buster"
+    pull: true
 
     # Prepare for docker plugin v2 change
     container_default_behavior: "no_defaults"
