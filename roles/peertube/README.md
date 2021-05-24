@@ -11,6 +11,7 @@ Setup [peertube] service in a docker container
 - Create configuration file for peertube
 - Create peertube service in container
 - Expose peertube with traefik
+- The initial user's password will be shown in log in first launch. View with `docker logs peertube_peertube`
 
 ## Requirements
 
