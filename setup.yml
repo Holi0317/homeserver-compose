@@ -1,6 +1,7 @@
 ---
 - name: "Setup traefik"
   hosts: "all"
+  tags: "traefik"
   roles:
     - role: "traefik"
       traefik_email: !vault |
@@ -13,6 +14,7 @@
 
 - name: "Setup ddns"
   hosts: "all"
+  tags: "ddns"
   roles:
     - role: "ddns"
       ddns_cf_api_token: !vault |
@@ -32,6 +34,7 @@
 
 - name: "Setup gitea"
   hosts: "all"
+  tags: "gitea"
   roles:
     - role: "gitea"
       postgres_password: !vault |
@@ -44,6 +47,7 @@
 
 - name: "Setup peertube"
   hosts: "all"
+  tags: "peertube"
   roles:
     - role: "peertube"
       postgres_password: !vault |
@@ -56,6 +60,7 @@
 
 - name: "Setup nextcloud"
   hosts: "all"
+  tags: "nextcloud"
   roles:
     - role: "nextcloud"
       postgres_password: !vault |
