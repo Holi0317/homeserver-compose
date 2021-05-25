@@ -1,1 +1,1 @@
-locahost ansible_connection=local storage_root=/srv/services-dbg
+locahost ansible_connection=local storage_root=/srv/services
