@@ -15,3 +15,6 @@ dependencies:
     vars:
       service_name: "gitea"
       postgres_user: "gitea"
+  - role: "redis"
+    vars:
+      service_name: "gitea"

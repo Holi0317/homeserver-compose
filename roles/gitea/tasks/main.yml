@@ -60,6 +60,14 @@
       REQUIRE_SIGNIN_VIEW: "true"
       ROOT_URL: "https://{{ gitea_domain }}"
       RUN_MODE: "prod"
+
+      GITEA__cache__ENABLED: "true"
+      GITEA__cache__ADAPTER: "redis"
+      GITEA__cache__HOST: "redis://redis:6379/0"
+
+      GITEA__session__PROVIDER: "redis"
+      GITEA__session__PROVIDER_CONFIG: "redis://redis:6379/1"
+
     mounts:
       - source: "{{ gitea_data_dir }}"
         target: "/data"
