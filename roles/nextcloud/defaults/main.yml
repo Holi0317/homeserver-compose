@@ -1,0 +1,6 @@
+---
+# defaults file for nextcloud
+nextcloud_build_path: "{{ (service_base_path, 'build') | path_join }}"
+nextcloud_asset_path: "{{ (service_base_path, 'asset') | path_join }}"
+nextcloud_data_path: "{{ (service_base_path, 'data') | path_join }}"
+nextcloud_domain: "nc.holi0317.net"

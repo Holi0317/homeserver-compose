@@ -1,0 +1,147 @@
+---
+# tasks file for nextcloud
+- name: "Create directories for nextcloud"
+  become: true
+  loop:
+    - "{{ nextcloud_data_path }}"
+    - "{{ nextcloud_asset_path }}"
+  file:
+    path: "{{ item }}"
+    owner: "2000"
+    group: "2000"
+    mode: "700"
+    state: "directory"
+
+- name: "Create build directory for nextcloud"
+  become: true
+  file:
+    path: "{{ nextcloud_build_path }}"
+    owner: "root"
+    group: "root"
+    mode: "700"
+    state: "directory"
+
+- name: "Copy build image context to build directory"
+  become: true
+  copy:
+    src: "{{ role_path }}/files/"
+    dest: "{{ nextcloud_build_path }}"
+
+- name: "Build fpm image"
+  become: true
+  docker_image:
+    name: "registry.gitlab.com/holi0317/homeserver-compose/nextcloud/fpm"
+    build:
+      path: "{{ (nextcloud_build_path, 'fpm') | path_join }}"
+      pull: true
+    source: "build"
+    state: "present"
+
+- name: "Build web image"
+  become: true
+  docker_image:
+    name: "registry.gitlab.com/holi0317/homeserver-compose/nextcloud/web"
+    build:
+      path: "{{ (nextcloud_build_path, 'web') | path_join }}"
+      pull: true
+    source: "build"
+    state: "present"
+
+- name: "create fpm container"
+  become: true
+  docker_container: &fpm
+    state: "started"
+    name: "{{ service_name }}_fpm"
+    image: "registry.gitlab.com/holi0317/homeserver-compose/nextcloud/fpm"
+    comparisons:
+      image: "strict"
+      env: "strict"
+      volumes: "allow_more_present"
+      networks: "allow_more_present"
+
+    # prepare for docker plugin v2 change
+    container_default_behavior: "no_defaults"
+    auto_remove: false
+    detach: true
+    init: false
+    interactive: false
+    memory: "0"
+    paused: false
+    privileged: false
+    read_only: false
+    tty: false
+
+    restart_policy: "on-failure"
+    restart_retries: 3
+    network_mode: "{{ service_network }}"
+    networks:
+      - name: "{{ service_network }}"
+        aliases:
+          - "nextcloud-fpm"
+    env:
+      POSTGRES_DB: "nextcloud"
+      POSTGRES_USER: "nextcloud"
+      POSTGRES_PASSWORD: "{{ postgres_password }}"
+      POSTGRES_HOST: "postgres:5432"
+      NEXTCLOUD_DATA_DIR: "/var/data"
+      REDIS_HOST: "redis"
+      TRUSTED_PROXIES: "0.0.0.0/0"
+    mounts:
+      - source: "{{ nextcloud_data_path }}"
+        target: "/var/data"
+        type: "bind"
+      - source: "{{ nextcloud_asset_path }}"
+        target: "/var/www/html"
+        type: "bind"
+
+- name: "Create cron container"
+  become: true
+  docker_container:
+    <<: *fpm
+    name: "{{ service_name }}_cron"
+    entrypoint: "/cron.sh"
+    networks:
+
+- name: "Create web (nginx) container"
+  docker_container:
+    state: "started"
+    name: "{{ service_name }}_web"
+    image: "registry.gitlab.com/holi0317/homeserver-compose/nextcloud/web"
+    comparisons:
+      image: "strict"
+      env: "strict"
+      volumes: "allow_more_present"
+      networks: "allow_more_present"
+
+    # prepare for docker plugin v2 change
+    container_default_behavior: "no_defaults"
+    auto_remove: false
+    detach: true
+    init: false
+    interactive: false
+    memory: "0"
+    paused: false
+    privileged: false
+    read_only: false
+    tty: false
+
+    restart_policy: "on-failure"
+    restart_retries: 3
+    network_mode: "{{ service_network }}"
+    networks:
+      - name: "{{ service_network }}"
+      - name: "traefik"
+    mounts:
+      - source: "{{ nextcloud_asset_path }}"
+        target: "/var/www/html"
+        type: "bind"
+        read_only: true
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "traefik"
+      traefik.http.routers.nc.rule: "Host(`{{ nextcloud_domain }}`)"
+      traefik.http.routers.nc.entrypoints: "websecure"
+      traefik.http.routers.nc.tls.certresolver: "myhttpchallenge"
+      traefik.http.routers.nc.middlewares: "compress@file,secure_head@file,nc-headers"
+      traefik.http.middlewares.nc-headers.headers.customFrameOptionsValue: "SAMEORIGIN"
+      traefik.http.middlewares.nc-headers.headers.stsSeconds: "31536000"
