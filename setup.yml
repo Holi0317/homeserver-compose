@@ -29,8 +29,6 @@
         - "git.holi0317.net"
         - "nc.holi0317.net"
         - "pt.holi0317.net"
-        - "toilet.holi0317.net"
-        - "toilet4.holi0317.net"
 
 - name: "Setup gitea"
   hosts: "all"
