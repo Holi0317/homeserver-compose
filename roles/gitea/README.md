@@ -50,6 +50,7 @@ Port for accepting ssh connection
 
 - bootstrap role
 - postgres role
+- redis role
 
 ## Example Playbook
 
