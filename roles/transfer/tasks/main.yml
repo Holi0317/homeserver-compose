@@ -1,0 +1,64 @@
+---
+# tasks file for transfer
+
+- name: "Create transfer.sh data directories"
+  become: true
+  file:
+    path: "{{ transfer_data_dir }}"
+    owner: "2000"
+    group: "2000"
+    mode: "700"
+    state: "directory"
+
+- name: "Create transfer.sh container"
+  become: true
+  docker_container:
+    state: "started"
+    name: "{{ service_name }}_transfer"
+    image: "dutchcoders/transfer.sh"
+    pull: true
+    comparisons:
+      image: "strict"
+      env: "strict"
+      volumes: "allow_more_present"
+      networks: "allow_more_present"
+
+    # Prepare for docker plugin v2 change
+    container_default_behavior: "no_defaults"
+    auto_remove: false
+    detach: true
+    init: false
+    interactive: false
+    memory: "0"
+    paused: false
+    privileged: false
+    read_only: false
+    tty: false
+
+    restart_policy: "on-failure"
+    restart_retries: 3
+    network_mode: "{{ service_network }}"
+    networks:
+      - name: "{{ service_network }}"
+      - name: "traefik"
+    user: "2000:2000"
+    command:
+      - "--provider"
+      - "local"
+      - "--basedir"
+      - "/data"
+      - "--purge-days"
+      - "7"
+
+    mounts:
+      - source: "{{ transfer_data_dir }}"
+        target: "/data"
+        type: "bind"
+    labels:
+      traefik.enable: "true"
+      traefik.http.services.transfer.loadbalancer.server.port: "8080"
+      traefik.docker.network: "traefik"
+      traefik.http.routers.transfer.rule: "Host(`{{ transfer_domain }}`)"
+      traefik.http.routers.transfer.entrypoints: "websecure"
+      traefik.http.routers.transfer.tls.certresolver: "myhttpchallenge"
+      traefik.http.routers.transfer.middlewares: "compress@file,secure_head@file"

@@ -31,6 +31,7 @@
         - "git.holi0317.net"
         - "nc.holi0317.net"
         - "pt.holi0317.net"
+        - "t.holi0317.net"
 
 - name: "Setup gitea"
   hosts: "all"
@@ -70,3 +71,9 @@
         65343938373438343539326534643331613963316266623037353865643163306336376431323931
         3835306134343063360a313162343730323637663664343633383764376161623261336331333932
         3437
+
+- name: "Setup transfer.sh"
+  hosts: "all"
+  tags: "transfer"
+  roles:
+    - role: "transfer"

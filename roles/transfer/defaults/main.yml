@@ -1,0 +1,4 @@
+---
+# defaults file for transfer
+transfer_data_dir: "{{ (service_base_path, 'data') | path_join }}"
+transfer_domain: "t.holi0317.net"
