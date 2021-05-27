@@ -1,4 +1,4 @@
-# Role Name
+# Gitea
 
 Setup [gitea] service in docker
 
@@ -37,7 +37,7 @@ Setup [gitea] service in docker
 - Type: `string`
 - Default: `git.holi0317.net`
 
-Domain for hosting gitlab
+Domain for hosting gitea
 
 ### `gitea_ssh_port`
 
