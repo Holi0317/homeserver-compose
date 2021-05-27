@@ -65,6 +65,7 @@
       POSTGRES_DB: "{{ postgres_database }}"
       POSTGRES_PASSWORD: "{{ postgres_password }}"
       POSTGRES_INITDB_ARGS: "{{ postgres_initdb_args }}"
+      POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
 
 # This assumes the docker command is targeting the same host as docker ansible modules.
 # Which might not always be the case.
@@ -117,6 +118,7 @@
       POSTGRES_DB: "{{ postgres_database }}"
       POSTGRES_PASSWORD: "{{ postgres_password }}"
       POSTGRES_EXTRA_OPTS: "{{ postgres_backup_extra_opts }}"
+      POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
 
       SCHEDULE: "{{ postgres_backup_schedule }}"
       BACKUP_KEEP_DAYS: "{{ postgres_backup_keep.days }}"
