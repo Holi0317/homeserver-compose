@@ -1,0 +1,19 @@
+---
+# defaults file for maria
+maria_version: "10.5"
+maria_image: "mariadb:{{ maria_version }}"
+maria_container_name: "{{ service_name }}_maria"
+maria_user: "maria"
+maria_database: "{{ maria_user }}"
+maria_password: ""
+maria_network: "{{ service_network }}"
+
+maria_base_path: "{{ (service_base_path, 'maria') | path_join }}"
+maria_data_path: "{{ (maria_base_path, 'data') | path_join }}"
+maria_backup_path: "{{ (maria_base_path, 'backups') | path_join }}"
+
+maria_backup_container_name: "{{ service_name }}_maria_backup"
+maria_backup_image: "fradelg/mysql-cron-backup"
+maria_backup_gzip_level: "9"
+maria_backup_schedule: "0 2 * * *"
+maria_backup_keep: 10

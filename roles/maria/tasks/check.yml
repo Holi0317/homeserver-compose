@@ -1,0 +1,9 @@
+---
+# Sanity check for maria role
+
+- name: "Ensure password is set"
+  assert:
+    fail_msg: "Required variable maria_password is empty. Please set it as role parameter"
+    that:
+      - "maria_password | length > 0"
+

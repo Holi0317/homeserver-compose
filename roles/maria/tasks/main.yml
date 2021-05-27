@@ -1,0 +1,109 @@
+---
+# tasks file for maria
+- import_tasks: "{{ role_path }}/tasks/check.yml"
+
+- name: "Create maria directories"
+  become: true
+  loop:
+    - "{{ maria_base_path }}"
+    - "{{ maria_data_path }}"
+    - "{{ maria_backup_path }}"
+  file:
+    path: "{{ item }}"
+    owner: "2000"
+    group: "2000"
+    mode: "700"
+    state: "directory"
+
+- name: "Create docker network for maria containers"
+  become: true
+  community.docker.docker_network:
+    name: "{{ maria_network }}"
+    driver: "bridge"
+    scope: "local"
+    state: "present"
+
+- name: "Start maria container"
+  become: true
+  community.docker.docker_container:
+    state: "started"
+    name: "{{ maria_container_name }}"
+    image: "{{ maria_image }}"
+    pull: true
+    comparisons:
+      image: "strict"
+      env: "strict"
+      volumes: "allow_more_present"
+      networks: "allow_more_present"
+
+    # Prepare for docker plugin v2 change
+    container_default_behavior: "no_defaults"
+    auto_remove: false
+    detach: true
+    init: false
+    interactive: false
+    memory: "0"
+    paused: false
+    privileged: false
+    read_only: false
+    tty: false
+
+    restart_policy: "on-failure"
+    restart_retries: 3
+    user: "2000:2000"
+    network_mode: "{{ maria_network }}"
+    networks:
+      - name: "{{ maria_network }}"
+        aliases:
+          - "maria"
+    mounts:
+      - source: "{{ maria_data_path }}"
+        target: "/var/lib/mysql"
+        type: "bind"
+    env:
+      MARIADB_RANDOM_ROOT_PASSWORD: "true"
+      MARIADB_USER: "{{ maria_user }}"
+      MARIADB_PASSWORD: "{{ maria_password }}"
+      MARIADB_DATABASE: "{{ maria_database }}"
+
+- name: "Start maria backup container"
+  become: true
+  docker_container:
+    state: "started"
+    name: "{{ maria_backup_container_name }}"
+    image: "{{ maria_backup_image }}"
+    pull: true
+    comparisons:
+      image: "strict"
+      env: "strict"
+      volumes: "allow_more_present"
+      networks: "allow_more_present"
+
+    # Prepare for docker plugin v2 change
+    container_default_behavior: "no_defaults"
+    auto_remove: false
+    detach: true
+    init: false
+    interactive: false
+    memory: "0"
+    paused: false
+    privileged: false
+    read_only: false
+    tty: false
+
+    restart_policy: "on-failure"
+    restart_retries: 3
+    network_mode: "{{ maria_network }}"
+    networks:
+      - name: "{{ maria_network }}"
+    mounts:
+      - source: "{{ maria_backup_path }}"
+        target: "/backup"
+        type: "bind"
+    env:
+      MYSQL_HOST: "maria"
+      MYSQL_USER: "{{ maria_user }}"
+      MYSQL_PASS: "{{ maria_password }}"
+      CRON_TIME: "{{ maria_backup_schedule }}"
+      MAX_BACKUPS: "{{ maria_backup_keep | string }}"
+      GZIP_LEVEL: "{{ maria_backup_gzip_level }}"
