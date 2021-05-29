@@ -42,6 +42,8 @@ RUN set -ex; \
     apk del .build-deps
 
 
+RUN mv /var/spool/cron/crontabs/www-data /var/spool/cron/crontabs/nextcloud
+
 COPY www.conf /usr/local/etc/php-fpm.d/www.conf
 COPY php.ini /usr/local/etc/php/
 
