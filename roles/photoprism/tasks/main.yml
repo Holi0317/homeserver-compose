@@ -112,3 +112,52 @@
       traefik.http.routers.photoprism.entrypoints: "websecure"
       traefik.http.routers.photoprism.tls.certresolver: "myhttpchallenge"
       traefik.http.routers.photoprism.middlewares: "compress@file,secure_head@file"
+
+- name: "Copy job scheduler config"
+  become: true
+  template:
+    src: "jobs.ini"
+    dest: "{{ photoprism_job_path }}"
+    mode: "400"
+    owner: "root"
+    group: "root"
+
+- name: "Create job scheduler"
+  become: true
+  docker_container:
+    state: "started"
+    name: "{{ service_name }}_ofelia"
+    image: "mcuadros/ofelia"
+    pull: true
+    comparisons:
+      image: "strict"
+      env: "strict"
+      volumes: "allow_more_present"
+      networks: "allow_more_present"
+
+    # Prepare for docker plugin v2 change
+    container_default_behavior: "no_defaults"
+    auto_remove: false
+    detach: true
+    init: false
+    interactive: false
+    memory: "0"
+    paused: false
+    privileged: false
+    read_only: false
+    tty: false
+
+    restart_policy: "on-failure"
+    restart_retries: 3
+    network_mode: "{{ service_network }}"
+    networks:
+      - name: "{{ service_network }}"
+    mounts:
+      - source: "/var/run/docker.sock"
+        target: "/var/run/docker.sock"
+        type: "bind"
+        read_only: true
+      - source: "{{ photoprism_job_path }}"
+        target: "/etc/ofelia/config.ini"
+        type: "bind"
+        read_only: true
