@@ -1,0 +1,17 @@
+---
+galaxy_info:
+  license: "MIT"
+  min_ansible_version: "2.10"
+  platforms:
+    - name: "ArchLinux"
+      versions:
+        - "any"
+
+dependencies:
+  - role: "bootstrap"
+    vars:
+      service_name: "piwigo"
+  - role: "maria"
+    vars:
+      service_name: "piwigo"
+      maria_user: "piwigo"

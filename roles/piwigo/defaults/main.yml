@@ -1,0 +1,5 @@
+---
+# defaults file for piwigo
+piwigo_config_dir: "{{ (service_base_path, 'config') | path_join }}"
+piwigo_gallery_dir: "{{ (service_base_path, 'gallery') | path_join }}"
+piwigo_domain: "piwigo.holi0317.net"
