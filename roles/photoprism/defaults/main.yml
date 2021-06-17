@@ -1,9 +1,0 @@
----
-# defaults file for photoprism
-photoprism_base_dir: "{{ (service_base_path, 'data') | path_join }}"
-photoprism_storage_dir: "{{ (photoprism_base_dir, 'storage') | path_join }}"
-photoprism_originals_dir: "{{ (photoprism_base_dir, 'originals') | path_join }}"
-photoprism_import_dir: "{{ (photoprism_base_dir, 'import') | path_join }}"
-photoprism_job_path: "{{ (photoprism_base_dir, 'jobs.ini') | path_join }}"
-photoprism_domain: "pp.holi0317.net"
-photoprism_admin_password: ""

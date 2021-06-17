@@ -1,9 +1,0 @@
----
-# Sanity check for photoprism role
-
-- name: "Ensure password is set"
-  assert:
-    fail_msg: "Required variable photoprism_admin_password is empty. Please set it as role parameter"
-    that:
-      - "photoprism_admin_password | length > 0"
-
