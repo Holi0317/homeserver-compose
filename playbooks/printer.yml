@@ -1,0 +1,122 @@
+---
+- name: "Configure avahi"
+  hosts: "uranus"
+  become: true
+  tasks:
+    - name: "Install avahi"
+      dnf:
+        name:
+          - "avahi"
+          - "nss-mdns"
+        state: "latest"
+
+- name: "Install and configure cups"
+  hosts: "uranus"
+  become: true
+  tasks:
+    - name: "Install cups package"
+      dnf:
+        name: "cups"
+        state: "latest"
+
+    - name: "Install brlaser driver"
+      dnf:
+        # Ref: https://blog.lenzg.net/2020/12/printing-with-a-brother-mfc-7460dn-laser-printer-on-fedora-linux-33/
+        name: "https://download.opensuse.org/repositories/Printing/openSUSE_Tumbleweed/x86_64/printer-driver-brlaser-6+git20200420.9d7ddda-21.13.x86_64.rpm"
+        disable_gpg_check: true
+        state: "present"
+
+    - name: "Enable and start cups service"
+      service:
+        name: "cups.service"
+        enabled: true
+        state: "started"
+
+    - name: "Enable remote admin"
+      command: "cupsctl --remote-admin"
+
+    - name: "Enable share printer"
+      command: "cupsctl --share-printers"
+
+    - name: "Install avahi service definition"
+      notify:
+        - "Restart avahi"
+      copy:
+        src: "cups-avahi-service.xml"
+        dest: "/etc/avahi/services/Airprint_Brother_DCP-L2540DW_series.service"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+        seuser: "system_u"
+        serole: "object_r"
+        setype: "avahi_conf_t"
+        selevel: "s0"
+
+  handlers:
+    - name: "Restart avahi"
+      service:
+        name: "avahi-daemon.service"
+        state: "restarted"
+
+- name: "Install and configure sane"
+  hosts: "uranus"
+  become: true
+  tasks:
+    - name: "Install sane packages"
+      dnf:
+        name:
+          - "sane-backends-daemon"
+          - "sane-backends-drivers-scanners"
+
+    - name: "Install scanner driver"
+      dnf:
+        name: "https://download.brother.com/welcome/dlf006648/brscan4-0.4.10-1.x86_64.rpm"
+        disable_gpg_check: true
+        state: "present"
+
+    - name: "Configure saned.conf"
+      copy:
+        src: "saned.conf"
+        dest: "/etc/sane.d/saned.conf"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+        seuser: "system_u"
+        serole: "object_r"
+        setype: "etc_t"
+        selevel: "s0"
+
+    - name: "Prepare for socket.socket override"
+      file:
+        path: "/etc/systemd/system/saned.socket.d"
+        state: "directory"
+        mode: "0755"
+        seuser: "system_u"
+        serole: "object_r"
+        setype: "systemd_unit_file_t"
+        selevel: "s0"
+
+    - name: "Patch saned.socket definition"
+      copy:
+        src: "saned.socket.override"
+        dest: "/etc/systemd/system/saned.socket.d/override.conf"
+        owner: "root"
+        group: "root"
+        mode: "0644"
+        seuser: "system_u"
+        serole: "object_r"
+        setype: "systemd_unit_file_t"
+        selevel: "s0"
+
+    - name: "Add saned user to lp group"
+      # Ref: https://help.ubuntu.com/community/SaneDaemonTutorial#Test_if_the_server_can_reach_its_own_saned_on_localhost
+      user:
+        name: "saned"
+        groups: "lp"
+        append: true
+
+    - name: "Start saned socket"
+      service:
+        name: "saned.socket"
+        enabled: true
+        state: "started"

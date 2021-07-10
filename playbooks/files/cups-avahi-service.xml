@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<!DOCTYPE service-group SYSTEM "avahi-service.dtd">
+<service-group>
+  <name replace-wildcards="yes">Airprint Brother_DCP-L2540DW_series @ %h</name>
+  <service>
+    <type>_ipp._tcp</type>
+    <subtype>_universal._sub._ipp._tcp</subtype>
+    <port>631</port>
+    <txt-record>txtvers=1</txt-record>
+    <txt-record>qtotal=1</txt-record>
+    <txt-record>Transparent=T</txt-record>
+    <txt-record>URF=CP1,MT1-2-8-9-10-11,OB9,OFU0,PQ3-4-5,RS300-600,SRGB24,W8-16,DEVW8-16,DEVRGB24-48,ADOBERGB24-48,DM3,IS1,V1.3</txt-record>
+    <txt-record>rp=printers/Brother_DCP-L2540DW_series</txt-record>
+    <txt-record>note=Brother DCP-L2540DW series, Airprint compatible</txt-record>
+    <txt-record>product=(GPL Ghostscript)</txt-record>
+    <txt-record>printer-state=3</txt-record>
+    <txt-record>Copies=T</txt-record>
+    <txt-record>Duplex=T</txt-record>
+    <txt-record>printer-type=0x821054</txt-record>
+    <txt-record>ty=Brother DCP-L2540DW series, using brlaser v6</txt-record>
+    <!-- <txt-record>adminurl=http://jupyter.local:631/printers/Brother_DCP-L2540DW_series</txt-record> -->
+    <txt-record>pdl=application/octet-stream,application/pdf,application/postscript,application/vnd.cups-raster,image/gif,image/jpeg,image/png,image/tiff,image/pwg-raster,image/urf,text/html,text/plain,application/vnd.adobe-reader-postscript,application/vnd.cups-pdf</txt-record>
+  </service>
+</service-group>
+<!-- vim: set ft=xml: -->
