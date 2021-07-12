@@ -1,0 +1,64 @@
+---
+# tasks file for wireguard
+- name: "Install wireguard tools"
+  become: true
+  dnf:
+    name: "wireguard-tools"
+    state: "latest"
+
+- name: "Open wireguard port in firewall"
+  become: true
+  ansible.posix.firewalld:
+    port: "{{ wg_port }}/udp"
+    zone: "FedoraServer"
+    permanent: true
+    state: "enabled"
+    immediate: true
+
+- name: "Enable masquerade for related zones"
+  become: true
+  loop:
+    - "FedoraServer"
+    - "internal"
+  ansible.posix.firewalld:
+    zone: "{{ item }}"
+    permanent: true
+    masquerade: "true"
+    state: "enabled"
+    immediate: true
+
+- name: "Setup wireguard interface in firewall"
+  become: true
+  ansible.posix.firewalld:
+    zone: "internal"
+    interface: "wg0"
+    permanent: true
+    state: "enabled"
+    immediate: true
+
+- name: "Allow packet forwarding in kernel"
+  become: true
+  loop:
+    - "net.ipv4.ip_forward"
+    - "net.ipv6.conf.all.forwarding"
+  ansible.posix.sysctl:
+    name: "{{ item }}"
+    value: "1"
+    sysctl_set: true
+    state: "present"
+    reload: true
+
+- name: "Generate wireguard config"
+  become: true
+  template:
+    src: "wg.conf"
+    dest: "/etc/wireguard/wg0.conf"
+    mode: "0600"
+    owner: "root"
+    group: "root"
+
+- name: "Start wireguard service"
+  service:
+    name: "wg-quick@wg0.service"
+    enabled: true
+    state: "restarted"

@@ -1,0 +1,49 @@
+---
+argument_specs:
+  main:
+    short_description: "The main entry point for the wireguard role."
+    options:
+      wg_private_key:
+        type: "str"
+        required: true
+        description: "Server's wireguard private key"
+
+      # wg_interface:
+      #   # TODO: Determine if this is required or not
+      #   type: "str"
+      #   required: true
+      #   description: "Network interface for exposing wireguard"
+
+      wg_port:
+        type: "int"
+        description: "External port for wireguard"
+        required: false
+        default: 17178
+
+      wg_address:
+        type: "str"
+        description: "CIDR address for the wireguard subnet"
+        required: false
+        default: "10.9.0.1/24"
+
+      wg_peers:
+        required: false
+        default: []
+        description: "List of peers for wireguard"
+        type: "list"
+        elements: "dict"
+        options:
+          address:
+            type: "str"
+            description: "CIDR (should with mask 32) for the peer"
+            required: true
+
+          public_key:
+            type: "str"
+            description: "Public key of this peer"
+            required: true
+
+          preshared_key:
+            type: "str"
+            description: "Preshared key with this peer"
+            required: false
