@@ -2,12 +2,6 @@
 # tasks file for bootstrap
 - import_tasks: "{{ role_path }}/tasks/check.yml"
 
-- include_tasks: "{{ role_path }}/tasks/docker_arch.yml"
-  when: "ansible_distribution == 'Archlinux'"
-
-- include_tasks: "{{ role_path }}/tasks/docker_ubuntu.yml"
-  when: "ansible_distribution == 'Ubuntu'"
-
 - name: "Ensure Docker is started"
   become: true
   service:
