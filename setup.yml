@@ -1,6 +1,6 @@
 ---
 - name: "Setup traefik"
-  hosts: "all"
+  hosts: "uranus"
   tags: "traefik"
   roles:
     - role: "traefik"
@@ -13,7 +13,7 @@
         65656333313738626462336161633663363663383239323930373865386465366631
 
 - name: "Setup ddns"
-  hosts: "all"
+  hosts: "uranus"
   tags: "ddns"
   roles:
     - role: "ddns"
@@ -34,7 +34,7 @@
         - "t.holi0317.net"
 
 - name: "Setup gitea"
-  hosts: "all"
+  hosts: "uranus"
   tags: "gitea"
   roles:
     - role: "gitea"
@@ -47,7 +47,7 @@
         3839
 
 - name: "Setup peertube"
-  hosts: "all"
+  hosts: "uranus"
   tags: "peertube"
   roles:
     - role: "peertube"
@@ -60,7 +60,7 @@
         6539
 
 - name: "Setup nextcloud"
-  hosts: "all"
+  hosts: "uranus"
   tags: "nextcloud"
   roles:
     - role: "nextcloud"
@@ -73,7 +73,7 @@
         3437
 
 - name: "Setup transfer.sh"
-  hosts: "all"
+  hosts: "uranus"
   tags: "transfer"
   roles:
     - role: "transfer"
