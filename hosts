@@ -1,4 +1,2 @@
 locahost ansible_connection=local storage_root=/srv/services
-
-[uranus]
 uranus ansible_connection=ssh ansible_user=hollis.wu storage_root=/srv/services
