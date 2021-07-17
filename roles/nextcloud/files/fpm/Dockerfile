@@ -1,9 +1,5 @@
 FROM nextcloud:fpm-alpine
 
-RUN addgroup -g 2000 nextcloud \
-  && adduser -u 2000 -D -G nextcloud nextcloud \
-  && chown -R nextcloud:nextcloud /var/www
-
 RUN set -ex; \
     \
     apk add --no-cache \
@@ -41,8 +37,6 @@ RUN set -ex; \
     apk add --virtual .nextcloud-phpext-rundeps $runDeps; \
     apk del .build-deps
 
-
-RUN mv /var/spool/cron/crontabs/www-data /var/spool/cron/crontabs/nextcloud
 
 COPY www.conf /usr/local/etc/php-fpm.d/www.conf
 COPY php.ini /usr/local/etc/php/

@@ -7,8 +7,8 @@
     - "{{ nextcloud_asset_path }}"
   file:
     path: "{{ item }}"
-    owner: "2000"
-    group: "2000"
+    owner: "82"
+    group: "82"
     mode: "700"
     state: "directory"
 
