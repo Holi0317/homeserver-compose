@@ -4,8 +4,8 @@
   become: true
   file:
     path: "{{ gitea_data_dir }}"
-    owner: "2000"
-    group: "2000"
+    owner: "1000"
+    group: "1000"
     mode: "755"
     state: "directory"
 
@@ -43,8 +43,8 @@
     ports:
       - "{{ gitea_ssh_port }}:{{ gitea_ssh_port }}"
     env:
-      USER_UID: "2000"
-      USER_GID: "2000"
+      USER_UID: "1000"
+      USER_GID: "1000"
 
       SSH_PORT: "{{ gitea_ssh_port | string }}"
       START_SSH_SERVER: "true"
