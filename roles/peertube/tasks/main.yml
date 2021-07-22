@@ -47,8 +47,7 @@
     read_only: false
     tty: false
 
-    restart_policy: "on-failure"
-    restart_retries: 3
+    restart_policy: "always"
     network_mode: "{{ service_network }}"
     networks:
       - name: "{{ service_network }}"

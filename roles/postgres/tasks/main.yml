@@ -48,8 +48,7 @@
     read_only: false
     tty: false
 
-    restart_policy: "on-failure"
-    restart_retries: 3
+    restart_policy: "always"
     user: "70:70"
     network_mode: "{{ postgres_network }}"
     networks:
@@ -102,8 +101,7 @@
     read_only: false
     tty: false
 
-    restart_policy: "on-failure"
-    restart_retries: 3
+    restart_policy: "always"
     user: "70:70"
     network_mode: "{{ postgres_network }}"
     networks:
