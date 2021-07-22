@@ -32,6 +32,7 @@
         - "nc.holi0317.net"
         - "pt.holi0317.net"
         - "t.holi0317.net"
+        - "syncthing.holi0317.net"
 
 - name: "Setup gitea"
   hosts: "uranus"
@@ -77,3 +78,9 @@
   tags: "transfer"
   roles:
     - role: "transfer"
+
+- name: "Setup syncthing"
+  hosts: "uranus"
+  tags: "syncthing"
+  roles:
+    - role: "syncthing"

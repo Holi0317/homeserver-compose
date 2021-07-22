@@ -1,0 +1,16 @@
+---
+argument_specs:
+  main:
+    short_description: "The main entry point for the syncthing role."
+    options:
+      syncthing_domain:
+        type: "str"
+        required: false
+        default: "syncthing.holi0317.net"
+        description: "Domain for syncthing interface"
+
+      syncthing_ip_whitelist:
+        type: "str"
+        description: "List of CIDR range or IP that can access syncthing interface"
+        required: false
+        default: "127.0.0.1/32,192.168.149.1/24"

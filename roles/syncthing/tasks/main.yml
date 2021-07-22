@@ -1,0 +1,71 @@
+---
+# tasks file for syncthing
+- name: "Create syncthing data directories"
+  become: true
+  file:
+    path: "{{ syncthing_data_dir }}"
+    owner: "1000"
+    group: "1000"
+    mode: "755"
+    state: "directory"
+
+- name: "Open syncthing port in firewall"
+  become: true
+  ansible.posix.firewalld:
+    service: "syncthing"
+    zone: "FedoraServer"
+    permanent: true
+    state: "enabled"
+    immediate: true
+
+- name: "Create syncthing container"
+  become: true
+  docker_container:
+    state: "started"
+    name: "{{ service_name }}_syncthing"
+    image: "syncthing/syncthing"
+    pull: true
+    comparisons:
+      image: "strict"
+      env: "strict"
+      volumes: "allow_more_present"
+      networks: "allow_more_present"
+
+    # Prepare for docker plugin v2 change
+    container_default_behavior: "no_defaults"
+    auto_remove: false
+    detach: true
+    init: false
+    interactive: false
+    memory: "0"
+    paused: false
+    privileged: false
+    read_only: false
+    tty: false
+
+    restart_policy: "always"
+    network_mode: "{{ service_network }}"
+    networks:
+      - name: "{{ service_network }}"
+      - name: "traefik"
+    ports:
+      - "22000:22000/tcp"
+      - "22000:22000/udp"
+      - "21027:21027/udp"
+    env:
+      PUID: "1000"
+      PGID: "1000"
+
+    mounts:
+      - source: "{{ syncthing_data_dir }}"
+        target: "/var/syncthing"
+        type: "bind"
+    labels:
+      traefik.enable: "true"
+      traefik.http.services.syncthing.loadbalancer.server.port: "8384"
+      traefik.docker.network: "traefik"
+      traefik.http.middlewares.syncthing-ipwhitelist.ipwhitelist.sourcerange: "{{ syncthing_ip_whitelist }}"
+      traefik.http.routers.syncthing.rule: "Host(`{{ syncthing_domain }}`)"
+      traefik.http.routers.syncthing.entrypoints: "websecure"
+      traefik.http.routers.syncthing.tls.certresolver: "myhttpchallenge"
+      traefik.http.routers.syncthing.middlewares: "compress@file,secure_head@file,syncthing-ipwhitelist@docker"
