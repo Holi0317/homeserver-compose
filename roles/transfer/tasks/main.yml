@@ -41,7 +41,6 @@
     networks:
       - name: "{{ service_network }}"
       - name: "traefik"
-    user: "root:root"
     command:
       - "--provider"
       - "local"
