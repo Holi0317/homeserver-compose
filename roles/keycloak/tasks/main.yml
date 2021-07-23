@@ -40,7 +40,7 @@
       DB_USER: "keycloak"
       DB_PASSWORD: "{{ postgres_password }}"
 
-      KEYCLOAK_FRONTEND_URL: "{{ keycloak_domain }}"
+      KEYCLOAK_FRONTEND_URL: "https://{{ keycloak_domain }}/auth"
       PROXY_ADDRESS_FORWARDING: "true"
 
     labels:
