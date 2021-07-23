@@ -15,7 +15,7 @@
   docker_container:
     state: "started"
     name: "{{ service_name }}_transfer"
-    image: "dutchcoders/transfer.sh"
+    image: "dutchcoders/transfer.sh:{{ transfer_version }}"
     pull: true
     comparisons:
       image: "strict"
