@@ -1,0 +1,1 @@
+/srv/nfs 192.168.149.1/24(rw,sync,all_squash,anonuid=1000,anongid=1000)

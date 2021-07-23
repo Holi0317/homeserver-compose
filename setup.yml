@@ -84,3 +84,9 @@
   tags: "syncthing"
   roles:
     - role: "syncthing"
+
+- name: "Setup nfs"
+  hosts: "uranus"
+  tags: "nfs"
+  roles:
+    - role: "nfs"

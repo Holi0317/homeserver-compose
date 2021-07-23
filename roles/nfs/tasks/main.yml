@@ -1,0 +1,35 @@
+---
+# tasks file for nfs
+- name: "Install NFS packages"
+  become: true
+  dnf:
+    name:
+      - "nfs-utils"
+    state: "latest"
+
+- name: "Create nfs export config"
+  become: true
+  copy:
+    dest: "/etc/exports"
+    src: "exports"
+    seuser: "system_u"
+    serole: "object_r"
+    setype: "etc_t"
+    selevel: "s0"
+
+- name: "Create nfs config"
+  become: true
+  copy:
+    dest: "/etc/nfs.conf"
+    src: "nfs.conf"
+    seuser: "system_u"
+    serole: "object_r"
+    setype: "etc_t"
+    selevel: "s0"
+
+- name: "Start nfs service"
+  become: true
+  service:
+    name: "nfs-server.service"
+    enabled: true
+    state: "started"
