@@ -3,6 +3,8 @@
 
 - name: "Create cf-ddns config file from template"
   become: true
+  notify:
+    - "Restart ddns"
   template:
       dest: "{{ ddns_conf_path }}"
       src: "cf-ddns.toml.j2"
