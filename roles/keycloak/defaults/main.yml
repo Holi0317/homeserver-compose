@@ -1,0 +1,3 @@
+---
+# defaults file for keycloak
+keycloak_domain: "auth.holi0317.net"

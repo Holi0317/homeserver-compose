@@ -1,0 +1,53 @@
+---
+# tasks file for keycloak
+- name: "Create keycloak container"
+  become: true
+  docker_container:
+    state: "started"
+    name: "{{ service_name }}_keycloak"
+    image: "quay.io/keycloak/keycloak:14.0.0"
+    pull: true
+    comparisons:
+      image: "strict"
+      env: "strict"
+      volumes: "allow_more_present"
+      networks: "allow_more_present"
+
+    # Prepare for docker plugin v2 change
+    container_default_behavior: "no_defaults"
+    auto_remove: false
+    detach: true
+    init: false
+    interactive: false
+    memory: "0"
+    paused: false
+    privileged: false
+    read_only: false
+    tty: false
+
+    restart_policy: "always"
+    network_mode: "{{ service_network }}"
+    networks:
+      - name: "{{ service_network }}"
+      - name: "traefik"
+    env:
+      KEYCLOAK_USER: "admin"
+      KEYCLOAK_PASSWORD: "admin"
+
+      DB_VENDOR: "postgres"
+      DB_ADDR: "postgres"
+      DB_DATABASE: "keycloak"
+      DB_USER: "keycloak"
+      DB_PASSWORD: "{{ postgres_password }}"
+
+      KEYCLOAK_FRONTEND_URL: "{{ keycloak_domain }}"
+      PROXY_ADDRESS_FORWARDING: "true"
+
+    labels:
+      traefik.enable: "true"
+      traefik.http.services.keycloak.loadbalancer.server.port: "8080"
+      traefik.docker.network: "traefik"
+      traefik.http.routers.keycloak.rule: "Host(`{{ keycloak_domain }}`)"
+      traefik.http.routers.keycloak.entrypoints: "websecure"
+      traefik.http.routers.keycloak.tls.certresolver: "myhttpchallenge"
+      traefik.http.routers.keycloak.middlewares: "compress@file,secure_head@file"

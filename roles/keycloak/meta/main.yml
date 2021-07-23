@@ -1,0 +1,18 @@
+---
+galaxy_info:
+  license: "MIT"
+  min_ansible_version: "2.11"
+  platforms:
+    - name: "Fedora"
+      versions:
+        - "34"
+
+dependencies:
+  - role: "bootstrap"
+    vars:
+      service_name: "keycloak"
+
+  - role: "postgres"
+    vars:
+      service_name: "keycloak"
+      postgres_user: "keycloak"
