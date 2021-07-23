@@ -47,6 +47,8 @@
       - "/data"
       - "--purge-days"
       - "7"
+      - "--purge-interval"
+      - "4"
 
     mounts:
       - source: "{{ transfer_data_dir }}"
