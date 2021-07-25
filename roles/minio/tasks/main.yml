@@ -1,0 +1,67 @@
+---
+# tasks file for minio
+- name: "Ensure password is set"
+  assert:
+    fail_msg: "Required variable minio_password is empty. Please set it as role parameter"
+    that:
+      - "minio_password | length > 0"
+
+- name: "Create minio container"
+  become: true
+  docker_container:
+    state: "started"
+    name: "{{ service_name }}_minio"
+    image: "minio/minio"
+    pull: true
+    comparisons:
+      image: "strict"
+      env: "strict"
+      volumes: "allow_more_present"
+      networks: "allow_more_present"
+
+    # Prepare for docker plugin v2 change
+    container_default_behavior: "no_defaults"
+    auto_remove: false
+    detach: true
+    init: false
+    interactive: false
+    memory: "0"
+    paused: false
+    privileged: false
+    read_only: false
+    tty: false
+
+    restart_policy: "always"
+    network_mode: "{{ service_network }}"
+    networks:
+      - name: "{{ service_network }}"
+      - name: "traefik"
+
+    env:
+      MINIO_ROOT_USER: "{{ minio_user }}"
+      MINIO_ROOT_PASSWORD: "{{ minio_password }}"
+
+    command: "server /data --console-address ':9001'"
+    
+    mounts:
+      - source: "{{ minio_data_dir }}"
+        target: "/data"
+        type: "bind"
+
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "traefik"
+
+      traefik.http.services.minio.loadbalancer.server.port: "9000"
+      traefik.http.routers.minio.service: "minio"
+      traefik.http.routers.minio.rule: "Host(`{{ minio_domain }}`)"
+      traefik.http.routers.minio.entrypoints: "websecure"
+      traefik.http.routers.minio.tls.certresolver: "myhttpchallenge"
+      traefik.http.routers.minio.middlewares: "compress@file,secure_head@file"
+
+      traefik.http.services.minio-console.loadbalancer.server.port: "9001"
+      traefik.http.routers.minio-console.service: "minio-console"
+      traefik.http.routers.minio-console.rule: "Host(`{{ minio_console_domain }}`)"
+      traefik.http.routers.minio-console.entrypoints: "websecure"
+      traefik.http.routers.minio-console.tls.certresolver: "myhttpchallenge"
+      traefik.http.routers.minio-console.middlewares: "compress@file,secure_head@file"

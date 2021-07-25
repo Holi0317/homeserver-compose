@@ -1,0 +1,6 @@
+---
+# defaults file for minio
+minio_domain: "minio.holi0317.net"
+minio_console_domain: "console.{{ minio_domain }}"
+minio_data_dir: "{{ service_base_path }}"
+minio_user: "minioadmin"
