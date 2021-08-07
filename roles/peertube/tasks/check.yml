@@ -1,9 +1,0 @@
----
-# Sanity check for peertube role
-
-- name: "Ensure domain is set"
-  assert:
-    fail_msg: "Required variable peertube_domain is invalid. Please check README.md for rules"
-    that:
-      - "peertube_domain | length > 0"
-      - "not peertube_domain.startswith('http')"
