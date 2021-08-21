@@ -4,7 +4,6 @@
 
   # Middleware secure_head@file - Security headers
   [http.middlewares.secure_head.headers]
-    accessControlAllowOrigin = "null"
     sslRedirect = true
     contentTypeNosniff = true
     browserXssFilter = true
