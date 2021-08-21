@@ -52,6 +52,10 @@
             35353661656232633863393461613563633337643130616332636437393734653833633134333362
             6563666631313465323335333663656662396134313264646137
 
+        # Macbok air
+        - address: "10.9.0.6/32"
+          public_key: "7o/+BzRkc6oSj1msfB0G5lQTWo1dKYqqqASl6mG1Lkg="
+
         # Johnson
         - address: "10.9.0.128/32"
           public_key: "35KW6G9t9ZkW5hj9S68c914HDP8MFiuE831fQfFamz0="
