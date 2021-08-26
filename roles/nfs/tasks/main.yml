@@ -27,6 +27,19 @@
     setype: "etc_t"
     selevel: "s0"
 
+- name: "Expose nfs with avahi"
+  become: true
+  copy:
+    dest: "/etc/avahi/services/nfs.service"
+    src: "nfs.service"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+    seuser: "system_u"
+    serole: "object_r"
+    setype: "avahi_conf_t"
+    selevel: "s0"
+
 - name: "Start nfs service"
   become: true
   service:
