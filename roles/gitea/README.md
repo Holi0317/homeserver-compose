@@ -46,6 +46,29 @@ Domain for hosting gitea
 
 Port for accepting ssh connection
 
+### `gitea_smtp_host`
+
+- Type: `str`
+- Required: Yes
+
+Hostname for SMTP server. This should also include the port number.
+
+We assume TLS is enabled for the SMTP server.
+
+### `gitea_smtp_user`
+
+- Type: `str`
+- Required: Yes
+
+Login user for SMTP server.
+
+### `gitea_smtp_password`
+
+- Type: `str`
+- Required: Yes
+
+Login password for SMTP server.
+
 ## Dependencies
 
 - bootstrap role

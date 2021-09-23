@@ -67,6 +67,15 @@
       GITEA__session__PROVIDER: "redis"
       GITEA__session__PROVIDER_CONFIG: "redis://redis:6379/1"
 
+      GITEA__mailer__ENABLED: "true"
+      GITEA__mailer__FROM: "no-reply@{{ gitea_domain }}"
+      GITEA__mailer__MAILER_TYPE: "smtp"
+      GITEA__mailer__HOST: "{{ gitea_smtp_host }}"
+      GITEA__mailer__IS_TLS_ENABLED: "true"
+      GITEA__mailer__USER: "{{ gitea_smtp_user }}"
+      GITEA__mailer__PASSWD: "{{ gitea_smtp_password }}"
+      GITEA__service__ENABLE_NOTIFY_MAIL: "true"
+
     mounts:
       - source: "{{ gitea_data_dir }}"
         target: "/data"

@@ -3,3 +3,7 @@
 gitea_data_dir: "{{ (service_base_path, 'data') | path_join }}"
 gitea_domain: "git.holi0317.net"
 gitea_ssh_port: 17022
+
+gitea_smtp_host: ""
+gitea_smtp_user: ""
+gitea_smtp_password: ""
