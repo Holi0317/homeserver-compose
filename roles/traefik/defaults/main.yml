@@ -1,5 +1,4 @@
 ---
 # defaults file for traefik
-traefik_build_path: "{{ (service_base_path, 'build') | path_join }}"
 traefik_le_path: "{{ (service_base_path, 'letsencrypt') | path_join }}"
 traefik_network: "traefik"

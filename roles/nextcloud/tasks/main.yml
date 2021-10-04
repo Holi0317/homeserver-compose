@@ -12,47 +12,13 @@
     mode: "700"
     state: "directory"
 
-- name: "Create build directory for nextcloud"
-  become: true
-  file:
-    path: "{{ nextcloud_build_path }}"
-    owner: "root"
-    group: "root"
-    mode: "700"
-    state: "directory"
-
-- name: "Copy build image context to build directory"
-  become: true
-  copy:
-    src: "{{ role_path }}/files/"
-    dest: "{{ nextcloud_build_path }}"
-
-- name: "Build fpm image"
-  become: true
-  docker_image:
-    name: "registry.gitlab.com/holi0317/homeserver-compose/nextcloud/fpm"
-    build:
-      path: "{{ (nextcloud_build_path, 'fpm') | path_join }}"
-      pull: true
-    source: "build"
-    state: "present"
-
-- name: "Build web image"
-  become: true
-  docker_image:
-    name: "registry.gitlab.com/holi0317/homeserver-compose/nextcloud/web"
-    build:
-      path: "{{ (nextcloud_build_path, 'web') | path_join }}"
-      pull: true
-    source: "build"
-    state: "present"
-
 - name: "create fpm container"
   become: true
   docker_container: &fpm
     state: "started"
     name: "{{ service_name }}_fpm"
     image: "registry.gitlab.com/holi0317/homeserver-compose/nextcloud/fpm"
+    pull: true
     comparisons:
       image: "strict"
       env: "strict"
@@ -107,6 +73,7 @@
     state: "started"
     name: "{{ service_name }}_web"
     image: "registry.gitlab.com/holi0317/homeserver-compose/nextcloud/web"
+    pull: true
     comparisons:
       image: "strict"
       env: "strict"

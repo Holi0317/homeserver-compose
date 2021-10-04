@@ -10,21 +10,6 @@
     group: "root"
     mode: "0755"
 
-- name: "Create traefik build directory"
-  become: true
-  file:
-    path: "{{ traefik_build_path }}"
-    state: "directory"
-    owner: "root"
-    group: "root"
-    mode: "0755"
-
-- name: "Copy traefik Dockerfile and required files"
-  become: true
-  copy:
-    src: "{{ role_path }}/files/"
-    dest: "{{ traefik_build_path }}"
-
 - name: "Create docker network for traefik"
   become: true
   docker_network:
@@ -35,22 +20,13 @@
     ipam_config:
       - subnet: "172.18.0.0/16"
 
-- name: "Build traefik container image"
-  become: true
-  community.docker.docker_image:
-    name: "registry.gitlab.com/holi0317/homeserver-compose/traefik"
-    build:
-      path: "{{ traefik_build_path }}"
-      pull: true
-    source: "build"
-    state: "present"
-
 - name: "Create traefik container"
   become: true
   community.docker.docker_container:
     state: "started"
     name: "traefik"
     image: "registry.gitlab.com/holi0317/homeserver-compose/traefik"
+    pull: true
     comparisons:
       image: "strict"
       env: "strict"

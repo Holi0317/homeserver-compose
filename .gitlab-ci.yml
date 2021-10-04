@@ -1,0 +1,63 @@
+stages:
+  - "build"
+
+build-traefik:
+  stage: "build"
+
+  image:
+    name: "docker:stable"
+
+  services:
+    - name: "docker:dind"
+      alias: "dockerdaemon"
+
+  variables:
+    DOCKER_HOST: "tcp://dockerdaemon:2375/"
+    DOCKER_DRIVER: "overlay2"
+    DOCKER_TLS_CERTDIR: ""
+
+  script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker build -t "$CI_REGISTRY_IMAGE/traefik:latest" docker/traefik
+    - docker push "$CI_REGISTRY_IMAGE/traefik:latest"
+
+
+build-nextcloud-fpm:
+  stage: "build"
+
+  image:
+    name: "docker:stable"
+
+  services:
+    - name: "docker:dind"
+      alias: "dockerdaemon"
+
+  variables:
+    DOCKER_HOST: "tcp://dockerdaemon:2375/"
+    DOCKER_DRIVER: "overlay2"
+    DOCKER_TLS_CERTDIR: ""
+
+  script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker build -t "$CI_REGISTRY_IMAGE/nextcloud/fpm:latest" docker/nextcloud/fpm
+    - docker push "$CI_REGISTRY_IMAGE/nextcloud/fpm:latest"
+
+build-nextcloud-web:
+  stage: "build"
+
+  image:
+    name: "docker:stable"
+
+  services:
+    - name: "docker:dind"
+      alias: "dockerdaemon"
+
+  variables:
+    DOCKER_HOST: "tcp://dockerdaemon:2375/"
+    DOCKER_DRIVER: "overlay2"
+    DOCKER_TLS_CERTDIR: ""
+
+  script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker build -t "$CI_REGISTRY_IMAGE/nextcloud/web:latest" docker/nextcloud/web
+    - docker push "$CI_REGISTRY_IMAGE/nextcloud/web:latest"
