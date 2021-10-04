@@ -6,6 +6,7 @@
     - role: "wireguard"
       wg_port: 17178
       wg_address: "10.9.0.1/24"
+      wg_trusted_address: "10.9.0.1/25"
       wg_private_key: !vault |
         $ANSIBLE_VAULT;1.1;AES256
         66333832653937373338633939663631656535336161303561336437313633646664373831396564
@@ -52,7 +53,7 @@
             35353661656232633863393461613563633337643130616332636437393734653833633134333362
             6563666631313465323335333663656662396134313264646137
 
-        # Macbok air
+        # MacBook air
         - address: "10.9.0.6/32"
           public_key: "7o/+BzRkc6oSj1msfB0G5lQTWo1dKYqqqASl6mG1Lkg="
 

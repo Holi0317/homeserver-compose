@@ -15,27 +15,6 @@
     state: "enabled"
     immediate: true
 
-- name: "Enable masquerade for related zones"
-  become: true
-  loop:
-    - "FedoraServer"
-    - "internal"
-  ansible.posix.firewalld:
-    zone: "{{ item }}"
-    permanent: true
-    masquerade: "true"
-    state: "enabled"
-    immediate: true
-
-- name: "Setup wireguard interface in firewall"
-  become: true
-  ansible.posix.firewalld:
-    zone: "internal"
-    interface: "wg0"
-    permanent: true
-    state: "enabled"
-    immediate: true
-
 - name: "Allow packet forwarding in kernel"
   become: true
   loop:
@@ -47,6 +26,17 @@
     sysctl_set: true
     state: "present"
     reload: true
+
+- import_tasks: "{{ role_path }}/tasks/mywg.yml"
+
+- name: "Add masquerade rule for trusted zone"
+  become: true
+  ansible.posix.firewalld:
+    zone: "trusted"
+    rich_rule: 'rule family="ipv4" source address="{{ wg_trusted_address }}" masquerade'
+    permanent: true
+    state: "enabled"
+    immediate: true
 
 - name: "Generate wireguard config"
   become: true

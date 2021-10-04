@@ -8,12 +8,6 @@ argument_specs:
         required: true
         description: "Server's wireguard private key"
 
-      # wg_interface:
-      #   # TODO: Determine if this is required or not
-      #   type: "str"
-      #   required: true
-      #   description: "Network interface for exposing wireguard"
-
       wg_port:
         type: "int"
         description: "External port for wireguard"
@@ -25,6 +19,12 @@ argument_specs:
         description: "CIDR address for the wireguard subnet"
         required: false
         default: "10.9.0.1/24"
+
+      wg_trusted_address:
+        type: "str"
+        description: "CIDR address in wireguard tunnel that can access the LAN"
+        required: false
+        default: "10.9.0.1/25"
 
       wg_peers:
         required: false
