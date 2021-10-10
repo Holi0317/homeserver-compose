@@ -64,6 +64,9 @@
       GITEA__cache__ADAPTER: "redis"
       GITEA__cache__HOST: "redis://redis:6379/0"
 
+      GITEA__attachment__ALLOWED_TYPES: "audio/*,video/*,image/*,.docx,.pptx,.xlsx,.log,.pdf,.txt,.zip,.gz"
+      GITEA__attachment__MAX_SIZE: "100"
+
       GITEA__session__PROVIDER: "redis"
       GITEA__session__PROVIDER_CONFIG: "redis://redis:6379/1"
 
