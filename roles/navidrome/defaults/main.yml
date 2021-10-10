@@ -1,0 +1,5 @@
+---
+# defaults file for navidrome
+navidrome_data_dir: "{{ (service_base_path, 'data') | path_join }}"
+navidrome_music_dir: "{{ (service_base_path, 'music') | path_join }}"
+navidrome_domain: "music.holi0317.net"
