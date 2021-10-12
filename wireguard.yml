@@ -57,6 +57,10 @@
         - address: "10.9.0.6/32"
           public_key: "7o/+BzRkc6oSj1msfB0G5lQTWo1dKYqqqASl6mG1Lkg="
 
+        # Kelvin Luk
+        - address: "10.9.0.7/32"
+          public_key: "HVxU6WhpCWhua2fG4NLz3iY9yg92dm3KZ4JggQvNYXE="
+
         # Johnson
         - address: "10.9.0.128/32"
           public_key: "35KW6G9t9ZkW5hj9S68c914HDP8MFiuE831fQfFamz0="
