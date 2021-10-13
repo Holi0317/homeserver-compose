@@ -1,0 +1,61 @@
+---
+- name: "Install, setup and enable ufw"
+  hosts: "uranus"
+  become: true
+  tasks:
+    - name: "Install ufw package"
+      dnf:
+        name:
+          - "ufw"
+        state: "latest"
+
+    - name: "Disable and stop firewalld"
+      systemd:
+        name: "firewalld"
+        enabled: false
+        state: "stopped"
+
+    - name: "Allow trusted internal LAN to pass firewall"
+      community.general.ufw:
+        rule: "allow"
+        src: "192.168.149.0/25"
+        comment: "Allow trusted internal LAN to pass firewall"
+
+    - name: "Allow trusted wireguard peers to pass firewall"
+      community.general.ufw:
+        rule: "allow"
+        src: "10.9.0.0/25"
+        comment: "Allow trusted wireguard peers to pass firewall"
+
+    - name: "Allow HTTP and HTTPs traffic"
+      community.general.ufw:
+        rule: "allow"
+        name: "WWW Full"
+
+    - name: "Open Gitea ssh port"
+      community.general.ufw:
+        rule: "allow"
+        port: "17022"
+        proto: "tcp"
+        comment: "Gitea SSH port"
+
+    - name: "Open wireguard external port"
+      community.general.ufw:
+        rule: "allow"
+        port: "17178"
+        proto: "udp"
+        comment: "Wireguard external port"
+
+    - name: "Open syncthing ports"
+      community.general.ufw:
+        rule: "allow"
+        port: "{{ item }}"
+        proto: "udp"
+        comment: "Syncthing port"
+      loop:
+        - "22000"
+        - "21027"
+
+    - name: "Enable and reload ufw"
+      community.general.ufw:
+        state: "enabled"

@@ -5,3 +5,9 @@ Now it has fully migrated to ansible. For the old docker compose files, check
 the git tree at [5112411c].
 
 [5112411c]: https://gitlab.com/holi0317/homeserver-compose/-/tree/5112411ceddd0e08aea83dda6cbb7b549e282f96
+
+# Firewall configuration
+
+Follow [ufw-docker] and install the script. After that restart ufw and docker.
+
+[ufw-docker]: https://github.com/chaifeng/ufw-docker

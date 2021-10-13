@@ -6,15 +6,6 @@
     name: "wireguard-tools"
     state: "latest"
 
-- name: "Open wireguard port in firewall"
-  become: true
-  ansible.posix.firewalld:
-    port: "{{ wg_port }}/udp"
-    zone: "FedoraServer"
-    permanent: true
-    state: "enabled"
-    immediate: true
-
 - name: "Allow packet forwarding in kernel"
   become: true
   loop:
@@ -26,17 +17,6 @@
     sysctl_set: true
     state: "present"
     reload: true
-
-- import_tasks: "{{ role_path }}/tasks/mywg.yml"
-
-- name: "Add masquerade rule for trusted zone"
-  become: true
-  ansible.posix.firewalld:
-    zone: "trusted"
-    rich_rule: 'rule family="ipv4" source address="{{ wg_trusted_address }}" masquerade'
-    permanent: true
-    state: "enabled"
-    immediate: true
 
 - name: "Generate wireguard config"
   become: true

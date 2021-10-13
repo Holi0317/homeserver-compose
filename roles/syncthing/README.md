@@ -11,7 +11,6 @@ For all folders, add them under `/var/syncthing` path for persistent.
 ## Synopsis
 
 - Create syncthing service in docker
-- Add `syncthing` service to `firewalld`, `FedoraServer` zone
 
 ## Requirements
 

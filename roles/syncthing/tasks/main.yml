@@ -9,15 +9,6 @@
     mode: "755"
     state: "directory"
 
-- name: "Open syncthing port in firewall"
-  become: true
-  ansible.posix.firewalld:
-    service: "syncthing"
-    zone: "FedoraServer"
-    permanent: true
-    state: "enabled"
-    immediate: true
-
 - name: "Create syncthing container"
   become: true
   docker_container:
