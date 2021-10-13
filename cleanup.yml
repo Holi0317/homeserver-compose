@@ -1,0 +1,19 @@
+---
+- name: "System cleanups"
+  hosts: "uranus"
+  become: true
+  tasks:
+    - name: "Upgrade all dnf packages"
+      dnf:
+        name: "*"
+        state: "latest"
+
+    - name: "Clean unused docker resources"
+      docker_prune:
+        builder_cache: true
+        containers: true
+        images: true
+        images_filters:
+          dangling: false
+        networks: true
+        volumes: yes
