@@ -1,2 +1,2 @@
 locahost ansible_connection=local storage_root=/srv/services
-uranus ansible_connection=ssh ansible_user=hollis.wu storage_root=/srv/services
+uranus ansible_connection=ssh ansible_user=hollis.wu storage_root=/srv/services ansible_python_interpreter=/usr/bin/python3
