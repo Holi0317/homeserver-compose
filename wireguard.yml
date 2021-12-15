@@ -7,6 +7,7 @@
       wg_port: 17178
       wg_address: "10.9.0.1/24"
       wg_trusted_address: "10.9.0.1/25"
+      wg_interface: "enp7s0"
       wg_private_key: !vault |
         $ANSIBLE_VAULT;1.1;AES256
         66333832653937373338633939663631656535336161303561336437313633646664373831396564

@@ -26,6 +26,12 @@ argument_specs:
         required: false
         default: "10.9.0.1/25"
 
+      wg_interface:
+        type: "str"
+        description: "Network interface for traffic to go through"
+        required: false
+        default: "eno1"
+
       wg_peers:
         required: false
         default: []
