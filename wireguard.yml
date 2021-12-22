@@ -58,7 +58,7 @@
         - address: "10.9.0.6/32"
           public_key: "7o/+BzRkc6oSj1msfB0G5lQTWo1dKYqqqASl6mG1Lkg="
 
-        # Kelvin Luk
+        # Kelvin Luk 1
         - address: "10.9.0.7/32"
           public_key: "HVxU6WhpCWhua2fG4NLz3iY9yg92dm3KZ4JggQvNYXE="
 
@@ -121,3 +121,6 @@
             3632313165326563360a646436616536356462343938623131303630626361656133353665373737
             62343139653835356131643537656361616565643638326164316535306266636432633239663137
             3332393337396636343634656537353530313164646439616338
+
+        - address: "10.9.0.134/32"
+          public_key: "G4Fc6inr/6Z4sQ+sUfHzpzQFpxk3DrxaRZ0lIqxI+wY="
