@@ -62,6 +62,10 @@
         - address: "10.9.0.7/32"
           public_key: "HVxU6WhpCWhua2fG4NLz3iY9yg92dm3KZ4JggQvNYXE="
 
+        # Linux workstation (jupyter)
+        - address: "10.9.0.8/32"
+          public_key: "VCasZ72zzzgbHAVQXVN/O06grTI2TYdy5xgtGGFeYWA="
+
         # Johnson
         - address: "10.9.0.128/32"
           public_key: "35KW6G9t9ZkW5hj9S68c914HDP8MFiuE831fQfFamz0="
