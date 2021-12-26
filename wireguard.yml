@@ -126,5 +126,10 @@
             62343139653835356131643537656361616565643638326164316535306266636432633239663137
             3332393337396636343634656537353530313164646439616338
 
+        # Kelvin Luk 2
         - address: "10.9.0.134/32"
           public_key: "G4Fc6inr/6Z4sQ+sUfHzpzQFpxk3DrxaRZ0lIqxI+wY="
+
+        # Peter Wat
+        - address: "10.9.0.135/32"
+          public_key: "zWzjsK5FqNA3wBF6eLX0kgHyq3wkmeAQ9xgUeidj90c="
