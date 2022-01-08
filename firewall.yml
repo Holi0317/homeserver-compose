@@ -56,6 +56,14 @@
         - "22000"
         - "21027"
 
+    - name: "Open sftpgo port to wireguard subnet"
+      community.general.ufw:
+        rule: "allow"
+        port: "2022"
+        proto: "tcp"
+        src: "10.9.0.1/24"
+        comment: "sftpgo sftp port on wireguard subnet"
+
     - name: "Enable and reload ufw"
       community.general.ufw:
         state: "enabled"

@@ -1,0 +1,62 @@
+---
+# tasks file for sftpgo
+- name: "Create sftpgo directories"
+  become: true
+  loop:
+    - "{{ sftpgo_data_dir }}"
+    - "{{ sftpgo_config_dir }}"
+  file:
+    path: "{{ item }}"
+    owner: "1000"
+    group: "1000"
+    mode: "755"
+    state: "directory"
+
+- name: "Create sftpgo container"
+  become: true
+  docker_container:
+    state: "started"
+    name: "{{ service_name }}_sftpgo"
+    image: "drakkan/sftpgo:v2-alpine"
+    pull: true
+    comparisons:
+      image: "strict"
+      env: "strict"
+      volumes: "allow_more_present"
+      networks: "allow_more_present"
+
+    # Prepare for docker plugin v2 change
+    container_default_behavior: "no_defaults"
+    auto_remove: false
+    detach: true
+    init: false
+    interactive: false
+    memory: "0"
+    paused: false
+    privileged: false
+    read_only: false
+    tty: false
+
+    restart_policy: "always"
+    network_mode: "{{ service_network }}"
+    networks:
+      - name: "{{ service_network }}"
+      - name: "traefik"
+    ports:
+      - "{{ sftpgo_sftp_port }}:2022"
+    mounts:
+      - source: "{{ sftpgo_data_dir }}"
+        target: "/srv/sftpgo/data"
+        type: "bind"
+      - source: "{{ sftpgo_config_dir }}"
+        target: "/var/lib/sftpgo"
+        type: "bind"
+    labels:
+      traefik.enable: "true"
+      traefik.http.services.sftpgo.loadbalancer.server.port: "8080"
+      traefik.docker.network: "traefik"
+      traefik.http.middlewares.sftpgo-ipwhitelist.ipwhitelist.sourcerange: "{{ sftpgo_admin_ip_whitelist }}"
+      traefik.http.routers.sftpgo.rule: "Host(`{{ sftpgo_domain }}`)"
+      traefik.http.routers.sftpgo.entrypoints: "websecure"
+      traefik.http.routers.sftpgo.tls.certresolver: "myhttpchallenge"
+      traefik.http.routers.sftpgo.middlewares: "compress@file,secure_head@file,sftpgo-ipwhitelist@docker"

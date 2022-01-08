@@ -36,6 +36,7 @@
         - "minio.holi0317.net"
         - "console.minio.holi0317.net"
         - "music.holi0317.net"
+        - "sftpgo.holi0317.net"
 
 - name: "Setup keycloak"
   hosts: "uranus"
@@ -131,3 +132,9 @@
   tags: "nfs"
   roles:
     - role: "nfs"
+
+- name: "Setup sftpgo"
+  hosts: "uranus"
+  tags: "sftpgo"
+  roles:
+    - role: "sftpgo"
