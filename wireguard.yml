@@ -133,3 +133,7 @@
         # Peter Wat
         - address: "10.9.0.135/32"
           public_key: "zWzjsK5FqNA3wBF6eLX0kgHyq3wkmeAQ9xgUeidj90c="
+
+        # Kelvin Luk 3
+        - address: "10.9.0.136/32"
+          public_key: "Kjla0cxmIPUmoU2JIaqsc99li4KnfVSDznGCdiGMfjU="
