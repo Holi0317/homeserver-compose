@@ -11,3 +11,11 @@ the git tree at [5112411c].
 Follow [ufw-docker] and install the script. After that restart ufw and docker.
 
 [ufw-docker]: https://github.com/chaifeng/ufw-docker
+
+# Create random ansible
+
+> Assumes `pwgen` is available on system
+
+```bash
+pwgen 20 1 | tr -d '\n' | ansible-vault encrypt_string -n asdf
+```

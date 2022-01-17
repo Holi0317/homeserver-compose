@@ -1,0 +1,11 @@
+---
+# defaults file for vikunja
+vikunja_data_dir: "{{ (service_base_path, 'data') | path_join }}"
+vikunja_domain: "todo.holi0317.net"
+
+vikunja_jwt_secret: ""
+
+smtp_host: ""
+smtp_port: "587"
+smtp_user: ""
+smtp_password: ""

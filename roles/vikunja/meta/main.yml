@@ -1,0 +1,20 @@
+---
+galaxy_info:
+  license: "MIT"
+  min_ansible_version: "2.10"
+  platforms:
+    - name: "Fedora"
+      versions:
+        - "34"
+
+dependencies:
+  - role: "bootstrap"
+    vars:
+      service_name: "vikunja"
+  - role: "postgres"
+    vars:
+      service_name: "vikunja"
+      postgres_user: "vikunja"
+  - role: "redis"
+    vars:
+      service_name: "vikunja"
