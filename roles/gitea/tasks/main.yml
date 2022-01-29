@@ -39,6 +39,7 @@
     networks:
       - name: "{{ service_network }}"
       - name: "traefik"
+      - name: "authentik"
     ports:
       - "{{ gitea_ssh_port }}:{{ gitea_ssh_port }}"
     env:
