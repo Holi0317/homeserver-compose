@@ -39,6 +39,7 @@
     networks:
       - name: "{{ service_network }}"
       - name: "traefik"
+      - name: "authentik"
     ports:
       - "{{ gitea_ssh_port }}:{{ gitea_ssh_port }}"
     env:
@@ -78,6 +79,10 @@
       GITEA__mailer__USER: "{{ gitea_smtp_user }}"
       GITEA__mailer__PASSWD: "{{ gitea_smtp_password }}"
       GITEA__service__ENABLE_NOTIFY_MAIL: "true"
+
+      GITEA__oauth2__ENABLE: "false"
+
+      GITEA__oauth2_client__ENABLE_AUTO_REGISTRATION: "true"
 
     mounts:
       - source: "{{ gitea_data_dir }}"

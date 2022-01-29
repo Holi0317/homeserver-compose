@@ -35,6 +35,7 @@
     network_mode: "{{ service_network }}"
     networks:
       - name: "{{ service_network }}"
+      - name: "authentik"
       - name: "traefik"
 
     env:
@@ -42,7 +43,6 @@
       MINIO_ROOT_PASSWORD: "{{ minio_password }}"
 
     command: "server /data --console-address ':9001'"
-    
     mounts:
       - source: "{{ minio_data_dir }}"
         target: "/data"

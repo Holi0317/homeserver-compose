@@ -1,0 +1,14 @@
+---
+# defaults file for authentik
+authentik_media_dir: "{{ (service_base_path, 'media') | path_join }}"
+authentik_templates_dir: "{{ (service_base_path, 'templates') | path_join }}"
+authentik_certs_dir: "{{ (service_base_path, 'certs') | path_join }}"
+authentik_backup_dir: "{{ (service_base_path, 'backup') | path_join }}"
+
+authentik_domain: "auth.holi0317.net"
+authentik_secret_key: ""
+
+smtp_host: ""
+smtp_port: ""
+smtp_user: ""
+smtp_password: ""
