@@ -1,0 +1,138 @@
+---
+# tasks file for authentik
+- name: "Create authentik data directories"
+  become: true
+  loop:
+    - "{{ authentik_media_dir }}"
+    - "{{ authentik_templates_dir }}"
+    - "{{ authentik_certs_dir }}"
+    - "{{ authentik_backup_dir }}"
+  file:
+    path: "{{ item }}"
+    owner: "1000"
+    group: "1000"
+    mode: "755"
+    state: "directory"
+
+- name: "Create authentik server container"
+  become: true
+  docker_container:
+    state: "started"
+    name: "{{ service_name }}_server"
+    image: "ghcr.io/goauthentik/server"
+    pull: true
+    comparisons:
+      image: "strict"
+      env: "strict"
+      volumes: "allow_more_present"
+      networks: "allow_more_present"
+
+    # Prepare for docker plugin v2 change
+    container_default_behavior: "no_defaults"
+    auto_remove: false
+    detach: true
+    init: false
+    interactive: false
+    memory: "0"
+    paused: false
+    privileged: false
+    read_only: false
+    tty: false
+
+    restart_policy: "always"
+    network_mode: "{{ service_network }}"
+    networks:
+      - name: "{{ service_network }}"
+      - name: "traefik"
+    command: "server"
+    env: &env
+      AUTHENTIK_POSTGRESQL__HOST: "postgres"
+      AUTHENTIK_POSTGRESQL__USER: "authentik"
+      AUTHENTIK_POSTGRESQL__NAME: "authentik"
+      AUTHENTIK_POSTGRESQL__PASSWORD: "{{ postgres_password }}"
+
+      AUTHENTIK_REDIS__HOST: "redis"
+
+      AUTHENTIK_EMAIL__HOST: "{{ smtp_host }}"
+      AUTHENTIK_EMAIL__PORT: "{{ smtp_port }}"
+      AUTHENTIK_EMAIL__USERNAME: "{{ smtp_user }}"
+      AUTHENTIK_EMAIL__PASSWORD: "{{ smtp_password }}"
+      AUTHENTIK_EMAIL__USE_SSL: "true"
+      AUTHENTIK_EMAIL__FROM: "no-reply@{{ authentik_domain }}"
+
+      AUTHENTIK_SECRET_KEY: "{{ authentik_secret_key }}"
+      AUTHENTIK_ERROR_REPORTING__ENABLED: "false"
+      AUTHENTIK_COOKIE_DOMAIN: "{{ authentik_domain }}"
+      AUTHENTIK_DEFAULT_USER_CHANGE_USERNAME: "false"
+    mounts:
+      - source: "{{ authentik_media_dir }}"
+        target: "/media"
+        type: "bind"
+      - source: "{{ authentik_templates_dir }}"
+        target: "/templates"
+        type: "bind"
+      - source: "{{ authentik_certs_dir }}"
+        target: "/certs"
+        type: "bind"
+      - source: "{{ authentik_backup_dir }}"
+        target: "/backups"
+        type: "bind"
+    labels:
+      traefik.enable: "true"
+      traefik.http.services.authentik.loadbalancer.server.port: "9000"
+      traefik.docker.network: "traefik"
+      traefik.http.routers.authentik.rule: "Host(`{{ authentik_domain }}`)"
+      traefik.http.routers.authentik.entrypoints: "websecure"
+      traefik.http.routers.authentik.tls.certresolver: "myhttpchallenge"
+      traefik.http.routers.authentik.middlewares: "compress@file,secure_head@file"
+
+- name: "Create authentik worker container"
+  become: true
+  docker_container:
+    state: "started"
+    name: "{{ service_name }}_worker"
+    image: "ghcr.io/goauthentik/server"
+    pull: true
+    comparisons:
+      image: "strict"
+      env: "strict"
+      volumes: "allow_more_present"
+      networks: "allow_more_present"
+
+    # Prepare for docker plugin v2 change
+    container_default_behavior: "no_defaults"
+    auto_remove: false
+    detach: true
+    init: false
+    interactive: false
+    memory: "0"
+    paused: false
+    privileged: false
+    read_only: false
+    tty: false
+
+    restart_policy: "always"
+    network_mode: "{{ service_network }}"
+    networks:
+      - name: "{{ service_network }}"
+    command: "worker"
+    user: "root"
+    env:
+      <<: *env
+    mounts:
+      - source: "{{ authentik_media_dir }}"
+        target: "/media"
+        type: "bind"
+      - source: "{{ authentik_templates_dir }}"
+        target: "/templates"
+        type: "bind"
+      - source: "{{ authentik_certs_dir }}"
+        target: "/certs"
+        type: "bind"
+      - source: "{{ authentik_backup_dir }}"
+        target: "/backups"
+        type: "bind"
+      - source: "/var/run/docker.sock"
+        target: "/var/run/docker.sock"
+        type: "bind"
+        read_only: true

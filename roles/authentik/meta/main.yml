@@ -1,0 +1,20 @@
+---
+galaxy_info:
+  license: "MIT"
+  min_ansible_version: "2.10"
+  platforms:
+    - name: "ArchLinux"
+      versions:
+        - "any"
+
+dependencies:
+  - role: "bootstrap"
+    vars:
+      service_name: "authentik"
+  - role: "postgres"
+    vars:
+      service_name: "authentik"
+      postgres_user: "authentik"
+  - role: "redis"
+    vars:
+      service_name: "authentik"
