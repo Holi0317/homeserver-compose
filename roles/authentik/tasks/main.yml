@@ -14,6 +14,14 @@
     mode: "755"
     state: "directory"
 
+- name: "Create public docker network for authentik"
+  become: true
+  docker_network:
+    name: "authentik"
+    driver: "bridge"
+    scope: "local"
+    state: "present"
+
 - name: "Create authentik server container"
   become: true
   docker_container:
@@ -43,6 +51,9 @@
     network_mode: "{{ service_network }}"
     networks:
       - name: "{{ service_network }}"
+      - name: "authentik"
+        aliases:
+          - "authentik"
       - name: "traefik"
     command: "server"
     env: &env
