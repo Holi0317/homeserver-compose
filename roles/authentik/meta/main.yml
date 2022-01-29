@@ -11,10 +11,13 @@ dependencies:
   - role: "bootstrap"
     vars:
       service_name: "authentik"
+      service_network: "authentik_private"
   - role: "postgres"
     vars:
       service_name: "authentik"
       postgres_user: "authentik"
+      service_network: "authentik_private"
   - role: "redis"
     vars:
       service_name: "authentik"
+      service_network: "authentik_private"
