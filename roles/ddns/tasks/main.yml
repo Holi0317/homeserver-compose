@@ -6,11 +6,11 @@
   notify:
     - "Restart ddns"
   template:
-      dest: "{{ ddns_conf_path }}"
-      src: "cf-ddns.toml.j2"
-      owner: "root"
-      group: "root"
-      mode: "0400"
+    dest: "{{ ddns_conf_path }}"
+    src: "cf-ddns.toml.j2"
+    owner: "root"
+    group: "root"
+    mode: "0400"
 
 - name: "Create ddns container"
   become: true
@@ -41,6 +41,7 @@
     network_mode: "{{ service_network }}"
     networks:
       - name: "{{ service_network }}"
+    command: "--config /cf-ddns.toml --loglevel debug"
     mounts:
       - source: "{{ ddns_conf_path }}"
         target: "/cf-ddns.toml"
