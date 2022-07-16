@@ -35,7 +35,6 @@
         - "auth.holi0317.net"
         - "minio.holi0317.net"
         - "console.minio.holi0317.net"
-        - "music.holi0317.net"
         - "sftpgo.holi0317.net"
 
 - name: "Setup authentik"
@@ -141,12 +140,6 @@
   tags: "transfer"
   roles:
     - role: "transfer"
-
-- name: "Setup navidrome"
-  hosts: "uranus"
-  tags: "navidrome"
-  roles:
-    - role: "navidrome"
 
 - name: "Setup syncthing"
   hosts: "uranus"
