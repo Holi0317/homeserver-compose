@@ -1,0 +1,9 @@
+[Unit]
+Description=Run restic backup script every 2 weeks
+
+[Timer]
+OnCalendar=*-*-01,15 00:00:00 UTC
+Persistent=True
+
+[Install]
+WantedBy=timers.target

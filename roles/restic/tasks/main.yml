@@ -1,0 +1,4 @@
+---
+- import_tasks: "{{ role_path }}/tasks/install.yml"
+- import_tasks: "{{ role_path }}/tasks/scripts.yml"
+- import_tasks: "{{ role_path }}/tasks/systemd.yml"

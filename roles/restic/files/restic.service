@@ -1,0 +1,8 @@
+[Unit]
+Description=Start restic backup script
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /home/restic/scripts/backup.sh
+User=restic
+Group=restic

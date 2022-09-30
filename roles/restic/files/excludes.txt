@@ -1,0 +1,1 @@
+/srv/services/nextcloud/data/holi/files/bangumi

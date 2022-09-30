@@ -1,0 +1,29 @@
+---
+argument_specs:
+  main:
+    short_description: "The main entry point for the restic role."
+    options:
+      restic_version:
+        type: "str"
+        required: true
+        description: "Restic version to be downloaded"
+
+      restic_password:
+        type: "str"
+        required: true
+        description: "Password for encrypting restic repository"
+
+      restic_repository:
+        type: "str"
+        required: true
+        description: "Restic repository path"
+
+      b2_account_id:
+        type: "str"
+        required: true
+        description: "Account ID got from Backblaze"
+
+      b2_account_key:
+        type: "str"
+        required: true
+        description: "Account key got from Backblaze"

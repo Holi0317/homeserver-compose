@@ -1,0 +1,50 @@
+---
+- name: "Setup restic user"
+  become: true
+  user:
+    name: restic
+    shell: /sbin/nologin
+    create_home: true
+    state: present
+
+- name: "Create bin directory"
+  become: true
+  become_user: restic
+  file:
+    path: "/home/restic/bin"
+    state: directory
+
+- name: "Download restic release"
+  become: true
+  become_user: restic
+  get_url:
+    url: "https://github.com/restic/restic/releases/download/v{{ restic_version }}/restic_{{ restic_version }}_linux_amd64.bz2"
+    dest: /home/restic/bin/restic_{{ restic_version }}.bz2
+
+- name: "Unpack restic release"
+  become: true
+  become_user: restic
+  command:
+    cmd: "bzip2 -dk /home/restic/bin/restic_{{ restic_version }}.bz2"
+    creates: "/home/restic/bin/restic_{{ restic_version }}"
+
+- name: "Fix restic permission"
+  become: true
+  become_user: restic
+  file:
+    path: "/home/restic/bin/restic_{{ restic_version }}"
+    mode: "750"
+
+- name: "Setcap on restic binary"
+  become: true
+  community.general.capabilities:
+    path: "/home/restic/bin/restic_{{ restic_version }}"
+    capability: "cap_dac_read_search=+ep"
+
+- name: "Link restic binary"
+  become: true
+  become_user: restic
+  file:
+    path: "/home/restic/bin/restic"
+    src: "/home/restic/bin/restic_{{ restic_version }}"
+    state: "link"

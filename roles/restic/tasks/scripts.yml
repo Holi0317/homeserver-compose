@@ -1,0 +1,26 @@
+---
+- name: "Create scripts directory"
+  become: true
+  become_user: restic
+  file:
+    path: /home/restic/scripts
+    state: directory
+
+- name: "Template in credential"
+  become: true
+  become_user: restic
+  template:
+    src: "credentials.sh"
+    dest: "/home/restic/scripts/credentials.sh"
+    mode: "700"
+
+- name: "Install scripts"
+  become: true
+  become_user: restic
+  loop:
+    - { src: "backup.sh", mode: "700" }
+    - { src: "excludes.txt", mode: "600" }
+  copy:
+    src: "{{ item.src }}"
+    dest: "/home/restic/scripts/"
+    mode: "{{ item.mode }}"
