@@ -1,3 +1,4 @@
+# vim: ft=yaml.ansible
 ---
 galaxy_info:
   license: "MIT"

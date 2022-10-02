@@ -1,3 +1,4 @@
+# vim: ft=yaml.ansible
 ---
 # Sanity check for bootstrap role
 - name: "Fail if we are not in x86_64"

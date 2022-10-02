@@ -1,3 +1,4 @@
+# vim: ft=yaml.ansible
 ---
 # Sanity check for maria role
 

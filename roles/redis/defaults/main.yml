@@ -1,3 +1,4 @@
+# vim: ft=yaml.ansible
 ---
 # defaults file for redis
 redis_version: "6"

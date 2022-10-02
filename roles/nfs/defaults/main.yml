@@ -1,2 +1,3 @@
+# vim: ft=yaml.ansible
 ---
 # defaults file for nfs

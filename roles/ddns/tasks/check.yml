@@ -1,3 +1,4 @@
+# vim: ft=yaml.ansible
 ---
 # Sanity check for ddns role
 - name: "Ensure cloudflare api token is set"

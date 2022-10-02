@@ -1,3 +1,4 @@
+# vim: ft=yaml.ansible
 ---
 - name: "Install systemd units"
   become: true

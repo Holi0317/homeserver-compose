@@ -1,3 +1,4 @@
+# vim: ft=yaml.ansible
 ---
 # defaults file for bootstrap
 service_base_path: "{{ (storage_root, service_name) | path_join }}"

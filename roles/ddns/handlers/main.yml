@@ -1,3 +1,4 @@
+# vim: ft=yaml.ansible
 ---
 - name: "Restart ddns"
   become: true

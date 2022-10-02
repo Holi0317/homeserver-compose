@@ -1,3 +1,4 @@
+# vim: ft=yaml.ansible
 ---
 # tasks file for nfs
 - name: "Install NFS packages"

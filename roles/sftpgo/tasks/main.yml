@@ -1,3 +1,4 @@
+# vim: ft=yaml.ansible
 ---
 # tasks file for sftpgo
 - name: "Create sftpgo directories"

@@ -1,3 +1,4 @@
+# vim: ft=yaml.ansible
 ---
 # defaults file for gitea
 gitea_data_dir: "{{ (service_base_path, 'data') | path_join }}"

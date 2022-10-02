@@ -1,3 +1,4 @@
+# vim: ft=yaml.ansible
 ---
 # tasks file for nextcloud
 - name: "Create directories for nextcloud"

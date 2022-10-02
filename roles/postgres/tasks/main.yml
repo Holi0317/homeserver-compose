@@ -1,3 +1,4 @@
+# vim: ft=yaml.ansible
 ---
 # tasks file for postgres
 - import_tasks: "{{ role_path }}/tasks/check.yml"

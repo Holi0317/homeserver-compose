@@ -1,3 +1,4 @@
+# vim: ft=yaml.ansible
 ---
 # defaults file for minio
 minio_domain: "minio.holi0317.net"

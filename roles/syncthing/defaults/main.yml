@@ -1,3 +1,4 @@
+# vim: ft=yaml.ansible
 ---
 # defaults file for syncthing
 syncthing_domain: "syncthing.holi0317.net"

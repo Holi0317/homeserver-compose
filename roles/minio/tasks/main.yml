@@ -1,3 +1,4 @@
+# vim: ft=yaml.ansible
 ---
 # tasks file for minio
 - name: "Ensure password is set"

@@ -1,3 +1,4 @@
+# vim: ft=yaml.ansible
 ---
 # tasks file for authentik
 - name: "Create authentik data directories"

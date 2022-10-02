@@ -1,3 +1,4 @@
+# vim: ft=yaml.ansible
 ---
 - name: "Configure avahi"
   hosts: "uranus"

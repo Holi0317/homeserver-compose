@@ -1,3 +1,4 @@
+# vim: ft=yaml.ansible
 ---
 # defaults file for authentik
 authentik_media_dir: "{{ (service_base_path, 'media') | path_join }}"

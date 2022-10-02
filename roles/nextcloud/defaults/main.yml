@@ -1,3 +1,4 @@
+# vim: ft=yaml.ansible
 ---
 # defaults file for nextcloud
 nextcloud_asset_path: "{{ (service_base_path, 'asset') | path_join }}"

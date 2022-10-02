@@ -1,3 +1,4 @@
+# vim: ft=yaml.ansible
 ---
 # tasks file for gitea
 - name: "Create gitea data directories"
