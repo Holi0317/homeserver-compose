@@ -14,5 +14,6 @@
       - docker-ce-cli
       - containerd.io
       - docker-compose-plugin
+      - python3-docker
       - crun
     state: present

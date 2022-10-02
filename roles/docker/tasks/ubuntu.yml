@@ -22,4 +22,5 @@
       - containerd.io
       - docker-compose-plugin
       - crun
+      - python3-docker
     state: present
