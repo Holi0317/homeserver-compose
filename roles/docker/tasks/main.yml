@@ -1,0 +1,17 @@
+# vim: ft=yaml.ansible
+---
+- import_tasks: "{{ role_path }}/tasks/fedora.yml"
+  when: "ansible_facts['distribution'] == 'Fedora'"
+
+- name: "Configure docker daemon"
+  become: true
+  ansible.builtin.copy:
+    src: "daemon.json"
+    dest: "/etc/docker/daemon.json"
+
+- name: "Start docker service"
+  become: true
+  service:
+    name: "docker"
+    state: "started"
+    enabled: true

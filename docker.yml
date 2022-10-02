@@ -1,0 +1,6 @@
+# vim: ft=yaml.ansible
+---
+- name: "Install docker"
+  hosts: "uranus"
+  roles:
+    - role: "docker"

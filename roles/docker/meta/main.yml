@@ -1,0 +1,16 @@
+# vim: ft=yaml.ansible
+---
+galaxy_info:
+  license: "MIT"
+  description: "Install docker-ce and crun"
+  author: "Hollis Wu <whyhollis@gmail.com>"
+  min_ansible_version: "2.13"
+  platforms:
+    - name: "Fedora"
+      versions:
+        - "36"
+    - name: "Ubuntu"
+      versions:
+        - "focal"
+        - "groovy"
+        - "jammy"

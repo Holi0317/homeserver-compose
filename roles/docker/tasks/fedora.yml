@@ -1,0 +1,18 @@
+# vim: ft=yaml.ansible
+---
+- name: "Add docker repository"
+  become: true
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/fedora/docker-ce.repo
+    dest: /etc/yum.repos.d/docker-ce.repo
+
+- name: "Install docker packages"
+  become: true
+  ansible.builtin.dnf:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
+      - crun
+    state: present
