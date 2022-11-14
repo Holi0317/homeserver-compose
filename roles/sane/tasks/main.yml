@@ -1,0 +1,69 @@
+# vim: ft=yaml.ansible
+---
+# tasks file for sane
+
+- name: "Install sane packages"
+  become: true
+  ansible.builtin.dnf:
+    name:
+      - "sane-backends-daemon"
+      - "sane-backends-drivers-scanners"
+
+- name: "Install scanner driver"
+  become: true
+  ansible.builtin.dnf:
+    name: "https://download.brother.com/welcome/dlf006648/brscan4-0.4.10-1.x86_64.rpm"
+    disable_gpg_check: true
+    state: "present"
+
+- name: "Configure saned.conf"
+  become: true
+  ansible.builtin.copy:
+    src: "saned.conf"
+    dest: "/etc/sane.d/saned.conf"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+    seuser: "system_u"
+    serole: "object_r"
+    setype: "etc_t"
+    selevel: "s0"
+
+- name: "Prepare for socket.socket override"
+  become: true
+  ansible.builtin.file:
+    path: "/etc/systemd/system/saned.socket.d"
+    state: "directory"
+    mode: "0755"
+    seuser: "system_u"
+    serole: "object_r"
+    setype: "systemd_unit_file_t"
+    selevel: "s0"
+
+- name: "Patch saned.socket definition"
+  become: true
+  ansible.builtin.copy:
+    src: "saned.socket.override"
+    dest: "/etc/systemd/system/saned.socket.d/override.conf"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+    seuser: "system_u"
+    serole: "object_r"
+    setype: "systemd_unit_file_t"
+    selevel: "s0"
+
+- name: "Add saned user to lp group"
+  become: true
+  # Ref: https://help.ubuntu.com/community/SaneDaemonTutorial#Test_if_the_server_can_reach_its_own_saned_on_localhost
+  ansible.builtin.user:
+    name: "saned"
+    groups: "lp"
+    append: true
+
+- name: "Start saned socket"
+  become: true
+  ansible.builtin.service:
+    name: "saned.socket"
+    enabled: true
+    state: "started"

@@ -1,0 +1,8 @@
+# vim: ft=yaml.ansible
+---
+- name: "Restart avahi"
+  become: true
+
+  ansible.builtin.service:
+    name: "avahi-daemon.service"
+    state: "restarted"

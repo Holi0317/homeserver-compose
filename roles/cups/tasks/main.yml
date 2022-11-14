@@ -1,0 +1,49 @@
+# vim: ft=yaml.ansible
+---
+# tasks file for cups
+
+- name: "Install avahi"
+  become: true
+  ansible.builtin.dnf:
+    name:
+      - "avahi"
+      - "nss-mdns"
+    state: "latest"
+
+- name: "Install cups package and driver"
+  become: true
+  ansible.builtin.dnf:
+    name:
+      - "cups"
+      - "printer-driver-brlaser"
+    state: "latest"
+
+- name: "Enable and start cups service"
+  become: true
+  ansible.builtin.service:
+    name: "cups.service"
+    enabled: true
+    state: "started"
+
+- name: "Enable remote admin"
+  become: true
+  ansible.builtin.command: "cupsctl --remote-admin"
+
+- name: "Enable share printer"
+  become: true
+  ansible.builtin.command: "cupsctl --share-printers"
+
+- name: "Install avahi service definition"
+  become: true
+  notify:
+    - "Restart avahi"
+  ansible.builtin.copy:
+    src: "cups-avahi-service.xml"
+    dest: "/etc/avahi/services/Airprint_Brother_DCP-L2540DW_series.service"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+    seuser: "system_u"
+    serole: "object_r"
+    setype: "avahi_conf_t"
+    selevel: "s0"
