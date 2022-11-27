@@ -2,10 +2,15 @@
 ---
 - name: "Setup printer"
   hosts: "uranus"
+  tags:
+    - "cups"
   roles:
     - role: "cups"
 
 - name: "Install and configure sane"
   hosts: "uranus"
+  tags:
+    - "sane"
   roles:
     - role: "sane"
+    - role: "airsane"

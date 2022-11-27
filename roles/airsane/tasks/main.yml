@@ -1,0 +1,31 @@
+# vim: ft=yaml.ansible
+---
+# Compile, install and setup airsane
+- name: "Install build dependencies"
+  become: true
+  ansible.builtin.dnf:
+    state: "present"
+    name:
+      - "git"
+      - "cmake"
+      - "gcc"
+      - "gcc-c++"
+      - "sane-backends-devel"
+      - "libpng-devel"
+      - "avahi-devel"
+
+- name: "Clone Airsane repository" # noqa: latest
+  register: "clone"
+  ansible.builtin.git:
+    repo: https://github.com/SimulPiscator/AirSane.git
+    dest: "{{ sane_airsane_dir }}"
+
+- name: "Build and install airsane" # noqa: no-handler
+  when: "clone.changed"
+  ansible.builtin.import_tasks: "build.yml"
+
+- name: "Enable airsaned"
+  ansible.builtin.service:
+    name: "airsaned.service"
+    enabled: true
+    state: "restarted"

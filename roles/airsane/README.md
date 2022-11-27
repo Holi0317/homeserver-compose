@@ -1,16 +1,18 @@
-# cupwsanes
+# airsane
 
-Configure sane scanning service
+Configure airsane to expose sane as airscan service.
 
 ## Synopsis
 
-- Install sane
-- Enable sane
+- Compile airsane
+- Install airsane
+- Enable airsane
 
 ## Requirements
 
 - Ansible >= 2.13 (Tested on 2.13)
 - Fedora
+- sane to be enabled
 
 ## Role Variables
 
@@ -18,14 +20,14 @@ None
 
 ## Dependencies
 
-None
+Please run sane before this role.
 
 ## Example Playbook
 
 ```yaml
 - hosts: servers
   roles:
-    - role: "sane"
+    - role: "airsane"
 ```
 
 ## License

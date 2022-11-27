@@ -1,0 +1,22 @@
+# vim: ft=yaml.ansible
+---
+- name: "Remove previous build files"
+  ansible.builtin.file:
+    path: "{{ (sane_airsane_dir, 'build') | path_join }}"
+    state: "absent"
+
+- name: "Generate build file for airsane"
+  ansible.builtin.command:
+    chdir: "{{ sane_airsane_dir }}"
+    cmd: "cmake -S . build"
+
+- name: "Build airsane"
+  ansible.builtin.command:
+    chdir: "{{ sane_airsane_dir }}"
+    cmd: "cmake --build build"
+
+- name: "Install airsane"
+  become: true
+  ansible.builtin.command:
+    chdir: "{{ sane_airsane_dir }}"
+    cmd: "cmake --install build"

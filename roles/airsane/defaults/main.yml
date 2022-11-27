@@ -1,0 +1,4 @@
+# vim: ft=yaml.ansible
+---
+# defaults file for sane
+sane_airsane_dir: "{{ (ansible_user_dir, 'git', 'airsane') | path_join }}"
