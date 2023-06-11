@@ -22,6 +22,12 @@
         src: "192.168.149.0/25"
         comment: "Allow trusted internal LAN to pass firewall"
 
+    - name: "Allow tailscale network to pass firewall"
+      community.general.ufw:
+        rule: "allow"
+        src: "100.64.0.0/10"
+        comment: "Allow tailscale network to pass firewall"
+
     - name: "Allow trusted wireguard peers to pass firewall"
       community.general.ufw:
         rule: "allow"
