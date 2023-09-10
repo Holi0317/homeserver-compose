@@ -1,3 +1,4 @@
 /srv/nfs 192.168.149.50(rw,sync,all_squash,anonuid=1000,anongid=1000,insecure)
 /srv/nfs 192.168.149.73(rw,sync,all_squash,anonuid=1000,anongid=1000,insecure)
+/srv/nfs 100.112.5.111(rw,sync,all_squash,anonuid=1000,anongid=1000,insecure)
 /srv/nfs 10.9.0.6(rw,sync,all_squash,anonuid=1000,anongid=1000,insecure)
