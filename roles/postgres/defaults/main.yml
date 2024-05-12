@@ -1,24 +1,14 @@
 # vim: ft=yaml.ansible
 ---
 # defaults file for postgres
-postgres_version: "13"
+postgres_version: "16"
 postgres_image: "postgres:{{ postgres_version }}-alpine"
-postgres_container_name: "{{ service_name }}_postgres"
+postgres_container_name: "postgres_postgres"
 postgres_user: "postgres"
 postgres_database: "{{ postgres_user }}"
 postgres_password: ""
-postgres_network: "{{ service_network }}"
 postgres_initdb_args: "--auth-host=scram-sha-256 --encoding=UTF8 --locale=en_US.UTF8"
 
-postgres_base_path: "{{ (service_base_path, 'postgres') | path_join }}"
+postgres_base_path: "/srv/services/postgres"
 postgres_data_path: "{{ (postgres_base_path, postgres_version) | path_join }}"
-postgres_backup_path: "{{ (postgres_base_path, 'backups') | path_join }}"
-
-postgres_backup_container_name: "{{ service_name }}_pgbackup"
-postgres_backup_image: "prodrigestivill/postgres-backup-local:{{ postgres_version }}-alpine"
-postgres_backup_extra_opts: "-Z9 --schema=public --blobs"
-postgres_backup_schedule: "@daily"
-postgres_backup_keep:
-  days: "7"
-  weeks: "4"
-  months: "6"
+postgres_conf_path: "{{ (postgres_base_path, 'postgresql.conf') | path_join }}"

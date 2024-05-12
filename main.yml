@@ -1,5 +1,27 @@
 # vim: ft=yaml.ansible
 ---
+- name: "Docker service check"
+  hosts: "uranus"
+  tasks:
+    - name: "Ensure Docker is started"
+      become: true
+      service:
+        name: "docker"
+        state: "started"
+        enabled: true
+
+- name: "Setup postgres"
+  hosts: "uranus"
+  roles:
+    - role: "postgres"
+      postgres_password: !vault |
+        $ANSIBLE_VAULT;1.1;AES256
+        38616339366639383639343335323330653536663836633437313333313730663139326465616464
+        3436336632653837353566363634316430326130323635390a623061336266633862333235396336
+        39396435313337313035616131333438663663643735316135323132343864323565636538643136
+        6134393331616563640a333035383635643061373336393362373163356233646533393862626633
+        3766
+
 - name: "Setup traefik"
   hosts: "uranus"
   tags: "traefik"

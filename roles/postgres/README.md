@@ -9,24 +9,25 @@ the specified postgres user and postgres database in variables.
 
 This role only completes when the postgres server is ready for accepting external connection.
 
-The server will not publish any ports (or bind port to host). To connect to the server,
-attach container to `{{postgres_network}}` (default to `{{service_network}}`) for
-connecting.
+The postgres user and database is not supposed to store any application data. Create
+separate users and database for each applications.
 
-This also create a backup sidecar container for doing backup periodically.
+The server will publish port 5432 on the host, but that's just for ansible to create
+database and users for applications. Containerized apps should attach their container to
+`postgres` network and connect to the database with hostname `postgres`.
+
+~~This also create a backup sidecar container for doing backup periodically.~~ TODO. Was
+there before the cluster consolidation.
+
+We also install psycopg2 via dnf so that ansible postgres module will work.
 
 ## Requirements
 
-- Ansible >= 2.10 (Tested on 2.10)
+- Ansible >= 2.16
 
 ## Role Variables
 
 ### Required variables
-
-Inherit all required variables from [bootstrap] role. Consult their documentation
-for the list of required variables.
-
-[bootstrap]: ../bootstrap/README.md
 
 | Name                | Type | Description               |
 | ------------------- | ---- | ------------------------- |
@@ -37,15 +38,9 @@ for the list of required variables.
 Here only list some variables that might be override. For complete list of variables
 available, read the `defaults/main.yml` file directly.
 
-| Name                | Type | Default               | Description                                                                                      |
-| ------------------- | ---- | --------------------- | ------------------------------------------------------------------------------------------------ |
-| `postgres_version`  | str  | "13"                  | Postgres version to be used. Including non-breaking minor versions is supported but discouraged. |
-| `postgres_user`     | str  | "postgres"            | Postgres user to be created on first run                                                         |
-| `postgres_database` | str  | "{{ postgres_user }}" | Postgres database to be created on first run                                                     |
-
-## Dependencies
-
-- [bootstrap] role
+| Name               | Type | Default | Description                                                                                      |
+| ------------------ | ---- | ------- | ------------------------------------------------------------------------------------------------ |
+| `postgres_version` | str  | "16"    | Postgres version to be used. Including non-breaking minor versions is supported but discouraged. |
 
 ## Example Playbook
 
@@ -55,7 +50,6 @@ available, read the `defaults/main.yml` file directly.
     - role: "postgres"
       vars:
         postgres_password: "hunter2"
-        postgres_user: "some_service_name"
 ```
 
 ## License

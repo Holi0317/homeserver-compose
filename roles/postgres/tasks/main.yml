@@ -8,18 +8,26 @@
   loop:
     - "{{ postgres_base_path }}"
     - "{{ postgres_data_path }}"
-    - "{{ postgres_backup_path }}"
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     owner: "70"
     group: "70"
     mode: "700"
     state: "directory"
 
+- name: "Copy postgresql.confg"
+  become: true
+  ansible.builtin.copy:
+    dest: "{{ postgres_conf_path }}"
+    src: "postgresql.conf"
+    owner: "70"
+    group: "70"
+    mode: "400"
+
 - name: "Create docker network for postgres containers"
   become: true
   community.docker.docker_network:
-    name: "{{ postgres_network }}"
+    name: "postgres"
     driver: "bridge"
     scope: "local"
     state: "present"
@@ -51,21 +59,31 @@
 
     restart_policy: "always"
     user: "70:70"
-    network_mode: "{{ postgres_network }}"
+    network_mode: "postgres"
+    ports:
+      - "127.0.0.1:5432:5432"
     networks:
-      - name: "{{ postgres_network }}"
+      - name: "postgres"
         aliases:
           - "postgres"
     mounts:
       - source: "{{ postgres_data_path }}"
         target: "/var/lib/postgresql/data"
         type: "bind"
+      - source: "{{ postgres_conf_path }}"
+        target: "/etc/postgresql/postgresql.conf"
+        type: "bind"
+        read_only: true
     env:
       POSTGRES_USER: "{{ postgres_user }}"
       POSTGRES_DB: "{{ postgres_database }}"
       POSTGRES_PASSWORD: "{{ postgres_password }}"
       POSTGRES_INITDB_ARGS: "{{ postgres_initdb_args }}"
       POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
+
+    command:
+      - "-c"
+      - "config_file=/etc/postgresql/postgresql.conf"
 
 # This assumes the docker command is targeting the same host as docker ansible modules.
 # Which might not always be the case.
@@ -77,49 +95,8 @@
   retries: 20
   delay: 3
 
-- name: "Start postgres backup container"
+- name: "Install psycopg2 via dnf"
   become: true
-  docker_container:
-    state: "started"
-    name: "{{ postgres_backup_container_name }}"
-    image: "{{ postgres_backup_image }}"
-    pull: true
-    comparisons:
-      image: "strict"
-      env: "strict"
-      volumes: "allow_more_present"
-      networks: "allow_more_present"
-
-    # Prepare for docker plugin v2 change
-    container_default_behavior: "no_defaults"
-    auto_remove: false
-    detach: true
-    init: false
-    interactive: false
-    memory: "0"
-    paused: false
-    privileged: false
-    read_only: false
-    tty: false
-
-    restart_policy: "always"
-    user: "70:70"
-    network_mode: "{{ postgres_network }}"
-    networks:
-      - name: "{{ postgres_network }}"
-    mounts:
-      - source: "{{ postgres_backup_path }}"
-        target: "/backups"
-        type: "bind"
-    env:
-      POSTGRES_HOST: "postgres"
-      POSTGRES_USER: "{{ postgres_user }}"
-      POSTGRES_DB: "{{ postgres_database }}"
-      POSTGRES_PASSWORD: "{{ postgres_password }}"
-      POSTGRES_EXTRA_OPTS: "{{ postgres_backup_extra_opts }}"
-      POSTGRES_HOST_AUTH_METHOD: "scram-sha-256"
-
-      SCHEDULE: "{{ postgres_backup_schedule }}"
-      BACKUP_KEEP_DAYS: "{{ postgres_backup_keep.days }}"
-      BACKUP_KEEP_WEEKS: "{{ postgres_backup_keep.weeks }}"
-      BACKUP_KEEP_MONTHS: "{{ postgres_backup_keep.months }}"
+  ansible.builtin.dnf:
+    name: "python3-psycopg2"
+    state: "present"
