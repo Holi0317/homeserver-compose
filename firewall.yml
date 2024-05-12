@@ -28,12 +28,6 @@
         src: "100.64.0.0/10"
         comment: "Allow tailscale network to pass firewall"
 
-    - name: "Allow trusted wireguard peers to pass firewall"
-      community.general.ufw:
-        rule: "allow"
-        src: "10.9.0.0/25"
-        comment: "Allow trusted wireguard peers to pass firewall"
-
     - name: "Allow HTTP and HTTPs traffic"
       community.general.ufw:
         rule: "allow"
@@ -46,13 +40,6 @@
         proto: "tcp"
         comment: "Gitea SSH port"
 
-    - name: "Open wireguard external port"
-      community.general.ufw:
-        rule: "allow"
-        port: "17178"
-        proto: "udp"
-        comment: "Wireguard external port"
-
     - name: "Open syncthing ports"
       community.general.ufw:
         rule: "allow"
@@ -62,14 +49,6 @@
       loop:
         - "22000"
         - "21027"
-
-    - name: "Open sftpgo port to wireguard subnet"
-      community.general.ufw:
-        rule: "allow"
-        port: "2022"
-        proto: "tcp"
-        src: "10.9.0.1/24"
-        comment: "sftpgo sftp port on wireguard subnet"
 
     - name: "Enable and reload ufw"
       community.general.ufw:
