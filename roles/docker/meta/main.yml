@@ -2,7 +2,7 @@
 ---
 galaxy_info:
   license: "MIT"
-  description: "Install docker-ce and crun"
+  description: "Install docker-ce"
   author: "Hollis Wu <whyhollis@gmail.com>"
   min_ansible_version: "2.13"
   platforms:

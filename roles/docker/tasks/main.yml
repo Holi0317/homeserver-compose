@@ -6,12 +6,6 @@
 - import_tasks: "{{ role_path }}/tasks/fedora.yml"
   when: "ansible_facts['distribution'] == 'Ubuntu'"
 
-- name: "Configure docker daemon"
-  become: true
-  ansible.builtin.copy:
-    src: "daemon.json"
-    dest: "/etc/docker/daemon.json"
-
 - name: "Start docker service"
   become: true
   service:
