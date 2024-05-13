@@ -1,0 +1,11 @@
+# vim: ft=yaml.ansible
+---
+- name: "Restart postgres"
+  become: true
+  community.docker.docker_container:
+    # Prepare for docker plugin v2 change
+    container_default_behavior: "no_defaults"
+
+    name: "postgres_postgres"
+    restart: true
+    state: "started"

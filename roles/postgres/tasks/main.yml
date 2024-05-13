@@ -17,6 +17,8 @@
 
 - name: "Copy postgresql.confg"
   become: true
+  notify:
+    - "Restart postgres"
   ansible.builtin.copy:
     dest: "{{ postgres_conf_path }}"
     src: "postgresql.conf"
