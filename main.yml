@@ -169,12 +169,6 @@
         3835306134343063360a313162343730323637663664343633383764376161623261336331333932
         3437
 
-- name: "Setup transfer.sh"
-  hosts: "uranus"
-  tags: "transfer"
-  roles:
-    - role: "transfer"
-
 - name: "Setup syncthing"
   hosts: "uranus"
   tags: "syncthing"
