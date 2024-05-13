@@ -1,0 +1,66 @@
+# vim: ft=yaml.ansible
+---
+# tasks file for dragonfly
+
+- name: "Create dragonfly directories"
+  become: true
+  loop:
+    - "{{ dragonfly_base_path }}"
+    - "{{ dragonfly_data_path }}"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: "999"
+    group: "999"
+    mode: "700"
+    state: "directory"
+
+- name: "Create docker network for dragonfly containers"
+  become: true
+  community.docker.docker_network:
+    name: "{{ dragonfly_network }}"
+    driver: "bridge"
+    scope: "local"
+    state: "present"
+
+- name: "Start dragonfly container"
+  become: true
+  community.docker.docker_container:
+    state: "started"
+    name: "{{ dragonfly_container_name }}"
+    image: "{{ dragonfly_image }}"
+    pull: true
+    comparisons:
+      image: "strict"
+      env: "strict"
+      volumes: "allow_more_present"
+      networks: "allow_more_present"
+
+    # Prepare for docker plugin v2 change
+    container_default_behavior: "no_defaults"
+    auto_remove: false
+    detach: true
+    init: false
+    interactive: false
+    memory: "0"
+    paused: false
+    privileged: false
+    read_only: false
+    tty: false
+
+    restart_policy: "always"
+    network_mode: "{{ dragonfly_network }}"
+    networks:
+      - name: "{{ dragonfly_network }}"
+        aliases:
+          - "dragonfly"
+          - "redis"
+    mounts:
+      - source: "{{ dragonfly_data_path }}"
+        target: "/data"
+        type: "bind"
+    command:
+      - "--version_check=false"
+      - "--maxmemory=2G"
+      - "--logtostderr"
+      - "--dir=/data"
+      - "--snapshot_cron=*/5 * * * *"

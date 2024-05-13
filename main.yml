@@ -7,6 +7,7 @@
 
 - name: "Setup postgres"
   hosts: "uranus"
+  tags: "postgres"
   roles:
     - role: "postgres"
       postgres_password: !vault |
@@ -16,6 +17,12 @@
         39396435313337313035616131333438663663643735316135323132343864323565636538643136
         6134393331616563640a333035383635643061373336393362373163356233646533393862626633
         3766
+
+- name: "Setup dragonfly"
+  hosts: "uranus"
+  tags: "dragonfly"
+  roles:
+    - role: "dragonfly"
 
 - name: "Setup traefik"
   hosts: "uranus"

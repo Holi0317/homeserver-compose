@@ -1,0 +1,9 @@
+# vim: ft=yaml.ansible
+---
+# defaults file for dragonfly
+dragonfly_image: "ghcr.io/dragonflydb/dragonfly:ubuntu"
+dragonfly_container_name: "dragonfly_dragonfly"
+dragonfly_network: "dragonfly"
+
+dragonfly_base_path: "{{ (storage_root, 'dragonfly') | path_join }}"
+dragonfly_data_path: "{{ (dragonfly_base_path, 'data') | path_join }}"
