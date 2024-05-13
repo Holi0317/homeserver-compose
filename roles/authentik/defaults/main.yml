@@ -1,10 +1,14 @@
 # vim: ft=yaml.ansible
 ---
 # defaults file for authentik
-authentik_media_dir: "{{ (service_base_path, 'media') | path_join }}"
-authentik_templates_dir: "{{ (service_base_path, 'templates') | path_join }}"
-authentik_certs_dir: "{{ (service_base_path, 'certs') | path_join }}"
-authentik_backup_dir: "{{ (service_base_path, 'backup') | path_join }}"
+authentik_network: "authentik"
+authentik_image: "ghcr.io/goauthentik/server:2024.4"
+
+authentik_base_path: "{{ (storage_root, 'authentik') | path_join }}"
+authentik_media_dir: "{{ (authentik_base_path, 'media') | path_join }}"
+authentik_templates_dir: "{{ (authentik_base_path, 'templates') | path_join }}"
+authentik_certs_dir: "{{ (authentik_base_path, 'certs') | path_join }}"
+authentik_backup_dir: "{{ (authentik_base_path, 'backup') | path_join }}"
 
 authentik_domain: "auth.holi0317.net"
 authentik_secret_key: ""

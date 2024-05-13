@@ -2,23 +2,8 @@
 ---
 galaxy_info:
   license: "MIT"
-  min_ansible_version: "2.10"
+  min_ansible_version: "2.16"
   platforms:
-    - name: "ArchLinux"
+    - name: "Fedora"
       versions:
-        - "any"
-
-dependencies:
-  - role: "bootstrap"
-    vars:
-      service_name: "authentik"
-      service_network: "authentik_private"
-  - role: "postgres"
-    vars:
-      service_name: "authentik"
-      postgres_user: "authentik"
-      service_network: "authentik_private"
-  - role: "redis"
-    vars:
-      service_name: "authentik"
-      service_network: "authentik_private"
+        - "39"

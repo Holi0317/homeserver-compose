@@ -6,17 +6,13 @@ Setup [authentik] service in docker
 
 ## Synopsis
 
-- Create postgres database with postgres role
-- Create redis cache server with redis role
 - Create docker network for authentik service (We need other service to connect to it)
 - Create authentik worker and server in docker
 - Expose the authentik web GUI with traefik
 
 ## Requirements
 
-- Should be distribution agnostic
-- Ansible >= 2.10 (Tested on 2.12)
-- traefik role should be started somewhere else
+- Ansible >= 2.16
 
 ## Role Variables
 
@@ -25,14 +21,29 @@ Setup [authentik] service in docker
 - Type: `string`
 - Required: Yes
 
-(Inherited from bootstrap role) Path prefix for all persistent data.
+Path prefix for all persistent data.
 
-### `postgres_password`
+### `postgres_admin_password`
 
 - Type: `string`
 - Required: Yes
 
-(Inherited from postgres role) Password for the postgres database
+Admin (role `postgres`) password for postgres cluster, for managing db and role for
+service.
+
+### `authentik_pg_password`
+
+- Type: `string`
+- Required: Yes
+
+Password for the postgres database, authentik_user
+
+### `redict_db`
+
+- Type: `string (with integer in it)`
+- Required: Yes
+
+Redict (redis fork) database (virtual host) number
 
 ### `smtp_host`
 
@@ -82,9 +93,11 @@ This should be a secret variable.
 
 ## Dependencies
 
-- bootstrap role
-- postgres role
-- redis role
+Following roles should be applied somewhere else
+
+- traefik
+- postgres
+- redict
 
 ## Example Playbook
 
@@ -93,7 +106,8 @@ This should be a secret variable.
   roles:
     - role: "authentik"
       vars:
-        postgres_password: "hunter2"
+        postgres_admin_password: "hunter2"
+        authentik_postgres_password: "hunter2"
         smtp_host: "example.com"
         smtp_port: "25"
         smtp_user: "username"

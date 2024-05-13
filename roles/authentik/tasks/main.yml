@@ -4,21 +4,41 @@
 - name: "Create authentik data directories"
   become: true
   loop:
+    - "{{ authentik_base_path }}"
     - "{{ authentik_media_dir }}"
     - "{{ authentik_templates_dir }}"
     - "{{ authentik_certs_dir }}"
     - "{{ authentik_backup_dir }}"
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     owner: "1000"
     group: "1000"
     mode: "755"
     state: "directory"
 
-- name: "Create public docker network for authentik"
+- name: "Create postgres user for authentik"
+  community.postgresql.postgresql_user:
+    name: "authentik"
+    password: "{{ authentik_pg_password }}"
+    login_host: "127.0.0.1"
+    login_user: "postgres"
+    login_password: "{{ postgres_admin_password }}"
+    db: "authentik"
+    role_attr_flags: "NOINHERIT"
+
+- name: "Create postgres database for authentik"
+  community.postgresql.postgresql_db:
+    name: "authentik"
+    owner: "authentik"
+    encoding: "UTF8"
+    login_host: "127.0.0.1"
+    login_user: "postgres"
+    login_password: "{{ postgres_admin_password }}"
+
+- name: "Create docker network for authentik"
   become: true
   docker_network:
-    name: "authentik"
+    name: "{{ authentik_network }}"
     driver: "bridge"
     scope: "local"
     state: "present"
@@ -27,8 +47,8 @@
   become: true
   docker_container:
     state: "started"
-    name: "{{ service_name }}_server"
-    image: "ghcr.io/goauthentik/server"
+    name: "authentik_server"
+    image: "{{ authentik_image }}"
     pull: true
     comparisons:
       image: "strict"
@@ -49,21 +69,23 @@
     tty: false
 
     restart_policy: "always"
-    network_mode: "{{ service_network }}"
+    network_mode: "{{ authentik_network }}"
     networks:
-      - name: "{{ service_network }}"
-      - name: "authentik"
+      - name: "{{ authentik_network }}"
         aliases:
           - "authentik"
+      - name: "postgres"
+      - name: "redict"
       - name: "traefik"
     command: "server"
     env: &env
       AUTHENTIK_POSTGRESQL__HOST: "postgres"
       AUTHENTIK_POSTGRESQL__USER: "authentik"
       AUTHENTIK_POSTGRESQL__NAME: "authentik"
-      AUTHENTIK_POSTGRESQL__PASSWORD: "{{ postgres_password }}"
+      AUTHENTIK_POSTGRESQL__PASSWORD: "{{ authentik_pg_password }}"
 
-      AUTHENTIK_REDIS__HOST: "redis"
+      AUTHENTIK_REDIS__HOST: "redict"
+      AUTHENTIK_REDIS__DB: "{{ redict_db }}"
 
       AUTHENTIK_EMAIL__HOST: "{{ smtp_host }}"
       AUTHENTIK_EMAIL__PORT: "{{ smtp_port }}"
@@ -102,8 +124,8 @@
   become: true
   docker_container:
     state: "started"
-    name: "{{ service_name }}_worker"
-    image: "ghcr.io/goauthentik/server"
+    name: "authentik_worker"
+    image: "{{ authentik_image }}"
     pull: true
     comparisons:
       image: "strict"
@@ -124,9 +146,11 @@
     tty: false
 
     restart_policy: "always"
-    network_mode: "{{ service_network }}"
+    network_mode: "{{ authentik_network }}"
     networks:
-      - name: "{{ service_network }}"
+      - name: "{{ authentik_network }}"
+      - name: "postgres"
+      - name: "redict"
     command: "worker"
     user: "root"
     env:
