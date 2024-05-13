@@ -1,8 +1,0 @@
-# vim: ft=yaml.ansible
----
-# defaults file for sftpgo
-sftpgo_data_dir: "{{ (service_base_path, 'data') | path_join }}"
-sftpgo_config_dir: "{{ (service_base_path, 'config') | path_join }}"
-sftpgo_domain: "sftpgo.holi0317.net"
-sftpgo_sftp_port: "2022"
-sftpgo_admin_ip_whitelist: "127.0.0.1/32,192.168.149.1/24"

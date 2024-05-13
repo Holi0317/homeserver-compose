@@ -180,9 +180,3 @@
   tags: "nfs"
   roles:
     - role: "nfs"
-
-- name: "Setup sftpgo"
-  hosts: "uranus"
-  tags: "sftpgo"
-  roles:
-    - role: "sftpgo"
