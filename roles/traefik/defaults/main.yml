@@ -1,5 +1,6 @@
 # vim: ft=yaml.ansible
 ---
 # defaults file for traefik
-traefik_le_path: "{{ (service_base_path, 'letsencrypt') | path_join }}"
+traefik_base_path: "{{ (storage_root, 'traefik') | path_join }}"
+traefik_le_path: "{{ (traefik_base_path, 'letsencrypt') | path_join }}"
 traefik_network: "traefik"

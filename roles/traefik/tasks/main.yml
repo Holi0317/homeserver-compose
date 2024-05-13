@@ -2,6 +2,15 @@
 ---
 # tasks file for traefik
 
+- name: "Create base directory"
+  become: true
+  file:
+    path: "{{ traefik_base_path }}"
+    owner: "root"
+    group: "root"
+    mode: "755"
+    state: "directory"
+
 - name: "Create directory for storing let's encrypt certs"
   become: true
   file:

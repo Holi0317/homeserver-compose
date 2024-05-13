@@ -7,10 +7,3 @@ galaxy_info:
     - name: "ArchLinux"
       versions:
         - "any"
-
-dependencies:
-  - role: "bootstrap"
-    vars:
-      service_name: "traefik"
-      # This should disable docker network creation
-      service_network: ""
