@@ -1,14 +1,9 @@
 # vim: ft=yaml.ansible
 ---
-- name: "Docker service check"
+- name: "Install docker"
   hosts: "uranus"
-  tasks:
-    - name: "Ensure Docker is started"
-      become: true
-      service:
-        name: "docker"
-        state: "started"
-        enabled: true
+  roles:
+    - role: "docker"
 
 - name: "Setup postgres"
   hosts: "uranus"
