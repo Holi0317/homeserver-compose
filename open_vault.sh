@@ -1,2 +1,2 @@
 #!/bin/sh
-gpg --batch --use-agent --decrypt vault_passphrase.gpg
+op read 'op://Private/ansible-vault password/password'
