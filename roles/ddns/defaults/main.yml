@@ -1,4 +1,6 @@
 # vim: ft=yaml.ansible
 ---
 # defaults file for ddns
-ddns_conf_path: "{{ (service_base_path, 'cf-ddns.toml') | path_join }}"
+ddns_base_path: "{{ (storage_root, 'ddns') | path_join }}"
+ddns_conf_path: "{{ (ddns_base_path, 'cf-ddns.toml') | path_join }}"
+ddns_service_network: "ddns"

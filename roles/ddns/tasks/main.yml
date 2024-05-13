@@ -2,11 +2,28 @@
 ---
 - import_tasks: "{{ role_path }}/tasks/check.yml"
 
+- name: "Create cf-ddns base dir"
+  become: true
+  ansible.builtin.file:
+    path: "{{ ddns_base_path }}"
+    owner: "root"
+    group: "root"
+    mode: "755"
+    state: "directory"
+
+- name: "Create service docker network"
+  become: true
+  community.docker.docker_network:
+    name: "{{ ddns_service_network }}"
+    driver: "bridge"
+    scope: "local"
+    state: "present"
+
 - name: "Create cf-ddns config file from template"
   become: true
   notify:
     - "Restart ddns"
-  template:
+  ansible.builtin.template:
     dest: "{{ ddns_conf_path }}"
     src: "cf-ddns.toml.j2"
     owner: "root"
@@ -39,9 +56,9 @@
     tty: false
 
     restart_policy: "always"
-    network_mode: "{{ service_network }}"
+    network_mode: "{{ ddns_service_network }}"
     networks:
-      - name: "{{ service_network }}"
+      - name: "{{ ddns_service_network }}"
     command: "--config /cf-ddns.toml --loglevel debug"
     mounts:
       - source: "{{ ddns_conf_path }}"

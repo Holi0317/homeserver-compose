@@ -2,13 +2,8 @@
 ---
 galaxy_info:
   license: "MIT"
-  min_ansible_version: "2.10"
+  min_ansible_version: "2.16"
   platforms:
-    - name: "ArchLinux"
+    - name: "Fedora"
       versions:
-        - "any"
-
-dependencies:
-  - role: "bootstrap"
-    vars:
-      service_name: "ddns"
+        - "39"

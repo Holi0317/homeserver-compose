@@ -21,7 +21,7 @@ Setup [cf-ddns] service in docker as DDNS service for cloudflare.
 - Type: `string`
 - Required: Yes
 
-(Inherited from bootstrap role) Path prefix for all persistent data.
+Path prefix for all persistent data.
 
 ### `ddns_cf_api_token`
 
@@ -47,10 +47,6 @@ Cloduflare Zone ID for this bot. Check [cf-ddns documentation] for details.
 - Required: Yes
 
 List of domains to be set for DDNS
-
-## Dependencies
-
-- bootstrap
 
 ## Example Playbook
 
