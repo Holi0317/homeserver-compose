@@ -1,15 +1,15 @@
-# dragonfly
+# redict
 
-Provision a [dragonfly] database inside a docker container.
+Provision a [redict] database (redis fork) inside a docker container.
 
-[dragonfly]: https://www.dragonflydb.io
+[redict]: https://redict.io/
 
 ## Synopsis
 
-Create a dragonfly server in a docker container.
+Create a redict server in a docker container.
 
-This dragonfly instance should be shared for all services that needs a redis cache.
-The server will be available in `dragonfly` docker network with hostname `dragonfly` at
+This redict instance should be shared for all services that needs a redis cache.
+The server will be available in `redict` docker network with hostname `redict` at
 port `6379`. Services should connect to the network and connect to the host.
 
 We got 16 databases configured. Coordinate the applications so each got their own virtual
@@ -34,7 +34,7 @@ Prefix for data storage. Defined in inventory.
 ```yaml
 - hosts: servers
   roles:
-    - role: "dragonfly"
+    - role: "redict"
 ```
 
 ## License

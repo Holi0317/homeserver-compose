@@ -1,0 +1,10 @@
+# vim: ft=yaml.ansible
+---
+# defaults file for redict
+redict_image: "registry.redict.io/redict:7.3-scratch"
+redict_container_name: "redict_redict"
+redict_network: "redict"
+
+redict_base_path: "{{ (storage_root, 'redict') | path_join }}"
+redict_data_path: "{{ (redict_base_path, 'data') | path_join }}"
+redict_config_path: "{{ (redict_base_path, 'redict.conf') | path_join }}"

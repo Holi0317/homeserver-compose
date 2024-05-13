@@ -1,33 +1,44 @@
 # vim: ft=yaml.ansible
 ---
-# tasks file for dragonfly
+# tasks file for redict
 
-- name: "Create dragonfly directories"
+- name: "Create redict directories"
   become: true
   loop:
-    - "{{ dragonfly_base_path }}"
-    - "{{ dragonfly_data_path }}"
+    - "{{ redict_base_path }}"
+    - "{{ redict_data_path }}"
   ansible.builtin.file:
     path: "{{ item }}"
-    owner: "999"
-    group: "999"
+    owner: "1000"
+    group: "1000"
     mode: "700"
     state: "directory"
 
-- name: "Create docker network for dragonfly containers"
+- name: "Copy redict.conf"
+  become: true
+  notify:
+    - "Restart redict"
+  ansible.builtin.copy:
+    dest: "{{ redict_config_path }}"
+    src: "redict.conf"
+    owner: "1000"
+    group: "1000"
+    mode: "400"
+
+- name: "Create docker network for redict containers"
   become: true
   community.docker.docker_network:
-    name: "{{ dragonfly_network }}"
+    name: "{{ redict_network }}"
     driver: "bridge"
     scope: "local"
     state: "present"
 
-- name: "Start dragonfly container"
+- name: "Start redict container"
   become: true
   community.docker.docker_container:
     state: "started"
-    name: "{{ dragonfly_container_name }}"
-    image: "{{ dragonfly_image }}"
+    name: "{{ redict_container_name }}"
+    image: "{{ redict_image }}"
     pull: true
     comparisons:
       image: "strict"
@@ -48,19 +59,19 @@
     tty: false
 
     restart_policy: "always"
-    network_mode: "{{ dragonfly_network }}"
+    network_mode: "{{ redict_network }}"
     networks:
-      - name: "{{ dragonfly_network }}"
+      - name: "{{ redict_network }}"
         aliases:
-          - "dragonfly"
+          - "redict"
           - "redis"
     mounts:
-      - source: "{{ dragonfly_data_path }}"
+      - source: "{{ redict_data_path }}"
         target: "/data"
         type: "bind"
+      - source: "{{ redict_config_path }}"
+        target: "/redict.conf"
+        type: "bind"
+        read_only: true
     command:
-      - "--version_check=false"
-      - "--maxmemory=2G"
-      - "--logtostderr"
-      - "--dir=/data"
-      - "--snapshot_cron=*/5 * * * *"
+      - "/redict.conf"

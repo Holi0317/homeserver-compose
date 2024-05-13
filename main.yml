@@ -18,11 +18,11 @@
         6134393331616563640a333035383635643061373336393362373163356233646533393862626633
         3766
 
-- name: "Setup dragonfly"
+- name: "Setup redict"
   hosts: "uranus"
-  tags: "dragonfly"
+  tags: "redict"
   roles:
-    - role: "dragonfly"
+    - role: "redict"
 
 - name: "Setup traefik"
   hosts: "uranus"

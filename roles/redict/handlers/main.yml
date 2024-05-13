@@ -1,0 +1,11 @@
+# vim: ft=yaml.ansible
+---
+- name: "Restart redict"
+  become: true
+  community.docker.docker_container:
+    # Prepare for docker plugin v2 change
+    container_default_behavior: "no_defaults"
+
+    name: "redict_redict"
+    restart: true
+    state: "started"
