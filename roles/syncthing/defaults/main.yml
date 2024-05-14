@@ -2,6 +2,7 @@
 ---
 # defaults file for syncthing
 syncthing_domain: "syncthing.holi0317.net"
-syncthing_ip_whitelist: "127.0.0.1/32,192.168.149.1/24"
+syncthing_ip_whitelist: "127.0.0.1/32,192.168.149.1/24,fd7a:115c:a1e0::/96,100.64.0.0/10"
 
-syncthing_data_dir: "{{ service_base_path }}"
+syncthing_data_dir: "{{ (storage_root, 'syncthing') | path_join }}"
+syncthing_network: "syncthing"

@@ -25,7 +25,7 @@ For all folders, add them under `/var/syncthing` path for persistent.
 - Type: `string`
 - Required: Yes
 
-(Inherited from bootstrap role) Path prefix for all persistent data.
+Path prefix for all persistent data.
 
 ### `syncthing_domain`
 
@@ -37,13 +37,10 @@ Domain for syncthing interface
 ### `syncthing_ip_whitelist`
 
 - Type: `string`
-- Default: `127.0.0.1/32,192.168.149.1/24`
+- Default: `127.0.0.1/32,192.168.149.1/24,fd7a:115c:a1e0::/96,100.64.0.0/10`
 
-List of (comma separated) CIDR range or IP that can access the syncthing interface
-
-## Dependencies
-
-- bootstrap role
+List of (comma separated) CIDR range or IP that can access the syncthing interface.
+Default to loopback, local LAN and tailnet.
 
 ## Example Playbook
 

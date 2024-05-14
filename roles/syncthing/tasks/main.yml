@@ -3,18 +3,26 @@
 # tasks file for syncthing
 - name: "Create syncthing data directories"
   become: true
-  file:
+  ansible.builtin.file:
     path: "{{ syncthing_data_dir }}"
     owner: "1000"
     group: "1000"
     mode: "755"
     state: "directory"
 
+- name: "Create docker network"
+  become: true
+  community.docker.docker_network:
+    name: "{{ syncthing_network }}"
+    driver: "bridge"
+    scope: "local"
+    state: "present"
+
 - name: "Create syncthing container"
   become: true
   docker_container:
     state: "started"
-    name: "{{ service_name }}_syncthing"
+    name: "syncthing_syncthing"
     image: "syncthing/syncthing"
     pull: true
     comparisons:
@@ -36,9 +44,9 @@
     tty: false
 
     restart_policy: "always"
-    network_mode: "{{ service_network }}"
+    network_mode: "{{ syncthing_network }}"
     networks:
-      - name: "{{ service_network }}"
+      - name: "{{ syncthing_network }}"
       - name: "traefik"
     ports:
       - "22000:22000/tcp"
