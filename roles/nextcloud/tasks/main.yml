@@ -4,21 +4,49 @@
 - name: "Create directories for nextcloud"
   become: true
   loop:
+    - "{{ nextcloud_base_path }}"
     - "{{ nextcloud_data_path }}"
     - "{{ nextcloud_asset_path }}"
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     owner: "82"
     group: "82"
     mode: "700"
     state: "directory"
 
-- name: "create fpm container"
+- name: "Create postgres user for nextcloud"
+  community.postgresql.postgresql_user:
+    name: "nextcloud"
+    password: "{{ nextcloud_pg_password }}"
+    login_host: "127.0.0.1"
+    login_user: "postgres"
+    login_password: "{{ postgres_admin_password }}"
+    db: "nextcloud"
+    role_attr_flags: "NOINHERIT"
+
+- name: "Create postgres database for nextcloud"
+  community.postgresql.postgresql_db:
+    name: "nextcloud"
+    owner: "nextcloud"
+    encoding: "UTF8"
+    login_host: "127.0.0.1"
+    login_user: "postgres"
+    login_password: "{{ postgres_admin_password }}"
+
+- name: "Create docker network for nextcloud"
+  become: true
+  community.docker.docker_network:
+    name: "{{ nextcloud_network }}"
+    driver: "bridge"
+    scope: "local"
+    state: "present"
+
+- name: "Create fpm container"
   become: true
   docker_container: &fpm
     state: "started"
-    name: "{{ service_name }}_fpm"
-    image: "registry.gitlab.com/holi0317/homeserver-compose/nextcloud/fpm"
+    name: "nextcloud_fpm"
+    image: "{{ nextcloud_fpm_image }}"
     pull: true
     comparisons:
       image: "strict"
@@ -39,19 +67,23 @@
     tty: false
 
     restart_policy: "always"
-    network_mode: "{{ service_network }}"
+    network_mode: "{{ nextcloud_network }}"
     networks:
-      - name: "authentik"
-      - name: "{{ service_network }}"
+      - name: "{{ nextcloud_network }}"
         aliases:
           - "nextcloud-fpm"
+      - name: "authentik"
+      - name: "postgres"
+      - name: "redict"
     env:
       POSTGRES_DB: "nextcloud"
       POSTGRES_USER: "nextcloud"
-      POSTGRES_PASSWORD: "{{ postgres_password }}"
+      POSTGRES_PASSWORD: "{{ nextcloud_pg_password }}"
       POSTGRES_HOST: "postgres:5432"
       NEXTCLOUD_DATA_DIR: "/var/data"
-      REDIS_HOST: "redis"
+      REDIS_HOST: "redict"
+      # FIXME: Respect nextcloud_redict_db variable
+      REDIS_HOST_PORT: "6379"
       TRUSTED_PROXIES: "0.0.0.0/0"
     mounts:
       - source: "{{ nextcloud_data_path }}"
@@ -65,17 +97,20 @@
   become: true
   docker_container:
     <<: *fpm
-    name: "{{ service_name }}_cron"
+    name: "nextcloud_cron"
     entrypoint: "/cron.sh"
     user: "root:root"
     networks:
+      - name: "{{ nextcloud_network }}"
+      - name: "postgres"
+      - name: "redict"
 
 - name: "Create web (nginx) container"
   become: true
   docker_container:
     state: "started"
-    name: "{{ service_name }}_web"
-    image: "registry.gitlab.com/holi0317/homeserver-compose/nextcloud/web"
+    name: "nextcloud_web"
+    image: "{{ nextcloud_web_image }}"
     pull: true
     comparisons:
       image: "strict"
@@ -96,9 +131,9 @@
     tty: false
 
     restart_policy: "always"
-    network_mode: "{{ service_network }}"
+    network_mode: "{{ nextcloud_network }}"
     networks:
-      - name: "{{ service_network }}"
+      - name: "{{ nextcloud_network }}"
       - name: "traefik"
     mounts:
       - source: "{{ nextcloud_asset_path }}"
