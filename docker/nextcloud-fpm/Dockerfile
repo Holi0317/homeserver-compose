@@ -1,8 +1,5 @@
 FROM nextcloud:fpm-alpine
 
-RUN apk add --no-cache musl-locales
-ENV LANG=en_US.UTF-8
-
 RUN set -ex; \
     \
     apk add --no-cache \
