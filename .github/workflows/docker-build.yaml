@@ -1,0 +1,76 @@
+name: "Build docker images"
+
+on:
+  push:
+    branches:
+      - "master"
+  schedule:
+    - cron: "0 5 * * 4"
+
+permissions:
+  contents: read
+  packages: write
+  # This is used to complete the identity challenge
+  # with sigstore/fulcio when running outside of PRs.
+  id-token: write
+
+jobs:
+  build:
+    runs-on: "ubuntu-latest"
+    strategy:
+      matrix:
+        context:
+          - traefik
+          - nextcloud-web
+          - nextcloud-fpm
+
+    steps:
+      - uses: "actions/checkout@v4"
+
+      - name: "Install cosign"
+        uses: "sigstore/cosign-installer@v3.7.0"
+
+      - uses: "docker/setup-buildx-action@v3.7.1"
+
+      # Login against a Docker registry except on PR
+      # https://github.com/docker/login-action
+      - uses: "docker/login-action@v3.3.0"
+        with:
+          registry: "ghcr.io"
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Extract metadata (tags, labels) for Docker
+      # https://github.com/docker/metadata-action
+      - name: Extract Docker metadata
+        id: "meta"
+        uses: "docker/metadata-action@v5.5.1"
+        with:
+          images: "ghcr.io/${{ github.repository }}/${{ matrix.context }}"
+
+      # Build and push Docker image with Buildx (don't push on PR)
+      # https://github.com/docker/build-push-action
+      - name: Build and push Docker image
+        id: build-and-push
+        uses: "docker/build-push-action@v6.9.0"
+        with:
+          context: "docker/${{ matrix.context }}"
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Sign the resulting Docker image digest except on PRs.
+      # This will only write to the public Rekor transparency log when the Docker
+      # repository is public to avoid leaking data.  If you would like to publish
+      # transparency data even for private images, pass --force to cosign below.
+      # https://github.com/sigstore/cosign
+      - name: Sign the published Docker image
+        env:
+          # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-an-intermediate-environment-variable
+          TAGS: ${{ steps.meta.outputs.tags }}
+          DIGEST: ${{ steps.build-and-push.outputs.digest }}
+        # This step uses the identity token to provision an ephemeral certificate
+        # against the sigstore community Fulcio instance.
+        run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
