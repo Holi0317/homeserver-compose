@@ -5,8 +5,8 @@ nextcloud_base_path: "{{ (storage_root, 'nextcloud') | path_join }}"
 nextcloud_asset_path: "{{ (nextcloud_base_path, 'asset') | path_join }}"
 nextcloud_data_path: "{{ (nextcloud_base_path, 'data') | path_join }}"
 
-nextcloud_fpm_image: "registry.gitlab.com/holi0317/homeserver-compose/nextcloud/fpm"
-nextcloud_web_image: "registry.gitlab.com/holi0317/homeserver-compose/nextcloud/web"
+nextcloud_fpm_image: "ghcr.io/holi0317/homeserver-compose/nextcloud-fpm"
+nextcloud_web_image: "ghcr.io/holi0317/homeserver-compose/nextcloud-web"
 
 nextcloud_pg_password: ""
 postgres_admin_password: ""

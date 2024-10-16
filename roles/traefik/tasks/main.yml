@@ -35,7 +35,7 @@
   community.docker.docker_container:
     state: "started"
     name: "traefik"
-    image: "registry.gitlab.com/holi0317/homeserver-compose/traefik"
+    image: "ghcr.io/holi0317/homeserver-compose/traefik"
     pull: true
     comparisons:
       image: "strict"
