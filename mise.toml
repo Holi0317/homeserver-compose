@@ -1,0 +1,6 @@
+[tools]
+uv = "latest"
+"pipx:ansible-core" = { version = "latest", uvx_args = "--with ansible" }
+
+[settings]
+lockfile = true
