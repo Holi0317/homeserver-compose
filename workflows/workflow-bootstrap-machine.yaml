@@ -1,0 +1,55 @@
+id: e23b3973-3597-420c-b05d-5ba1f61b3cba
+name: bootstrap-machine
+description: Bootstrap the Hetzner machine with base packages and tailscale.
+tags: {}
+version: 1
+jobs:
+  - name: bootstrap
+    description: Install base packages and tailscale
+    steps:
+      - name: base-packages
+        description: Install podman and cron
+        task:
+          type: model_method
+          modelIdOrName: apt-base
+          methodName: apply
+        dependsOn: []
+        allowFailure: false
+
+      - name: ghostty-terminfo
+        description: Install Ghostty terminfo from upstream
+        task:
+          type: model_method
+          modelIdOrName: install-ghostty-terminfo
+          methodName: apply
+        dependsOn:
+          - step: base-packages
+            condition:
+              type: succeeded
+        allowFailure: false
+
+      - name: tailscale-repo
+        description: Add Tailscale apt repository
+        task:
+          type: model_method
+          modelIdOrName: apt-tailscale-repo
+          methodName: apply
+        dependsOn:
+          - step: base-packages
+            condition:
+              type: succeeded
+        allowFailure: false
+
+      - name: tailscale-package
+        description: Install Tailscale package
+        task:
+          type: model_method
+          modelIdOrName: apt-tailscale
+          methodName: apply
+        dependsOn:
+          - step: tailscale-repo
+            condition:
+              type: succeeded
+        allowFailure: false
+    dependsOn: []
+    weight: 0

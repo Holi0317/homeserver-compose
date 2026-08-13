@@ -1,0 +1,18 @@
+type: '@adam/cfgmgmt/apt'
+typeVersion: 2026.03.18.1
+id: 1362f791-4ffb-427e-9f4c-ee711520f0e6
+name: apt-base
+version: 1
+tags: {}
+globalArguments:
+  packages:
+    - podman
+    - cron
+    - neovim
+  ensure: present
+  nodeHost: ${{ data.latest("hetzner", "host-hetzner").attributes.address }}
+  nodeUser: ${{ data.latest("hetzner", "host-hetzner").attributes.user }}
+  nodePort: ${{ data.latest("hetzner", "host-hetzner").attributes.port }}
+  become: true
+  becomeUser: root
+methods: {}

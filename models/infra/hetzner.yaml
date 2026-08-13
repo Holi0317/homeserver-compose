@@ -8,9 +8,9 @@ globalArguments:
   name: hetzner
   transport:
     kind: tailscale
-    user: root
+    user: hollis.wu
   hosts:
     - name: hetzner
-      address: CHANGEME.tailXXXX.ts.net
+      address: sg-athena.tail351aa.ts.net
       tags: []
 methods: {}

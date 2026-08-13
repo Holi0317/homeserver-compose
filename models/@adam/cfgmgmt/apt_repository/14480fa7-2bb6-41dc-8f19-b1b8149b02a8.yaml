@@ -1,0 +1,23 @@
+type: '@adam/cfgmgmt/apt_repository'
+typeVersion: 2026.03.18.1
+id: 14480fa7-2bb6-41dc-8f19-b1b8149b02a8
+name: apt-tailscale-repo
+version: 1
+tags: {}
+globalArguments:
+  name: tailscale
+  ensure: present
+  uris:
+    - 'https://pkgs.tailscale.com/stable/debian'
+  suites:
+    - bookworm
+  components:
+    - main
+  signedBy: /usr/share/keyrings/tailscale-archive-keyring.gpg
+  gpgKeyUrl: 'https://pkgs.tailscale.com/stable/debian/bookworm.noarmor.gpg'
+  nodeHost: '${{ data.latest("hetzner", "host-hetzner").attributes.address }}'
+  nodeUser: '${{ data.latest("hetzner", "host-hetzner").attributes.user }}'
+  nodePort: '${{ data.latest("hetzner", "host-hetzner").attributes.port }}'
+  become: true
+  becomeUser: root
+methods: {}

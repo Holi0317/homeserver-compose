@@ -1,0 +1,18 @@
+type: '@adam/cfgmgmt/exec'
+typeVersion: 2026.03.18.1
+id: e3c6594a-7972-429c-9e41-26e05768a638
+name: install-ghostty-terminfo
+version: 1
+tags: {}
+globalArguments:
+  command: |
+    curl -fsSL https://raw.githubusercontent.com/ghostty-org/ghostty/main/pkg/terminfo/ghostty.terminfo -o /tmp/ghostty.terminfo
+    tic -x -o /usr/share/terminfo /tmp/ghostty.terminfo
+    rm -f /tmp/ghostty.terminfo
+  notIf: test -f /usr/share/terminfo/g/ghostty
+  nodeHost: '${{ data.latest("hetzner", "host-hetzner").attributes.address }}'
+  nodeUser: '${{ data.latest("hetzner", "host-hetzner").attributes.user }}'
+  nodePort: '${{ data.latest("hetzner", "host-hetzner").attributes.port }}'
+  become: true
+  becomeUser: root
+methods: {}

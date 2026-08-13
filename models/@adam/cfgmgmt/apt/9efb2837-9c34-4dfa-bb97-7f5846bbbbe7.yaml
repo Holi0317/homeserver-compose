@@ -1,0 +1,16 @@
+type: '@adam/cfgmgmt/apt'
+typeVersion: 2026.03.18.1
+id: 9efb2837-9c34-4dfa-bb97-7f5846bbbbe7
+name: apt-tailscale
+version: 1
+tags: {}
+globalArguments:
+  packages:
+    - tailscale
+  ensure: present
+  nodeHost: '${{ data.latest("hetzner", "host-hetzner").attributes.address }}'
+  nodeUser: '${{ data.latest("hetzner", "host-hetzner").attributes.user }}'
+  nodePort: '${{ data.latest("hetzner", "host-hetzner").attributes.port }}'
+  become: true
+  becomeUser: root
+methods: {}
