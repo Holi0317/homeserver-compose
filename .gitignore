@@ -5,7 +5,3 @@
 
 # Local extension sources (developer-specific, not shared)
 .swamp-sources.yaml
-
-# Agent skills (managed by swamp)
-.agents/skills/
-# END swamp managed section
