@@ -1,4 +1,5 @@
 [tools]
+deno = "latest"
 uv = "latest"
 "pipx:ansible-core" = { version = "latest", uvx_args = "--with ansible" }
 "github:swamp-club/swamp" = "latest"

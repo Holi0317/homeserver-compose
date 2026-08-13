@@ -1,0 +1,5 @@
+{
+  "workspace": ["extensions/models/systemd"],
+  "exclude": [".git/", ".swamp/"],
+  "lock": false
+}

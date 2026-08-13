@@ -1,0 +1,47 @@
+type: '@holi0317/systemd'
+typeVersion: 2026.08.13.1
+id: 83183346-1182-452f-a357-839b34a6bb99
+name: apps-postgres-container
+version: 1
+tags: {}
+globalArguments:
+  sshModel: hetzner
+  host: hetzner
+  sudo: false
+  unitName: postgres.container
+  content: |
+    [Unit]
+    Description=Postgres 16
+    Wants=postgres-network.service
+    After=postgres-network.service
+
+    [Container]
+    Image=docker.io/library/postgres:16-alpine
+    ContainerName=postgres
+    User=70:70
+    Environment=POSTGRES_USER=postgres
+    Environment=POSTGRES_DB=postgres
+    Environment=POSTGRES_PASSWORD=CHANGEME
+    Environment=POSTGRES_HOST_AUTH_METHOD=scram-sha-256
+    Environment=POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256 --encoding=UTF8 --locale=en_US.UTF8
+    Volume=/srv/services/postgres/16:/var/lib/postgresql/data:Z
+    PublishPort=127.0.0.1:5432:5432
+    Network=postgres.network
+    HealthCmd=pg_isready -U postgres
+    HealthInterval=10s
+    HealthTimeout=5s
+    HealthRetries=5
+    HealthStartPeriod=30s
+
+    [Service]
+    Restart=always
+    RestartSec=5
+
+    [Install]
+    WantedBy=default.target
+  userMode: system
+methods:
+  deploy:
+    arguments:
+      enable: true
+      start: true

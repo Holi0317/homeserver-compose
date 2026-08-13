@@ -1,0 +1,5 @@
+{
+  "name": "@holi0317/systemd",
+  "version": "2026.08.13.1",
+  "exports": "./mod.ts"
+}

@@ -1,0 +1,23 @@
+type: '@holi0317/systemd'
+typeVersion: 2026.08.13.1
+id: cbecb7ca-e580-4037-9275-5a37df599e6d
+name: apps-postgres-network
+version: 1
+tags: {}
+globalArguments:
+  sshModel: hetzner
+  host: hetzner
+  sudo: false
+  unitName: postgres.network
+  content: |
+    [Network]
+    Driver=bridge
+    Subnet=172.30.0.0/16
+    Gateway=172.30.0.1
+    Label=app=postgres
+  userMode: system
+methods:
+  deploy:
+    arguments:
+      enable: true
+      start: true
