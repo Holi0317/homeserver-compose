@@ -1,0 +1,18 @@
+type: '@adam/cfgmgmt/directory'
+typeVersion: 2026.03.18.1
+id: 5cc3c5b3-90ea-4b56-93cc-0faf18f5a814
+name: bootstrap-coredump-conf-dir
+version: 1
+tags: {}
+globalArguments:
+  path: /etc/systemd/coredump.conf.d
+  ensure: present
+  owner: root
+  group: root
+  mode: '0755'
+  nodeHost: '${{ data.latest("hetzner", "host-hetzner").attributes.address }}'
+  nodeUser: '${{ data.latest("hetzner", "host-hetzner").attributes.user }}'
+  nodePort: '${{ data.latest("hetzner", "host-hetzner").attributes.port }}'
+  become: true
+  becomeUser: root
+methods: {}

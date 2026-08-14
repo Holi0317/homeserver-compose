@@ -1,0 +1,20 @@
+type: '@adam/cfgmgmt/file'
+typeVersion: 2026.03.18.1
+id: b2ab18e1-20e3-4fc3-9b2f-f8d73e1ad479
+name: bootstrap-apt-autoclean
+version: 1
+tags: {}
+globalArguments:
+  path: /etc/apt/apt.conf.d/99-autoclean
+  ensure: present
+  content: |
+    APT::Periodic::AutocleanInterval "7";
+  owner: root
+  group: root
+  mode: '0644'
+  nodeHost: '${{ data.latest("hetzner", "host-hetzner").attributes.address }}'
+  nodeUser: '${{ data.latest("hetzner", "host-hetzner").attributes.user }}'
+  nodePort: '${{ data.latest("hetzner", "host-hetzner").attributes.port }}'
+  become: true
+  becomeUser: root
+methods: {}

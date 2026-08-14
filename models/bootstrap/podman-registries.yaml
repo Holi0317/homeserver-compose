@@ -1,0 +1,25 @@
+type: '@adam/cfgmgmt/file'
+typeVersion: 2026.03.18.1
+id: 6c971fb9-fe3b-4b01-b154-cad4e4c773ad
+name: bootstrap-podman-registries
+version: 1
+tags: {}
+globalArguments:
+  path: /etc/containers/registries.conf.d/99-mirror-gcr.conf
+  ensure: present
+  content: |
+    [[registry]]
+    prefix = "docker.io"
+    location = "docker.io"
+
+    [[registry.mirror]]
+    location = "mirror.gcr.io"
+  owner: root
+  group: root
+  mode: '0644'
+  nodeHost: '${{ data.latest("hetzner", "host-hetzner").attributes.address }}'
+  nodeUser: '${{ data.latest("hetzner", "host-hetzner").attributes.user }}'
+  nodePort: '${{ data.latest("hetzner", "host-hetzner").attributes.port }}'
+  become: true
+  becomeUser: root
+methods: {}

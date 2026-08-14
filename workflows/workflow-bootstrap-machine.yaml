@@ -7,13 +7,145 @@ jobs:
   - name: bootstrap
     description: Install base packages and tailscale
     steps:
+      - name: os-codename
+        description: Detect OS release codename
+        task:
+          type: model_method
+          modelIdOrName: bootstrap-os-codename
+          methodName: apply
+        dependsOn: []
+        allowFailure: false
+
+      - name: tailscale-repo
+        description: Add Tailscale apt repository
+        task:
+          type: model_method
+          modelIdOrName: apt-tailscale-repo
+          methodName: apply
+        dependsOn:
+          - step: os-codename
+            condition:
+              type: succeeded
+        allowFailure: false
+
       - name: base-packages
-        description: Install podman and cron
+        description: Install podman, cron, neovim, ncdu, and tailscale
         task:
           type: model_method
           modelIdOrName: apt-base
           methodName: apply
-        dependsOn: []
+        dependsOn:
+          - step: tailscale-repo
+            condition:
+              type: succeeded
+        allowFailure: false
+
+      - name: apt-autoclean
+        description: Configure apt periodic cache cleanup
+        task:
+          type: model_method
+          modelIdOrName: bootstrap-apt-autoclean
+          methodName: apply
+        dependsOn:
+          - step: base-packages
+            condition:
+              type: succeeded
+        allowFailure: false
+
+      - name: journald-conf-dir
+        description: Ensure journald drop-in directory exists
+        task:
+          type: model_method
+          modelIdOrName: bootstrap-journald-conf-dir
+          methodName: apply
+        dependsOn:
+          - step: base-packages
+            condition:
+              type: succeeded
+        allowFailure: false
+
+      - name: journald-size
+        description: Limit journald log storage to 512 MB
+        task:
+          type: model_method
+          modelIdOrName: bootstrap-journald-size
+          methodName: apply
+        dependsOn:
+          - step: journald-conf-dir
+            condition:
+              type: succeeded
+        allowFailure: false
+
+      - name: journald-restart
+        description: Restart systemd-journald to apply size limits
+        task:
+          type: model_method
+          modelIdOrName: bootstrap-journald-restart
+          methodName: restart
+        dependsOn:
+          - step: journald-size
+            condition:
+              type: succeeded
+        allowFailure: false
+
+      - name: podman-registries-dir
+        description: Ensure podman registries drop-in directory exists
+        task:
+          type: model_method
+          modelIdOrName: bootstrap-podman-registries-dir
+          methodName: apply
+        dependsOn:
+          - step: base-packages
+            condition:
+              type: succeeded
+        allowFailure: false
+
+      - name: podman-registries
+        description: Configure docker.io to pull through mirror.gcr.io
+        task:
+          type: model_method
+          modelIdOrName: bootstrap-podman-registries
+          methodName: apply
+        dependsOn:
+          - step: podman-registries-dir
+            condition:
+              type: succeeded
+        allowFailure: false
+
+      - name: coredump-conf-dir
+        description: Ensure coredump drop-in directory exists
+        task:
+          type: model_method
+          modelIdOrName: bootstrap-coredump-conf-dir
+          methodName: apply
+        dependsOn:
+          - step: base-packages
+            condition:
+              type: succeeded
+        allowFailure: false
+
+      - name: coredump-limit
+        description: Limit systemd-coredump storage to 1 GB
+        task:
+          type: model_method
+          modelIdOrName: bootstrap-coredump-limit
+          methodName: apply
+        dependsOn:
+          - step: coredump-conf-dir
+            condition:
+              type: succeeded
+        allowFailure: false
+
+      - name: podman-prune-cron
+        description: Schedule weekly prune of dangling container images
+        task:
+          type: model_method
+          modelIdOrName: bootstrap-podman-prune-cron
+          methodName: apply
+        dependsOn:
+          - step: base-packages
+            condition:
+              type: succeeded
         allowFailure: false
 
       - name: ghostty-terminfo
@@ -28,28 +160,5 @@ jobs:
               type: succeeded
         allowFailure: false
 
-      - name: tailscale-repo
-        description: Add Tailscale apt repository
-        task:
-          type: model_method
-          modelIdOrName: apt-tailscale-repo
-          methodName: apply
-        dependsOn:
-          - step: base-packages
-            condition:
-              type: succeeded
-        allowFailure: false
-
-      - name: tailscale-package
-        description: Install Tailscale package
-        task:
-          type: model_method
-          modelIdOrName: apt-tailscale
-          methodName: apply
-        dependsOn:
-          - step: tailscale-repo
-            condition:
-              type: succeeded
-        allowFailure: false
     dependsOn: []
     weight: 0

@@ -33,6 +33,13 @@ export interface RemoteRunResult {
   exitCode: number | null;
 }
 
+/** Resource entry returned by `ctx.runModel()`. */
+interface RunModelResource {
+  name: string;
+  tags?: Record<string, string>;
+  attributes?: Record<string, unknown>;
+}
+
 /** Method context surface needed to drive `@swamp/ssh`. */
 export interface RemoteContext {
   runModel?: (
@@ -45,13 +52,16 @@ export interface RemoteContext {
     {
       ok: boolean;
       error?: { message: string };
-      resources: { name: string; tags?: Record<string, string> }[];
+      resources: RunModelResource[];
     }
   >;
   readResource: (
     name: string,
     version?: number,
   ) => Promise<Record<string, unknown> | null>;
+  logger?: {
+    debug: (msg: string, props?: Record<string, unknown>) => void;
+  };
 }
 
 const SshRunResultResourceSchema = z.object({
@@ -70,15 +80,10 @@ export function usesSudo(userMode: "system" | "user", sudo: boolean): boolean {
   return userMode === "system" && sudo;
 }
 
-async function readRunResult(
-  ctx: RemoteContext,
-  resourceName: string,
-): Promise<RemoteRunResult> {
-  const data = await ctx.readResource(resourceName);
-  if (!data) {
-    throw new Error(`Missing runResult resource: ${resourceName}`);
-  }
-  const parsed = SshRunResultResourceSchema.parse(data);
+function parseRunResult(
+  resource: RunModelResource,
+): RemoteRunResult {
+  const parsed = SshRunResultResourceSchema.parse(resource.attributes ?? {});
   return {
     stdout: parsed.stdout ?? "",
     stderr: parsed.stderr ?? "",
@@ -141,7 +146,7 @@ export async function runRemoteExec(
     throw new Error("remote exec returned no result resources");
   }
 
-  return readRunResult(ctx, run.resources[0].name);
+  return parseRunResult(run.resources[0]);
 }
 
 /**
@@ -185,7 +190,7 @@ export async function runRemoteCopy(
     throw new Error("remote copy returned no result resources");
   }
 
-  return readRunResult(ctx, run.resources[0].name);
+  return parseRunResult(run.resources[0]);
 }
 
 /** Discover the remote user's home directory. */

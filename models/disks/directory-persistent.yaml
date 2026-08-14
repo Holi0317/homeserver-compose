@@ -1,0 +1,16 @@
+type: '@adam/cfgmgmt/directory'
+typeVersion: 2026.03.18.1
+id: 263939ff-58fe-43c4-9e7a-dd94205e24b8
+name: directory-persistent
+version: 1
+tags: {}
+globalArguments:
+  path: /srv/persistent
+  ensure: present
+  owner: root
+  group: root
+  mode: '0755'
+  nodeHost: sg-athena.tail351aa.ts.net
+  nodeUser: hollis.wu
+  become: true
+methods: {}

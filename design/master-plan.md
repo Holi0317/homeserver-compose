@@ -1,0 +1,152 @@
+# Master Plan: Hetzner Homelab via Swamp
+
+> Living document for the migration of the homeserver-compose homelab to a
+> Hetzner Cloud VM managed declaratively through
+> [swamp](https://github.com/swamp-club/swamp).
+>
+> Agents should read this file before making changes. Update statuses and add
+> notes as work progresses.
+
+## 1. Objective
+
+Move the existing Ansible-managed homelab onto a single Hetzner Cloud VM and
+manage it through this repository using swamp models and workflows.
+
+## 2. Target machine
+
+- **Host:** Hetzner Cloud VM
+- **Access:** Tailscale SSH (`sg-athena.tail351aa.ts.net`)
+- **User:** `hollis.wu` with passwordless sudo
+- **OS:** Debian
+
+## 3. Storage layout
+
+| Tier | Medium | Mount / path | Use for |
+|------|--------|--------------|---------|
+| **NVMe** | Local VM disk (fast, "ephemeral") | Root filesystem, `/var/lib/containers` | OS, Podman graph/storage, build/package caches, **VictoriaMetrics data**, **VictoriaLogs data** |
+| **Block storage** | Hetzner Cloud Volume (persistent SSD) | `/srv/persistent` | PostgreSQL data, application config/state DBs, small important persistent data |
+| **Storage Box** | Hetzner Storage Box via **NFSv4.1** | `/srv/media` (planned) | Jellyfin, Immich, Nextcloud media and large files |
+
+**Guiding principle:** observability stores (metrics/logs) are heavy-write and
+latency-sensitive; they belong on NVMe. They are also acceptable to lose on a
+rebuild. Snapshot or back them up to block storage / S3 only when long-term
+retention is required.
+
+## 4. Architectural principles
+
+- **Single box, single Postgres.** All services share one PostgreSQL server and
+  use separate logical databases.
+- **Podman + Quadlet.** Applications run as rootless or system containers
+  defined by Quadlet files (`.container`, `.network`, `.volume`, `.pod`) and
+  managed through the `@holi0317/systemd` extension.
+- **Shared Valkey.** One Redis-compatible Valkey instance with virtual-host
+  separation (separate logical databases or ACL users) for caching/session
+  needs.
+- **Monitoring from day one.** Node-level and service-level metrics/logs flow
+  into VictoriaMetrics / VictoriaLogs and are visualized in Grafana, with
+  alerting.
+- **Prefer existing models.** Use `@adam/cfgmgmt` and official `@swamp/*`
+  models when they cover the domain. Write custom extensions in
+  `extensions/models/` only as a last resort, and model them after
+  Ansible/Terraform idioms (idempotent `apply`, explicit `ensure`, state
+  resources).
+- **Secrets in vault.** Passwords, API keys, and tokens must live in swamp
+  vault, never in plain-text model files.
+
+## 5. Repository conventions
+
+```text
+models/
+  infra/
+    hetzner.yaml            # @swamp/ssh fleet / host definition
+  disks/
+    directory-persistent.yaml
+    mount-persistent.yaml
+  bootstrap/
+    *.yaml                  # base OS configuration (journald, apt, registries, etc.)
+  apps/
+    <app>/
+      *.container
+      *.network
+      *.service
+      *.yaml                # per-unit @holi0317/systemd model files
+workflows/
+  workflow-bootstrap-machine.yaml   # base OS + tailscale
+  workflow-storage.yaml             # disks + postgres
+  workflow-monitoring.yaml          # node_exporter + victoria* + grafana
+  workflow-apps.yaml                # shared services + applications
+extensions/models/
+  systemd/                # @holi0317/systemd extension
+    mod.ts
+    _lib/
+      ssh.ts
+```
+
+## 6. Workflows
+
+| Workflow | File | Status | Notes |
+|----------|------|--------|-------|
+| Bootstrap machine | `workflows/workflow-bootstrap-machine.yaml` | ✅ Done | Base packages (+ncdu, tailscale), dynamic tailscale repo from `/etc/os-release`, journald 512MB cap, apt autoclean, coredump 1GB cap, mirror.gcr.io for docker.io, weekly podman image prune |
+| Storage + Postgres | `workflows/workflow-storage.yaml` | ✅ Done | `/srv/persistent`, Postgres quadlet |
+| Monitoring | `workflows/workflow-monitoring.yaml` | ⬜ Not started | VictoriaMetrics, VictoriaLogs, Grafana, node_exporter, alerting |
+| Shared services | `workflows/workflow-shared.yaml` | ⬜ Not started | Valkey |
+| Applications | `workflows/workflow-apps.yaml` | ⬜ Not started | Nextcloud, Jellyfin, Immich, etc. |
+
+## 7. Application inventory
+
+Use this list to track per-application work. Mark items `[x]` only when the
+service is deployed, reachable, monitored, and backed up (where applicable).
+
+### Core infrastructure
+
+- [x] Tailscale networking
+- [x] Base packages (podman, cron, neovim, ncdu, tailscale)
+- [x] Persistent block storage mount (`/srv/persistent`)
+- [x] Storage blow-up mitigations (journald, apt, coredump, podman prune, docker.io → mirror.gcr.io)
+- [x] PostgreSQL 16 on `/srv/persistent/postgres/16`
+- [ ] Valkey (shared Redis-compatible cache)
+- [ ] Cron script deployment + failure monitoring
+
+### Observability
+
+- [ ] Node exporter
+- [ ] VictoriaMetrics
+- [ ] VictoriaLogs
+- [ ] Grafana
+- [ ] Alerting rules + notification channel
+
+### Applications
+
+- [ ] Nextcloud
+- [ ] Jellyfin
+- [ ] Immich
+- [ ] Gitea
+- [ ] Authentik
+- [ ] DDNS updater
+- [ ] CUPS
+- [ ] AirSane
+
+## 8. Known issues and decisions
+
+- **Postgres password is currently `CHANGEME`.** Move it to vault before any
+  real data is loaded.
+- **Quadlet enablement:** the current `@holi0317/systemd` extension enables
+  Quadlet units by creating `.wants/` symlinks because `systemctl enable`
+  refuses generated units on this Debian/systemd version.
+- **Storage Box mount:** not yet implemented. Decide whether to use
+  NFSv4.1 (recommended) or CIFS, and whether root-squash requires a dedicated
+  media user.
+- **Storage management:** journald is capped at 512 MB, apt cache is
+  auto-cleaned weekly, systemd-coredump is capped at 1 GB, and dangling
+  container images are pruned weekly. Container image pulls for `docker.io`
+  are routed through `mirror.gcr.io` via `/etc/containers/registries.conf.d`.
+  Application-level log rotation inside containers still needs to be handled
+  per app.
+
+## 9. Next recommended steps
+
+1. Fix the Postgres password by moving it into swamp vault.
+2. Deploy the monitoring stack on NVMe.
+3. Mount the Hetzner Storage Box at `/srv/media`.
+4. Deploy Valkey as a shared service.
+5. Begin application deployments (Nextcloud / Jellyfin / Immich first).

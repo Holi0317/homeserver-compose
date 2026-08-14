@@ -1,0 +1,18 @@
+type: '@adam/cfgmgmt/systemd'
+typeVersion: 2026.03.18.1
+id: 18773fd0-88f1-46a3-b9e1-a0540e9080f1
+name: bootstrap-journald-restart
+version: 1
+tags: {}
+globalArguments:
+  service: systemd-journald
+  ensure: running
+  enabled: true
+  nodeHost: '${{ data.latest("hetzner", "host-hetzner").attributes.address }}'
+  nodeUser: '${{ data.latest("hetzner", "host-hetzner").attributes.user }}'
+  nodePort: '${{ data.latest("hetzner", "host-hetzner").attributes.port }}'
+  become: true
+  becomeUser: root
+methods:
+  restart:
+    arguments: {}

@@ -10,11 +10,11 @@ globalArguments:
   uris:
     - 'https://pkgs.tailscale.com/stable/debian'
   suites:
-    - bookworm
+    - '${{ data.latest("bootstrap-os-codename", data.latest("hetzner", "host-hetzner").attributes.address).attributes.stdout }}'
   components:
     - main
   signedBy: /usr/share/keyrings/tailscale-archive-keyring.gpg
-  gpgKeyUrl: 'https://pkgs.tailscale.com/stable/debian/bookworm.noarmor.gpg'
+  gpgKeyUrl: '${{ "https://pkgs.tailscale.com/stable/debian/" + data.latest("bootstrap-os-codename", data.latest("hetzner", "host-hetzner").attributes.address).attributes.stdout + ".noarmor.gpg" }}'
   nodeHost: '${{ data.latest("hetzner", "host-hetzner").attributes.address }}'
   nodeUser: '${{ data.latest("hetzner", "host-hetzner").attributes.user }}'
   nodePort: '${{ data.latest("hetzner", "host-hetzner").attributes.port }}'

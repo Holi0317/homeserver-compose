@@ -7,7 +7,7 @@ tags: {}
 globalArguments:
   sshModel: hetzner
   host: hetzner
-  sudo: false
+  sudo: true
   unitName: postgres.network
   content: |
     [Network]

@@ -1,0 +1,18 @@
+type: '@adam/cfgmgmt/directory'
+typeVersion: 2026.03.18.1
+id: 057b3a7e-579b-4737-afd3-74d113a60fbc
+name: bootstrap-podman-registries-dir
+version: 1
+tags: {}
+globalArguments:
+  path: /etc/containers/registries.conf.d
+  ensure: present
+  owner: root
+  group: root
+  mode: '0755'
+  nodeHost: '${{ data.latest("hetzner", "host-hetzner").attributes.address }}'
+  nodeUser: '${{ data.latest("hetzner", "host-hetzner").attributes.user }}'
+  nodePort: '${{ data.latest("hetzner", "host-hetzner").attributes.port }}'
+  become: true
+  becomeUser: root
+methods: {}

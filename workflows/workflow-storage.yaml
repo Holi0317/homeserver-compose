@@ -1,0 +1,79 @@
+id: 6ac691dc-bb7e-439f-a9bc-ed07e1d94d99
+name: storage
+version: 1
+description: Mount persistent storage and deploy Postgres on it.
+tags: {}
+jobs:
+  - name: storage
+    description: Prepare /srv/persistent and move Postgres onto it
+    weight: 0
+    dependsOn: []
+    steps:
+      - name: persistent-directory
+        description: Ensure /srv/persistent mount point exists
+        task:
+          type: model_method
+          modelIdOrName: directory-persistent
+          methodName: apply
+        dependsOn: []
+        allowFailure: false
+
+      - name: persistent-mount
+        description: Mount the Hetzner Cloud Volume at /srv/persistent
+        task:
+          type: model_method
+          modelIdOrName: mount-persistent
+          methodName: apply
+        dependsOn:
+          - step: persistent-directory
+            condition:
+              type: succeeded
+        allowFailure: false
+
+      - name: postgres-data-dir
+        description: Create Postgres data directory with correct ownership
+        task:
+          type: model_method
+          modelIdOrName: postgres-data-dir
+          methodName: apply
+        dependsOn:
+          - step: persistent-mount
+            condition:
+              type: succeeded
+        allowFailure: false
+
+      - name: postgres-network
+        description: Deploy Postgres podman network
+        task:
+          type: model_method
+          modelIdOrName: apps-postgres-network
+          methodName: deploy
+        dependsOn:
+          - step: postgres-data-dir
+            condition:
+              type: succeeded
+        allowFailure: false
+
+      - name: postgres-container
+        description: Deploy Postgres container on /srv/persistent
+        task:
+          type: model_method
+          modelIdOrName: apps-postgres-container
+          methodName: deploy
+        dependsOn:
+          - step: postgres-network
+            condition:
+              type: succeeded
+        allowFailure: false
+
+      - name: postgres-ready
+        description: Wait for Postgres to be ready
+        task:
+          type: model_method
+          modelIdOrName: apps-postgres-ready
+          methodName: deploy
+        dependsOn:
+          - step: postgres-container
+            condition:
+              type: succeeded
+        allowFailure: false

@@ -7,7 +7,7 @@ tags: {}
 globalArguments:
   sshModel: hetzner
   host: hetzner
-  sudo: false
+  sudo: true
   unitName: postgres.container
   content: |
     [Unit]
@@ -24,7 +24,7 @@ globalArguments:
     Environment=POSTGRES_PASSWORD=CHANGEME
     Environment=POSTGRES_HOST_AUTH_METHOD=scram-sha-256
     Environment=POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256 --encoding=UTF8 --locale=en_US.UTF8
-    Volume=/srv/services/postgres/16:/var/lib/postgresql/data:Z
+    Volume=/srv/persistent/postgres/16:/var/lib/postgresql/data:Z
     PublishPort=127.0.0.1:5432:5432
     Network=postgres.network
     HealthCmd=pg_isready -U postgres

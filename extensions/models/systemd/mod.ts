@@ -20,6 +20,7 @@ import {
   shlexQuote,
   SshRefSchema,
   uploadFile,
+  usesSudo,
 } from "./_lib/ssh.ts";
 
 type GlobalArgs = z.infer<typeof GlobalArgsSchema>;
@@ -138,6 +139,55 @@ function getUnitKind(unitName: string): "service" | "quadlet" {
     return "quadlet";
   }
   return "service";
+}
+
+/**
+ * Return the systemd unit name to use for systemctl commands.
+ *
+ * Quadlet source files generate service units as follows:
+ *   - `foo.container` → `foo.service`
+ *   - `foo.network`   → `foo-network.service`
+ *   - `foo.pod`       → `foo-pod.service`
+ *   - `foo.volume`    → `foo-volume.service`
+ * Raw `.service` files keep their name.
+ */
+function getSystemdUnitName(unitName: string): string {
+  if (unitName.endsWith(".container")) {
+    return `${unitName.slice(0, -".container".length)}.service`;
+  }
+  for (const ext of QUADLET_ONLY_EXTENSIONS) {
+    if (ext !== ".container" && unitName.endsWith(ext)) {
+      return `${unitName.slice(0, -ext.length)}-${ext.slice(1)}.service`;
+    }
+  }
+  return unitName;
+}
+
+/**
+ * Parse `WantedBy` targets from a quadlet/systemd unit content string.
+ * Defaults to `["default.target"]` when no `[Install]` section is present,
+ * matching typical user expectations for auto-start on boot.
+ */
+function getWantedByTargets(content: string): string[] {
+  const targets: string[] = [];
+  const lines = content.split("\n");
+  let inInstall = false;
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith("[")) {
+      inInstall = trimmed === "[Install]";
+      continue;
+    }
+    if (inInstall && trimmed.toLowerCase().startsWith("wantedby=")) {
+      const value = trimmed.slice("wantedby=".length).trim();
+      if (value) {
+        for (const target of value.split(/\s+/)) {
+          if (target) targets.push(target);
+        }
+      }
+    }
+  }
+  return targets.length > 0 ? targets : ["default.target"];
 }
 
 /** Ensure a unit name has a known extension when we are writing content. */
@@ -401,17 +451,52 @@ export const model = {
         } = { stdout: "", stderr: "", exitCode: 0 };
 
         if (args.enable) {
-          result = await execSystemctl(
-            context,
-            ga.sshModel,
-            ga.host,
-            ga.userMode,
-            ga.sudo,
-            ["enable", ga.unitName],
-            ga.timeoutSeconds,
-          );
-          if (result.exitCode !== 0) {
-            throw new Error(`enable ${ga.unitName} failed: ${result.stderr}`);
+          const systemdUnitName = getSystemdUnitName(ga.unitName);
+          if (getUnitKind(ga.unitName) === "quadlet") {
+            // Quadlet-generated units live in /run/systemd/generator and
+            // systemd refuses to `enable` them directly. Create the wanted-by
+            // symlinks ourselves based on the quadlet's [Install] section.
+            const content = ga.content ?? "";
+            const targets = getWantedByTargets(content);
+            const wantsBase = ga.userMode === "user"
+              ? `${await discoverHome(context, ga.sshModel, ga.host, ga.timeoutSeconds)}/.config/systemd/user`
+              : "/etc/systemd/system";
+            const needsSudo = usesSudo(ga.userMode, ga.sudo);
+            const symlinkCmd = targets.map((target) => {
+              const wantsDir = `${wantsBase}/${target}.wants`;
+              const linkPath = `${wantsDir}/${systemdUnitName}`;
+              const sourcePath = `/run/systemd/generator/${systemdUnitName}`;
+              const inner =
+                `mkdir -p ${shlexQuote(wantsDir)} && ln -sf ${shlexQuote(sourcePath)} ${shlexQuote(linkPath)}`;
+              return needsSudo
+                ? `sudo -n -- sh -c ${shlexQuote(inner)}`
+                : inner;
+            }).join(" && ");
+            result = await runRemoteExec(context, ga.sshModel, ga.host, {
+              command: symlinkCmd,
+              sudo: false,
+              timeoutSec: ga.timeoutSeconds,
+            });
+            if (result.exitCode !== 0) {
+              throw new Error(
+                `enable ${ga.unitName} failed: ${result.stderr}`,
+              );
+            }
+          } else {
+            result = await execSystemctl(
+              context,
+              ga.sshModel,
+              ga.host,
+              ga.userMode,
+              ga.sudo,
+              ["enable", systemdUnitName],
+              ga.timeoutSeconds,
+            );
+            if (result.exitCode !== 0) {
+              throw new Error(
+                `enable ${ga.unitName} failed: ${result.stderr}`,
+              );
+            }
           }
         }
 
@@ -422,7 +507,7 @@ export const model = {
             ga.host,
             ga.userMode,
             ga.sudo,
-            ["start", ga.unitName],
+            ["start", getSystemdUnitName(ga.unitName)],
             ga.timeoutSeconds,
           );
           if (result.exitCode !== 0) {
@@ -479,7 +564,7 @@ export const model = {
           ga.host,
           ga.userMode,
           ga.sudo,
-          ["start", ga.unitName],
+          ["start", getSystemdUnitName(ga.unitName)],
           ga.timeoutSeconds,
         );
         if (result.exitCode !== 0) {
@@ -523,7 +608,7 @@ export const model = {
           ga.host,
           ga.userMode,
           ga.sudo,
-          ["stop", ga.unitName],
+          ["stop", getSystemdUnitName(ga.unitName)],
           ga.timeoutSeconds,
         );
         if (result.exitCode !== 0) {
@@ -552,7 +637,7 @@ export const model = {
           ga.host,
           ga.userMode,
           ga.sudo,
-          ["restart", ga.unitName],
+          ["restart", getSystemdUnitName(ga.unitName)],
           ga.timeoutSeconds,
         );
         if (result.exitCode !== 0) {
@@ -583,7 +668,7 @@ export const model = {
           ga.sudo,
           [
             "show",
-            ga.unitName,
+            getSystemdUnitName(ga.unitName),
             "-p",
             "ActiveState",
             "-p",
@@ -632,7 +717,7 @@ export const model = {
           ga.host,
           ga.userMode,
           ga.sudo,
-          ["stop", ga.unitName],
+          ["stop", getSystemdUnitName(ga.unitName)],
           ga.timeoutSeconds,
         );
         if (result.exitCode !== 0) {
@@ -645,7 +730,7 @@ export const model = {
           ga.host,
           ga.userMode,
           ga.sudo,
-          ["disable", ga.unitName],
+          ["disable", getSystemdUnitName(ga.unitName)],
           ga.timeoutSeconds,
         );
         if (result.exitCode !== 0) {

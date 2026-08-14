@@ -9,6 +9,8 @@ globalArguments:
     - podman
     - cron
     - neovim
+    - ncdu
+    - tailscale
   ensure: present
   nodeHost: ${{ data.latest("hetzner", "host-hetzner").attributes.address }}
   nodeUser: ${{ data.latest("hetzner", "host-hetzner").attributes.user }}

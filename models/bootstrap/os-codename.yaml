@@ -1,0 +1,14 @@
+type: '@adam/cfgmgmt/exec'
+typeVersion: 2026.03.18.1
+id: 4c16f535-d9dc-4af7-964f-4c7139e33e2f
+name: bootstrap-os-codename
+version: 1
+tags: {}
+globalArguments:
+  command: '. /etc/os-release && echo -n "$VERSION_CODENAME"'
+  nodeHost: '${{ data.latest("hetzner", "host-hetzner").attributes.address }}'
+  nodeUser: '${{ data.latest("hetzner", "host-hetzner").attributes.user }}'
+  nodePort: '${{ data.latest("hetzner", "host-hetzner").attributes.port }}'
+  become: true
+  becomeUser: root
+methods: {}
