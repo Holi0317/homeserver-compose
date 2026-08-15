@@ -1,0 +1,5 @@
+{
+  "name": "@holi0317/postgres",
+  "version": "2026.08.14.1",
+  "exports": "./mod.ts"
+}

@@ -21,7 +21,7 @@ globalArguments:
     User=70:70
     Environment=POSTGRES_USER=postgres
     Environment=POSTGRES_DB=postgres
-    Environment=POSTGRES_PASSWORD=CHANGEME
+    Environment=POSTGRES_PASSWORD=${{ vault.get(homelab, postgres.superuser) }}
     Environment=POSTGRES_HOST_AUTH_METHOD=scram-sha-256
     Environment=POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256 --encoding=UTF8 --locale=en_US.UTF8
     Volume=/srv/persistent/postgres/16:/var/lib/postgresql/data:Z

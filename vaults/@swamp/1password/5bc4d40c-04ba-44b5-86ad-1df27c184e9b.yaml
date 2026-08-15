@@ -1,0 +1,6 @@
+id: 5bc4d40c-04ba-44b5-86ad-1df27c184e9b
+name: homelab
+type: '@swamp/1password'
+config:
+  op_vault: homelab
+createdAt: '2026-08-14T01:49:25.090Z'

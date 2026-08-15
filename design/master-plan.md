@@ -56,27 +56,37 @@ retention is required.
 ## 5. Repository conventions
 
 ```text
+vaults/
+  @swamp/1password/
+    homelab.yaml          # 1Password-backed vault for all secrets
 models/
   infra/
-    hetzner.yaml            # @swamp/ssh fleet / host definition
+    hetzner.yaml          # @swamp/ssh fleet / host definition
   disks/
     directory-persistent.yaml
     mount-persistent.yaml
   bootstrap/
-    *.yaml                  # base OS configuration (journald, apt, registries, etc.)
+    *.yaml                # base OS configuration (journald, apt, registries, etc.)
+  databases/
+    *.yaml                # @holi0317/postgres logical database models
   apps/
     <app>/
       *.container
       *.network
       *.service
-      *.yaml                # per-unit @holi0317/systemd model files
+      *.yaml              # per-unit @holi0317/systemd model files
 workflows/
   workflow-bootstrap-machine.yaml   # base OS + tailscale
   workflow-storage.yaml             # disks + postgres
   workflow-monitoring.yaml          # node_exporter + victoria* + grafana
+  workflow-shared.yaml              # valkey
   workflow-apps.yaml                # shared services + applications
 extensions/models/
-  systemd/                # @holi0317/systemd extension
+  systemd/              # @holi0317/systemd extension
+    mod.ts
+    _lib/
+      ssh.ts
+  postgres/             # @holi0317/postgres extension
     mod.ts
     _lib/
       ssh.ts
@@ -128,8 +138,9 @@ service is deployed, reachable, monitored, and backed up (where applicable).
 
 ## 8. Known issues and decisions
 
-- **Postgres password is currently `CHANGEME`.** Move it to vault before any
-  real data is loaded.
+- **Postgres superuser password is in 1Password vault** (`homelab` →
+  `postgres.superuser`) but is still the bootstrap value `CHANGEME`. Rotate it
+  before any real data is loaded.
 - **Quadlet enablement:** the current `@holi0317/systemd` extension enables
   Quadlet units by creating `.wants/` symlinks because `systemctl enable`
   refuses generated units on this Debian/systemd version.
@@ -145,8 +156,10 @@ service is deployed, reachable, monitored, and backed up (where applicable).
 
 ## 9. Next recommended steps
 
-1. Fix the Postgres password by moving it into swamp vault.
-2. Deploy the monitoring stack on NVMe.
-3. Mount the Hetzner Storage Box at `/srv/media`.
-4. Deploy Valkey as a shared service.
-5. Begin application deployments (Nextcloud / Jellyfin / Immich first).
+1. Rotate the Postgres superuser password (`postgres.superuser`) in 1Password.
+2. Authenticate 1Password CLI (`eval $(op signin)`) and store app DB passwords
+   (e.g. `postgres.nextcloud.password`), then run `nextcloud-db.provision`.
+3. Deploy the monitoring stack on NVMe.
+4. Mount the Hetzner Storage Box at `/srv/media`.
+5. Deploy Valkey as a shared service.
+6. Begin application deployments (Nextcloud / Jellyfin / Immich first).

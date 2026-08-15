@@ -1,0 +1,13 @@
+manifestVersion: 1
+name: "@holi0317/postgres"
+version: "2026.08.14.1"
+description: "Provision logical PostgreSQL databases inside a Podman container over SSH"
+repository: https://github.com/holi0317/swamp-postgres
+paths:
+  base: manifest
+models:
+  - mod.ts
+additionalFiles: []
+platforms: []
+dependencies:
+  - "@swamp/ssh"

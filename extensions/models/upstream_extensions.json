@@ -104,5 +104,20 @@
     "checksum": "9a8c05efa1a14b2c815cfd7d4e887519270433d1b42548e09ebfa06f14fd2634",
     "filesChecksum": "9d1cb4cbfb6f051cd183b336ae71a923ba80ed4efdb0ec5d28ec74ba418c65fd",
     "serverUrl": "https://swamp-club.com"
+  },
+  "@swamp/1password": {
+    "version": "2026.08.05.1",
+    "pulledAt": "2026-08-14T01:44:08.960Z",
+    "files": [
+      ".swamp/pulled-extensions/@swamp/1password/vaults/_lib/tracing.ts",
+      ".swamp/pulled-extensions/@swamp/1password/vaults/onepassword.ts",
+      ".swamp/vault-bundles/a52f5a8b/onepassword.js",
+      ".swamp/pulled-extensions/@swamp/1password/files/README.md",
+      ".swamp/pulled-extensions/@swamp/1password/files/LICENSE.txt",
+      ".swamp/pulled-extensions/@swamp/1password/manifest.yaml"
+    ],
+    "checksum": "3fa176818ba13f735da17216042862a408ec45ff0e2a231f5f5e2c19cc03ffc0",
+    "filesChecksum": "079787d04a9aa915da317f50dc0ffaef2f665ddf454c2d737fe80651f0398b95",
+    "serverUrl": "https://swamp-club.com"
   }
 }

@@ -1,0 +1,15 @@
+type: '@holi0317/postgres'
+typeVersion: 2026.08.14.1
+id: eb8451d1-e5ee-41fa-9958-e11e62177ed9
+name: nextcloud-db
+version: 1
+tags: {}
+globalArguments:
+  sshModel: hetzner
+  host: hetzner
+  sudo: true
+  database: nextcloud
+  username: nextcloud
+  password: '${{ vault.get(homelab, postgres.nextcloud.password) }}'
+  podmanSecretName: nextcloud-db
+methods: {}
