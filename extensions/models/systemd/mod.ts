@@ -10,7 +10,7 @@
  * @module
  */
 
-import { z } from "npm:zod@4";
+import * as z from "zod";
 import {
   discoverHome,
   ensureDir,
@@ -21,7 +21,7 @@ import {
   SshRefSchema,
   uploadFile,
   usesSudo,
-} from "./_lib/ssh.ts";
+} from "@holi0317/remote-ssh";
 
 type GlobalArgs = z.infer<typeof GlobalArgsSchema>;
 
@@ -88,10 +88,8 @@ const UnitResourceSchema = z.object({
   files: z.array(FileRecordSchema),
   enabled: z.boolean().optional(),
   active: z.boolean().optional(),
-  deployedAt: z.string().datetime(),
+  deployedAt: z.iso.datetime(),
 });
-
-type UnitResource = z.infer<typeof UnitResourceSchema>;
 
 const RunResultSchema = z.object({
   method: z.string(),
@@ -102,7 +100,7 @@ const RunResultSchema = z.object({
   stdout: z.string(),
   stderr: z.string(),
   exitCode: z.number().int().optional(),
-  timestamp: z.string().datetime(),
+  timestamp: z.iso.datetime(),
 });
 
 const SYSTEMD_UNIT_EXTENSIONS = [
@@ -459,15 +457,21 @@ export const model = {
             const content = ga.content ?? "";
             const targets = getWantedByTargets(content);
             const wantsBase = ga.userMode === "user"
-              ? `${await discoverHome(context, ga.sshModel, ga.host, ga.timeoutSeconds)}/.config/systemd/user`
+              ? `${await discoverHome(
+                context,
+                ga.sshModel,
+                ga.host,
+                ga.timeoutSeconds,
+              )}/.config/systemd/user`
               : "/etc/systemd/system";
             const needsSudo = usesSudo(ga.userMode, ga.sudo);
             const symlinkCmd = targets.map((target) => {
               const wantsDir = `${wantsBase}/${target}.wants`;
               const linkPath = `${wantsDir}/${systemdUnitName}`;
               const sourcePath = `/run/systemd/generator/${systemdUnitName}`;
-              const inner =
-                `mkdir -p ${shlexQuote(wantsDir)} && ln -sf ${shlexQuote(sourcePath)} ${shlexQuote(linkPath)}`;
+              const inner = `mkdir -p ${shlexQuote(wantsDir)} && ln -sf ${
+                shlexQuote(sourcePath)
+              } ${shlexQuote(linkPath)}`;
               return needsSudo
                 ? `sudo -n -- sh -c ${shlexQuote(inner)}`
                 : inner;

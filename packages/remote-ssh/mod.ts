@@ -1,15 +1,14 @@
 /**
- * Remote execution helpers for the systemd extension model.
+ * Shared remote execution helpers for internal Swamp model packages.
  *
- * This module no longer builds raw SSH/Tailscale argv. Instead it delegates
- * every remote operation to a `@swamp/ssh` fleet model via `ctx.runModel()`.
- * That gives us ControlMaster multiplexing, Tailscale support, retries,
- * auditing, and output capture without reimplementing the transport.
+ * This module delegates remote operations to a `@swamp/ssh` fleet model via
+ * `ctx.runModel()`, providing shared ControlMaster multiplexing, Tailscale
+ * support, retries, auditing, and output capture.
  *
  * @module
  */
 
-import { z } from "npm:zod@4";
+import * as z from "zod";
 
 /** Reference to the `@swamp/ssh` fleet model instance and target host. */
 export const SshRefSchema = z.object({

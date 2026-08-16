@@ -1,5 +1,13 @@
 {
-  "workspace": ["extensions/models/systemd"],
+  "workspace": ["extensions/models/systemd", "extensions/models/postgres", "packages/remote-ssh"],
+  "imports": {
+    "zod": "npm:zod@4"
+  },
   "exclude": [".git/", ".swamp/"],
+  "lint": {
+    "rules": {
+      "exclude": ["no-slow-types"]
+    }
+  },
   "lock": false
 }

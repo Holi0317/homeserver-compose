@@ -11,8 +11,12 @@
  * @module
  */
 
-import { z } from "npm:zod@4";
-import { runRemoteExec, type RemoteContext, SshRefSchema } from "./_lib/ssh.ts";
+import * as z from "zod";
+import {
+  type RemoteContext,
+  runRemoteExec,
+  SshRefSchema,
+} from "@holi0317/remote-ssh";
 
 type GlobalArgs = z.infer<typeof GlobalArgsSchema>;
 
@@ -48,7 +52,7 @@ const DatabaseResourceSchema = z.object({
   database: z.string(),
   username: z.string(),
   podmanSecretName: z.string(),
-  provisionedAt: z.string().datetime(),
+  provisionedAt: z.iso.datetime(),
 });
 
 const RunResultSchema = z.object({
@@ -61,7 +65,7 @@ const RunResultSchema = z.object({
   stdout: z.string(),
   stderr: z.string(),
   exitCode: z.number().int().nullable(),
-  timestamp: z.string().datetime(),
+  timestamp: z.iso.datetime(),
 });
 
 interface MethodContext extends RemoteContext {
@@ -80,7 +84,9 @@ function shlexQuote(value: string): string {
 
 /** Build the psql command prefix for the target container. */
 function psqlCommand(containerName: string, sql: string): string {
-  return `podman exec -i ${shlexQuote(containerName)} psql -U postgres -d postgres -v ON_ERROR_STOP=1 -c ${shlexQuote(sql)}`;
+  return `podman exec -i ${
+    shlexQuote(containerName)
+  } psql -U postgres -d postgres -v ON_ERROR_STOP=1 -c ${shlexQuote(sql)}`;
 }
 
 /** Run psql on the remote host and throw on non-zero exit. */
@@ -136,7 +142,9 @@ function ensureRoleSql(username: string, password: string): string {
   return `DO $$
 BEGIN
   IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = ${pgIdent(username)}) THEN
-    CREATE ROLE ${pgIdent(username)} WITH LOGIN PASSWORD '${pgEscape(password)}';
+    CREATE ROLE ${pgIdent(username)} WITH LOGIN PASSWORD '${
+    pgEscape(password)
+  }';
   ELSE
     ALTER ROLE ${pgIdent(username)} WITH PASSWORD '${pgEscape(password)}';
   END IF;
@@ -148,8 +156,12 @@ $$;`;
 function ensureDatabaseSql(database: string, owner: string): string {
   return `DO $$
 BEGIN
-  IF NOT EXISTS (SELECT FROM pg_database WHERE datname = ${pgIdent(database)}) THEN
-    CREATE DATABASE ${pgIdent(database)} OWNER ${pgIdent(owner)} ENCODING 'UTF8' LC_COLLATE 'en_US.UTF8' LC_CTYPE 'en_US.UTF8' TEMPLATE template0;
+  IF NOT EXISTS (SELECT FROM pg_database WHERE datname = ${
+    pgIdent(database)
+  }) THEN
+    CREATE DATABASE ${pgIdent(database)} OWNER ${
+    pgIdent(owner)
+  } ENCODING 'UTF8' LC_COLLATE 'en_US.UTF8' LC_CTYPE 'en_US.UTF8' TEMPLATE template0;
   END IF;
 END
 $$;`;
@@ -157,17 +169,23 @@ $$;`;
 
 /** Build SQL to grant privileges on the database to the role. */
 function grantSql(database: string, username: string): string {
-  return `GRANT ALL PRIVILEGES ON DATABASE ${pgIdent(database)} TO ${pgIdent(username)};`;
+  return `GRANT ALL PRIVILEGES ON DATABASE ${pgIdent(database)} TO ${
+    pgIdent(username)
+  };`;
 }
 
 /** Build SQL to drop the database and role. */
 function dropSql(database: string, username: string): string {
-  return `DROP DATABASE IF EXISTS ${pgIdent(database)}; DROP ROLE IF EXISTS ${pgIdent(username)};`;
+  return `DROP DATABASE IF EXISTS ${pgIdent(database)}; DROP ROLE IF EXISTS ${
+    pgIdent(username)
+  };`;
 }
 
 /** Build SQL to rotate the role password. */
 function rotatePasswordSql(username: string, password: string): string {
-  return `ALTER ROLE ${pgIdent(username)} WITH PASSWORD '${pgEscape(password)}';`;
+  return `ALTER ROLE ${pgIdent(username)} WITH PASSWORD '${
+    pgEscape(password)
+  }';`;
 }
 
 /**
@@ -183,7 +201,9 @@ printf '%s' ${quotedValue} | podman secret create ${quotedName} -`;
 
 /** Build a shell command to remove a Podman secret if it exists. */
 function removePodmanSecretCommand(name: string): string {
-  return `podman secret exists ${shlexQuote(name)} && podman secret rm ${shlexQuote(name)} || true`;
+  return `podman secret exists ${shlexQuote(name)} && podman secret rm ${
+    shlexQuote(name)
+  } || true`;
 }
 
 function buildRunResult(
@@ -227,7 +247,8 @@ export const model = {
   },
   methods: {
     provision: {
-      description: "Idempotently create the database, role, grants, and Podman secret",
+      description:
+        "Idempotently create the database, role, grants, and Podman secret",
       arguments: ProvisionArgsSchema,
       execute: async (
         _args: z.infer<typeof ProvisionArgsSchema>,
@@ -235,9 +256,18 @@ export const model = {
       ) => {
         const ga = context.globalArgs;
 
-        const roleResult = await execPsql(context, ensureRoleSql(ga.username, ga.password));
-        const dbResult = await execPsql(context, ensureDatabaseSql(ga.database, ga.username));
-        const grantResult = await execPsql(context, grantSql(ga.database, ga.username));
+        await execPsql(
+          context,
+          ensureRoleSql(ga.username, ga.password),
+        );
+        await execPsql(
+          context,
+          ensureDatabaseSql(ga.database, ga.username),
+        );
+        await execPsql(
+          context,
+          grantSql(ga.database, ga.username),
+        );
         const secretResult = await execShell(
           context,
           ensurePodmanSecretCommand(ga.podmanSecretName, ga.password),
@@ -263,7 +293,8 @@ export const model = {
     },
 
     destroy: {
-      description: "Drop the database and role, and optionally remove the Podman secret",
+      description:
+        "Drop the database and role, and optionally remove the Podman secret",
       arguments: DestroyArgsSchema,
       execute: async (
         args: z.infer<typeof DestroyArgsSchema>,
@@ -271,10 +302,16 @@ export const model = {
       ) => {
         const ga = context.globalArgs;
 
-        const dropResult = await execPsql(context, dropSql(ga.database, ga.username));
+        const dropResult = await execPsql(
+          context,
+          dropSql(ga.database, ga.username),
+        );
 
         if (args.removeSecret) {
-          await execShell(context, removePodmanSecretCommand(ga.podmanSecretName));
+          await execShell(
+            context,
+            removePodmanSecretCommand(ga.podmanSecretName),
+          );
         }
 
         const runHandle = await context.writeResource(
@@ -296,7 +333,7 @@ export const model = {
       ) => {
         const ga = context.globalArgs;
 
-        const sqlResult = await execPsql(
+        await execPsql(
           context,
           rotatePasswordSql(ga.username, args.newPassword),
         );
