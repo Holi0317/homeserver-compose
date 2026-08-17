@@ -2,10 +2,14 @@ import { model as quadlet } from "../quadlet.ts";
 import { model as unit } from "../unit.ts";
 
 const remote = { fleet: "fleet", host: "host", sudo: true };
-const unitApply = unit.methods.apply.execute as unknown as
-  (args: unknown, context: unknown) => Promise<unknown>;
-const quadletApply = quadlet.methods.apply.execute as unknown as
-  (args: unknown, context: unknown) => Promise<unknown>;
+const unitApply = unit.methods.apply.execute as unknown as (
+  args: unknown,
+  context: unknown,
+) => Promise<unknown>;
+const quadletApply = quadlet.methods.apply.execute as unknown as (
+  args: unknown,
+  context: unknown,
+) => Promise<unknown>;
 
 function fakeContext(
   globalArgs: Record<string, unknown>,
@@ -49,7 +53,9 @@ Deno.test("unit and Quadlet schemas reject cross-kind and path traversal names",
     unitName: "../../tmp/evil.service",
     userMode: "system",
   });
-  if (traversal.success) throw new Error("raw unit path traversal was accepted");
+  if (traversal.success) {
+    throw new Error("raw unit path traversal was accepted");
+  }
 
   const wrongKind = quadlet.globalArguments.safeParse({
     remote,
@@ -65,6 +71,39 @@ Deno.test("unit and Quadlet schemas reject cross-kind and path traversal names",
     },
   });
   if (helper.success) throw new Error("readiness path traversal was accepted");
+  const invalidCharacters = unit.globalArguments.safeParse({
+    remote,
+    unitName: "postgres service.service",
+    userMode: "system",
+  });
+  if (invalidCharacters.success) {
+    throw new Error("unit names with spaces were accepted");
+  }
+
+  const tooLong = unit.globalArguments.safeParse({
+    remote,
+    unitName: `${"a".repeat(248)}.service`,
+    userMode: "system",
+  });
+  if (tooLong.success) throw new Error("overlong unit name was accepted");
+
+  const templateInstance = unit.globalArguments.safeParse({
+    remote,
+    unitName: "worker@blue.service",
+    userMode: "system",
+  });
+  if (!templateInstance.success) {
+    throw new Error("valid systemd template instance was rejected");
+  }
+
+  const escaped = unit.globalArguments.safeParse({
+    remote,
+    unitName: "disk\\x2dunit.service",
+    userMode: "system",
+  });
+  if (!escaped.success) {
+    throw new Error("valid systemd backslash escape was rejected");
+  }
 });
 
 Deno.test("apply refuses remote-target replacement before remote work", async () => {
@@ -94,7 +133,9 @@ Deno.test("apply refuses remote-target replacement before remote work", async ()
   }
 
   if (fake.remoteCalls !== 0) {
-    throw new Error(`replacement refusal made ${fake.remoteCalls} remote calls`);
+    throw new Error(
+      `replacement refusal made ${fake.remoteCalls} remote calls`,
+    );
   }
   if (!fake.writes.some((write) => write.spec === "runResult")) {
     throw new Error("replacement refusal did not write a diagnostic result");
@@ -120,7 +161,9 @@ Deno.test("Quadlet apply rejects unsafe WantedBy targets before remote work", as
   }
 
   if (fake.remoteCalls !== 0) {
-    throw new Error(`unsafe WantedBy validation made ${fake.remoteCalls} remote calls`);
+    throw new Error(
+      `unsafe WantedBy validation made ${fake.remoteCalls} remote calls`,
+    );
   }
 });
 
@@ -136,7 +179,11 @@ Deno.test("apply converges global enabled and state arguments", async () => {
       state: "running",
     },
     readResource: () => Promise.resolve(null),
-    writeResource: (spec: string, _name: string, data: Record<string, unknown>) => {
+    writeResource: (
+      spec: string,
+      _name: string,
+      data: Record<string, unknown>,
+    ) => {
       writes.push({ spec, data });
       return Promise.resolve({ name: _name });
     },
@@ -150,7 +197,9 @@ Deno.test("apply converges global enabled and state arguments", async () => {
         : "";
       return Promise.resolve({
         ok: true,
-        resources: [{ attributes: { stdout: output, stderr: "", exitCode: 0 } }],
+        resources: [{
+          attributes: { stdout: output, stderr: "", exitCode: 0 },
+        }],
       });
     },
   };

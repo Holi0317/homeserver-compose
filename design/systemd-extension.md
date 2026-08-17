@@ -1,11 +1,11 @@
 # Design: systemd model family
 
-**Status:** The checked-in implementation is the legacy monolithic
-`@holi0317/systemd` type. The target design is documented in
-[`model-design-principles.md`](./model-design-principles.md): build custom
-`@holi0317/systemd/unit` and `@holi0317/systemd/quadlet` types, using
-`@adam/cfgmgmt/systemd` as the behavioral starting point and continuing to use
-it where its contract fits.
+**Status:** The checked-in implementation provides separate
+`@holi0317/systemd/unit` and `@holi0317/systemd/quadlet` models. They share
+the method and transport mechanics through small internal modules, while each
+model owns its schema, naming, target path, enablement, and state policy. The
+shared implementation uses an operations interface rather than a public kind
+union or a model factory that branches on `unit` versus `quadlet`.
 
 This document describes the current systemd behavior and the domain boundary.
 It does not define an SSH client or a second connection schema. Remote

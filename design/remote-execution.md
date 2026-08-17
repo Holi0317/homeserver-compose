@@ -145,8 +145,13 @@ extensions/models/systemd/
   unit.ts             @holi0317/systemd/unit
   quadlet.ts          @holi0317/systemd/quadlet
   _lib/
-    systemd.ts        systemctl and lifecycle policy
-    files.ts          staging and tracked-file cleanup
+    types.ts          shared model and policy contracts
+    schemas.ts        common arguments and result schemas
+    methods.ts        shared Swamp method implementations
+    systemctl.ts      systemctl command construction
+    paths.ts          systemd and Quadlet target directories
+    files.ts          tracked upload and cleanup operations
+    readiness.ts      raw helper-service readiness gate
 ```
 
 PostgreSQL SQL and Podman command builders remain private to the PostgreSQL
