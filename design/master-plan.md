@@ -71,13 +71,11 @@ The permanent remote transport architecture is documented in
 ```text
 vaults/
   @swamp/1password/
-    homelab.yaml          # 1Password-backed vault for all secrets
 models/
   infra/
     hetzner.yaml          # @swamp/ssh fleet / host definition
-  disks/
-    directory-persistent.yaml
-    mount-persistent.yaml
+  @holi0317/systemd/
+    unit/                 # native systemd resources, including persistent-mount
   bootstrap/
     *.yaml                # base OS configuration (journald, apt, registries, etc.)
   databases/
@@ -87,7 +85,7 @@ models/
       *.container
       *.network
       *.service
-      *.yaml              # per-resource cfgmgmt or systemd model files
+      *.yaml               # per-resource cfgmgmt or systemd model files
 workflows/
   workflow-bootstrap-machine.yaml   # base OS + tailscale
   workflow-storage.yaml             # disks + postgres
@@ -96,9 +94,8 @@ workflows/
   workflow-apps.yaml                # shared services + applications
 extensions/models/
   systemd/              # systemd model family
-    mod.ts              # current legacy entrypoint during migration
-    quadlet.ts           # target @holi0317/systemd/quadlet model
-    unit.ts              # reserved; add only for a demonstrated gap
+    quadlet.ts           # @holi0317/systemd/quadlet model
+    unit.ts              # @holi0317/systemd/unit, including native .mount units
   postgres/              # @holi0317/postgres model family
     mod.ts
 packages/
@@ -112,7 +109,7 @@ packages/
 | Workflow | File | Status | Notes |
 |----------|------|--------|-------|
 | Bootstrap machine | `workflows/workflow-bootstrap-machine.yaml` | ✅ Done | Base packages (+ncdu, tailscale), dynamic tailscale repo from `/etc/os-release`, journald 512MB cap, apt autoclean, coredump 1GB cap, mirror.gcr.io for docker.io, weekly podman image prune |
-| Storage + Postgres | `workflows/workflow-storage.yaml` | ✅ Done | `/srv/persistent`, Postgres quadlet |
+| Storage + Postgres | `workflows/workflow-storage.yaml` | ✅ Done | Native `srv-persistent.mount` unit, Postgres quadlet |
 | Monitoring | `workflows/workflow-monitoring.yaml` | ⬜ Not started | VictoriaMetrics, VictoriaLogs, Grafana, node_exporter, alerting |
 | Shared services | `workflows/workflow-shared.yaml` | ⬜ Not started | Valkey |
 | Applications | `workflows/workflow-apps.yaml` | ⬜ Not started | Nextcloud, Jellyfin, Immich, etc. |

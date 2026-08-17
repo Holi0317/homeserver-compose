@@ -1,0 +1,32 @@
+type: '@holi0317/systemd/unit'
+typeVersion: 2026.08.16.2
+id: 0a4b1ea9-9c4f-4225-8e05-8327116e42c4
+name: persistent-mount
+version: 1
+tags: {}
+globalArguments:
+  remote:
+    fleet: hetzner
+    host: hetzner
+    sudo: true
+  unitName: srv-persistent.mount
+  content: |
+    [Unit]
+    Description=Persistent storage mount
+
+    [Mount]
+    What=/dev/disk/by-uuid/1dee6a4f-0c90-4844-bd4a-20b90033b1bf
+    Where=/srv/persistent
+    Type=ext4
+    Options=defaults,noatime
+
+    [Install]
+    WantedBy=local-fs.target
+  userMode: system
+  enabled: true
+  state: running
+methods:
+  apply:
+    arguments:
+      allowRecreate: false
+
