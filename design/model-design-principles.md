@@ -290,15 +290,35 @@ that cannot be represented clearly as a method/resource of `unit` or `quadlet`.
 
 ## PostgreSQL model family
 
-The current PostgreSQL model owns one logical database, role, and Podman
-secret. A future namespace migration may make that explicit as
-`@holi0317/postgres/database`. That design is intentionally deferred until the
-systemd family migration is complete and the database lifecycle is reviewed.
+The PostgreSQL model family owns separate, independently managed resources:
 
-Do not split roles or secrets into separate types until they have independent
-desired state and lifecycle. If database replacement can destroy data, its
-future `apply` contract MUST use `allowRecreate: false` by default and require
-an explicit replacement decision.
+```text
+@holi0317/postgres/role
+@holi0317/postgres/database
+@holi0317/podman/secret
+```
+
+`postgres/role` manages one cluster role and its password without persisting the
+password. `postgres/database` manages one logical database owned by a single
+`LOGIN` role. For existing databases, an ownership change reassigns objects owned
+by the previous database owner in that database before changing the database
+owner; it does not rewrite objects owned by unrelated roles or change ACLs.
+
+The applications currently in scope perform schema migrations through their
+normal database connection, so each application role is both its runtime role
+and database owner. The model family intentionally does not expose speculative
+reader, writer, or migrator abstractions.
+
+`podman/secret` is independent of PostgreSQL. Application workflows may point
+the role password and Podman secret value at the same vault expression, but
+neither resource owns the other.
+
+The bootstrap PostgreSQL role and database are adopted after the container is
+ready. Bootstrap environment variables initialize an empty cluster only; live
+role passwords are converged by the PostgreSQL role model.
+
+Database replacement or destruction can destroy data. Destructive methods are
+gated explicitly, and role destruction does not implicitly drop owned objects.
 
 ## Definition of done for a new model type
 

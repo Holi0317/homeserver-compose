@@ -1,0 +1,13 @@
+manifestVersion: 1
+name: "@holi0317/podman"
+version: "2026.08.16.1"
+description: "Manage Podman resources over the repository SSH adapter"
+repository: https://github.com/holi0317/homeserver-compose
+paths:
+  base: manifest
+models:
+  - secret.ts
+additionalFiles: []
+platforms: []
+dependencies:
+  - "@swamp/ssh"

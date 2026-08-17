@@ -15,6 +15,7 @@ globalArguments:
     Description=Postgres 16
     Wants=postgres-network.service
     After=postgres-network.service
+    RequiresMountsFor=/srv/persistent/postgres/16
 
     [Container]
     Image=docker.io/library/postgres:16-alpine

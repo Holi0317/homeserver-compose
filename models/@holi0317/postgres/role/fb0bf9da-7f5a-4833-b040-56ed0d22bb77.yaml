@@ -1,0 +1,17 @@
+type: '@holi0317/postgres/role'
+typeVersion: 2026.08.16.1
+id: fb0bf9da-7f5a-4833-b040-56ed0d22bb77
+name: postgres-role
+version: 1
+tags: {}
+globalArguments:
+  sshModel: hetzner
+  host: hetzner
+  sudo: true
+  roleName: postgres
+  login: true
+  superuser: true
+  password: '${{ vault.get(homelab, postgres.superuser) }}'
+methods:
+  apply:
+    arguments: {}

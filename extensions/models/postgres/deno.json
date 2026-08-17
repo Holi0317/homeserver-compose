@@ -1,5 +1,8 @@
 {
   "name": "@holi0317/postgres",
   "version": "0.1.0",
-  "exports": "./mod.ts"
+  "exports": {
+    "./database": "./database.ts",
+    "./role": "./role.ts"
+  }
 }

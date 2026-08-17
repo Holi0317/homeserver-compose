@@ -1,0 +1,7 @@
+{
+  "name": "@holi0317/podman",
+  "version": "0.1.0",
+  "exports": {
+    "./secret": "./secret.ts"
+  }
+}

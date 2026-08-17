@@ -94,10 +94,14 @@ workflows/
   workflow-apps.yaml                # shared services + applications
 extensions/models/
   systemd/              # systemd model family
+    unit.ts              # @holi0317/systemd/unit model
     quadlet.ts           # @holi0317/systemd/quadlet model
-    unit.ts              # @holi0317/systemd/unit, including native .mount units
-  postgres/              # @holi0317/postgres model family
-    mod.ts
+  postgres/              # PostgreSQL model family
+    _lib.ts              # shared PostgreSQL execution helpers
+    database.ts          # @holi0317/postgres/database
+    role.ts              # @holi0317/postgres/role
+  podman/                # Podman model family
+    secret.ts            # @holi0317/podman/secret
 packages/
   remote-ssh/            # shared @swamp/ssh adapter workspace package
     mod.ts

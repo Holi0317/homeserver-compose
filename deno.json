@@ -1,5 +1,5 @@
 {
-  "workspace": ["extensions/models/systemd", "extensions/models/postgres", "packages/remote-ssh"],
+  "workspace": ["extensions/models/systemd", "extensions/models/postgres", "extensions/models/podman", "packages/remote-ssh"],
   "imports": {
     "zod": "npm:zod@4"
   },

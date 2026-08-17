@@ -1,0 +1,18 @@
+type: '@holi0317/postgres/database'
+typeVersion: 2026.08.16.1
+id: 261109ec-159e-463e-a874-940d24acce54
+name: postgres-database
+version: 1
+tags: {}
+globalArguments:
+  sshModel: hetzner
+  host: hetzner
+  sudo: true
+  timeoutSeconds: 300
+  containerName: postgres
+  database: postgres
+  ownerRole: postgres
+  encoding: UTF8
+methods:
+  apply:
+    arguments: {}

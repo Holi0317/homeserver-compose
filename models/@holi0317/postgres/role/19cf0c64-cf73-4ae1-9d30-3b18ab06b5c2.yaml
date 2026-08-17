@@ -1,0 +1,17 @@
+type: '@holi0317/postgres/role'
+typeVersion: 2026.08.16.1
+id: 19cf0c64-cf73-4ae1-9d30-3b18ab06b5c2
+name: nextcloud-role
+version: 1
+tags: {}
+globalArguments:
+  sshModel: hetzner
+  host: hetzner
+  sudo: true
+  roleName: nextcloud
+  login: true
+  inherit: false
+  password: '${{ vault.get(homelab, postgres.nextcloud.password) }}'
+methods:
+  apply:
+    arguments: {}

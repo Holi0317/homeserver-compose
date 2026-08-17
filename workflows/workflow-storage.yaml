@@ -65,3 +65,27 @@ jobs:
             condition:
               type: succeeded
         allowFailure: false
+
+      - name: postgres-role
+        description: Adopt the bootstrap PostgreSQL role under Swamp management
+        task:
+          type: model_method
+          modelIdOrName: postgres-role
+          methodName: apply
+        dependsOn:
+          - step: postgres-ready
+            condition:
+              type: succeeded
+        allowFailure: false
+
+      - name: postgres-database
+        description: Adopt the default PostgreSQL database under Swamp management
+        task:
+          type: model_method
+          modelIdOrName: postgres-database
+          methodName: apply
+        dependsOn:
+          - step: postgres-role
+            condition:
+              type: succeeded
+        allowFailure: false
