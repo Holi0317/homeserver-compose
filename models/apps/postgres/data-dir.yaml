@@ -1,17 +1,32 @@
-type: '@adam/cfgmgmt/exec'
-typeVersion: 2026.03.18.1
+type: '@holi0317/systemd/unit'
+typeVersion: 2026.08.16.2
 id: cf3015ec-9399-4993-9e8d-0eb6aa3af9f8
 name: postgres-data-dir
 version: 1
 tags: {}
 globalArguments:
-  command: |
-    set -e
-    mkdir -p /srv/persistent/postgres/16
-    chown -R 70:70 /srv/persistent/postgres/16
-    chmod 0750 /srv/persistent/postgres/16
-  notIf: test -d /srv/persistent/postgres/16 && test "$(stat -c %u:%g /srv/persistent/postgres/16)" = "70:70"
-  nodeHost: sg-athena.tail351aa.ts.net
-  nodeUser: hollis.wu
-  become: true
-methods: {}
+  remote:
+    fleet: athena
+    host: athena
+    sudo: true
+  unitName: postgres-data-dir.service
+  content: |
+    [Unit]
+    Description=Prepare PostgreSQL data directory
+    RequiresMountsFor=/srv/persistent
+    Before=postgres.service
+
+    [Service]
+    Type=oneshot
+    ExecStart=/usr/bin/install -d -o 70 -g 70 -m 0750 /srv/persistent/postgres/16
+    RemainAfterExit=yes
+
+    [Install]
+    WantedBy=multi-user.target
+  userMode: system
+  enabled: true
+  state: running
+methods:
+  apply:
+    arguments:
+      allowRecreate: false

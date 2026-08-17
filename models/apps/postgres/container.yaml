@@ -14,7 +14,8 @@ globalArguments:
     [Unit]
     Description=Postgres 16
     Wants=postgres-network.service
-    After=postgres-network.service
+    After=postgres-network.service postgres-data-dir.service
+    Requires=postgres-data-dir.service
     RequiresMountsFor=/srv/persistent/postgres/16
 
     [Container]

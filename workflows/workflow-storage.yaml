@@ -19,7 +19,7 @@ jobs:
         allowFailure: false
 
       - name: postgres-data-dir
-        description: Create Postgres data directory with correct ownership
+        description: Deploy the systemd unit that prepares the Postgres data directory
         task:
           type: model_method
           modelIdOrName: postgres-data-dir
