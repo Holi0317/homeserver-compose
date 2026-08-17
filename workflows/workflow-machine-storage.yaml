@@ -1,5 +1,5 @@
 id: 6ac691dc-bb7e-439f-a9bc-ed07e1d94d99
-name: storage
+name: machine-storage
 version: 1
 description: Mount persistent storage and deploy Postgres on it.
 tags: {}

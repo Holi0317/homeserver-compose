@@ -85,11 +85,13 @@ models/
       *.yaml              # all resources owned by the application
       # e.g. container.yaml, network.yaml, database.yaml, role.yaml, secret.yaml
 workflows/
-  workflow-bootstrap-machine.yaml   # base OS + tailscale
-  workflow-storage.yaml             # disks + postgres
-  workflow-monitoring.yaml          # node_exporter + victoria* + grafana
-  workflow-shared.yaml              # valkey
-  workflow-apps.yaml                # shared services + applications
+  workflow-machine.yaml             # canonical machine convergence root
+  workflow-machine-bootstrap.yaml   # base OS + tailscale
+  workflow-machine-storage.yaml     # disks + postgres
+  workflow-machine-monitoring.yaml  # node_exporter + victoria* + grafana
+  workflow-machine-shared.yaml      # valkey and shared services
+  workflow-machine-apps.yaml        # shared services + applications
+
 extensions/models/
   systemd/              # systemd model family
     unit.ts              # @holi0317/systemd/unit model
@@ -123,11 +125,12 @@ not duplicated.
 
 | Workflow | File | Status | Notes |
 |----------|------|--------|-------|
-| Bootstrap machine | `workflows/workflow-bootstrap-machine.yaml` | ✅ Done | Base packages (+ncdu, tailscale), dynamic tailscale repo from `/etc/os-release`, journald 512MB cap, apt autoclean, coredump 1GB cap, mirror.gcr.io for docker.io, weekly podman image prune |
-| Storage + Postgres | `workflows/workflow-storage.yaml` | ✅ Done | Native `srv-persistent.mount` unit, Postgres quadlet |
-| Monitoring | `workflows/workflow-monitoring.yaml` | ⬜ Not started | VictoriaMetrics, VictoriaLogs, Grafana, node_exporter, alerting |
-| Shared services | `workflows/workflow-shared.yaml` | ⬜ Not started | Valkey |
-| Applications | `workflows/workflow-apps.yaml` | ⬜ Not started | Nextcloud, Jellyfin, Immich, etc. |
+| Machine convergence root | `workflows/workflow-machine.yaml` | ✅ Done | Canonical root workflow that composes the machine domain workflows |
+| Bootstrap machine | `workflows/workflow-machine-bootstrap.yaml` | ✅ Done | Base packages (+ncdu, tailscale), dynamic tailscale repo from `/etc/os-release`, journald 512MB cap, apt autoclean, coredump 1GB cap, mirror.gcr.io for docker.io, weekly podman image prune |
+| Storage + Postgres | `workflows/workflow-machine-storage.yaml` | ✅ Done | Native `srv-persistent.mount` unit, Postgres quadlet |
+| Monitoring | `workflows/workflow-machine-monitoring.yaml` | ⬜ Not started | VictoriaMetrics, VictoriaLogs, Grafana, node_exporter, alerting |
+| Shared services | `workflows/workflow-machine-shared.yaml` | ⬜ Not started | Valkey |
+| Applications | `workflows/workflow-machine-apps.yaml` | ⬜ In progress | Nextcloud database resources are present; application containers remain to be migrated |
 
 ## 7. Application inventory
 

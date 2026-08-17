@@ -1,0 +1,54 @@
+id: a81682a0-afcc-47f5-b879-01bad3d93020
+name: machine
+version: 1
+description: Converge the Athena machine to its declared desired state.
+tags: {}
+jobs:
+  - name: bootstrap
+    description: Bootstrap the machine with base OS configuration.
+    steps:
+      - name: machine-bootstrap
+        description: Run the machine bootstrap domain workflow.
+        task:
+          type: workflow
+          workflowIdOrName: machine-bootstrap
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+    dependsOn: []
+    weight: 0
+
+  - name: storage
+    description: Deploy persistent storage and PostgreSQL.
+    steps:
+      - name: machine-storage
+        description: Run the storage and PostgreSQL domain workflow.
+        task:
+          type: workflow
+          workflowIdOrName: machine-storage
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+    dependsOn:
+      - job: bootstrap
+        condition:
+          type: succeeded
+    weight: 0
+
+  - name: apps
+    description: Deploy shared services and applications.
+    steps:
+      - name: machine-apps
+        description: Run the applications domain workflow.
+        task:
+          type: workflow
+          workflowIdOrName: machine-apps
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+    dependsOn:
+      - job: storage
+        condition:
+          type: succeeded
+
+    weight: 0

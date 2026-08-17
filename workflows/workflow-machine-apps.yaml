@@ -1,5 +1,5 @@
 id: 25899fe3-ea12-4c90-ac27-18803f1d7b4b
-name: apps
+name: machine-apps
 version: 1
 description: Deploy shared services and applications.
 tags: {}

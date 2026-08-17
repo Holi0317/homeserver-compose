@@ -204,7 +204,7 @@ methods: {}
 ```
 
 The workflow, not the model, orders this unit after storage and its network:
-`workflows/workflow-storage.yaml` remains the orchestration boundary.
+`workflows/workflow-machine-storage.yaml` remains the orchestration boundary.
 
 ## Open domain decisions
 

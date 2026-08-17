@@ -1,5 +1,5 @@
 id: e23b3973-3597-420c-b05d-5ba1f61b3cba
-name: bootstrap-machine
+name: machine-bootstrap
 description: Bootstrap the Hetzner machine with base packages and tailscale.
 tags: {}
 version: 1
