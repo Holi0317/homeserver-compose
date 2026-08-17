@@ -71,6 +71,9 @@ The permanent remote transport architecture is documented in
 ```text
 vaults/
   @swamp/1password/
+files/
+  terminfo/
+    xterm-ghostty       # generated with infocmp -x xterm-ghostty
 models/
   node/
     athena.yaml          # @swamp/ssh fleet / host definition

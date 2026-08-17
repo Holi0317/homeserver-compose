@@ -148,14 +148,31 @@ jobs:
               type: succeeded
         allowFailure: false
 
+      - name: ghostty-terminfo-copy
+        description: Copy checked-in Ghostty terminfo to the node
+        task:
+          type: model_method
+          modelIdOrName: athena
+          methodName: copy
+          inputs:
+            hosts: athena
+            src: files/terminfo/xterm-ghostty
+            dst: /tmp/ghostty.terminfo
+            direction: to
+        dependsOn:
+          - step: base-packages
+            condition:
+              type: succeeded
+        allowFailure: false
+
       - name: ghostty-terminfo
-        description: Install Ghostty terminfo from upstream
+        description: Import Ghostty terminfo on the node
         task:
           type: model_method
           modelIdOrName: install-ghostty-terminfo
           methodName: apply
         dependsOn:
-          - step: base-packages
+          - step: ghostty-terminfo-copy
             condition:
               type: succeeded
         allowFailure: false

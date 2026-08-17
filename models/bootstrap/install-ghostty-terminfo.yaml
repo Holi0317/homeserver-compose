@@ -6,10 +6,12 @@ version: 1
 tags: {}
 globalArguments:
   command: |
-    curl -fsSL https://raw.githubusercontent.com/ghostty-org/ghostty/main/pkg/terminfo/ghostty.terminfo -o /tmp/ghostty.terminfo
+    if infocmp -x xterm-ghostty >/dev/null 2>&1; then
+      rm -f /tmp/ghostty.terminfo
+      exit 0
+    fi
     tic -x -o /usr/share/terminfo /tmp/ghostty.terminfo
     rm -f /tmp/ghostty.terminfo
-  notIf: test -f /usr/share/terminfo/g/ghostty
   nodeHost: '${{ data.latest("athena", "host-athena").attributes.address }}'
   nodeUser: '${{ data.latest("athena", "host-athena").attributes.user }}'
   nodePort: '${{ data.latest("athena", "host-athena").attributes.port }}'
