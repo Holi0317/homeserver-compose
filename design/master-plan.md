@@ -74,18 +74,13 @@ vaults/
 models/
   infra/
     hetzner.yaml          # @swamp/ssh fleet / host definition
-  @holi0317/systemd/
-    unit/                 # native systemd resources, including persistent-mount
+    persistent-mount.yaml # native systemd mount for /srv/persistent
   bootstrap/
     *.yaml                # base OS configuration (journald, apt, registries, etc.)
-  databases/
-    *.yaml                # @holi0317/postgres logical database models
   apps/
     <app>/
-      *.container
-      *.network
-      *.service
-      *.yaml               # per-resource cfgmgmt or systemd model files
+      *.yaml              # all resources owned by the application
+      # e.g. container.yaml, network.yaml, database.yaml, role.yaml, secret.yaml
 workflows/
   workflow-bootstrap-machine.yaml   # base OS + tailscale
   workflow-storage.yaml             # disks + postgres
@@ -107,6 +102,19 @@ packages/
     mod.ts
     deno.json
 ```
+
+Application-owned resources belong under `models/apps/<app>/` and use short,
+resource-oriented filenames. Infrastructure resources belong under
+`models/infra/`; bootstrap resources remain under `models/bootstrap/`.
+
+### Model definition filenames
+
+`swamp model create` currently scaffolds model definitions with a UUID filename
+under the model type directory. Move each definition into its domain directory
+and give it a stable, human-readable resource filename. Preserve the
+Swamp-assigned `id` and model `name` fields; never generate or replace model
+IDs manually. Existing UUID-named definitions should be renamed when migrated,
+not duplicated.
 
 ## 6. Workflows
 
