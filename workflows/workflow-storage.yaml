@@ -47,7 +47,7 @@ jobs:
         task:
           type: model_method
           modelIdOrName: apps-postgres-network
-          methodName: deploy
+          methodName: apply
         dependsOn:
           - step: postgres-data-dir
             condition:
@@ -59,7 +59,7 @@ jobs:
         task:
           type: model_method
           modelIdOrName: apps-postgres-container
-          methodName: deploy
+          methodName: apply
         dependsOn:
           - step: postgres-network
             condition:
@@ -71,7 +71,7 @@ jobs:
         task:
           type: model_method
           modelIdOrName: apps-postgres-ready
-          methodName: deploy
+          methodName: apply
         dependsOn:
           - step: postgres-container
             condition:

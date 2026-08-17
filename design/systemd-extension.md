@@ -1,226 +1,157 @@
-# Design: `@holi0317/systemd` Swamp extension
+# Design: systemd model family
 
-> Placeholder collective/name. The real collective must be taken from
-> `swamp auth whoami --json` before publishing; the type name should then be
-> `@<collective>/systemd`.
+**Status:** The checked-in implementation is the legacy monolithic
+`@holi0317/systemd` type. The target design is documented in
+[`model-design-principles.md`](./model-design-principles.md): build custom
+`@holi0317/systemd/unit` and `@holi0317/systemd/quadlet` types, using
+`@adam/cfgmgmt/systemd` as the behavioral starting point and continuing to use
+it where its contract fits.
+
+This document describes the current systemd behavior and the domain boundary.
+It does not define an SSH client or a second connection schema. Remote
+execution is delegated through the internal `@holi0317/remote-ssh` Deno
+workspace package to the `@swamp/ssh` fleet model. The shared transport
+boundary is maintained in [`remote-execution.md`](./remote-execution.md).
+The systemd family uses that shared remote transport for all remote work.
 
 ## Goals
 
-Manage a single systemd unit on a remote Linux host over SSH or Tailscale SSH.
-One swamp model instance maps to exactly one unit. The unit can be:
+Manage one systemd or Quadlet resource on one remote Linux host per model
+instance. The current model accepts:
 
-- Defined inline in the model via `content` (the literal unit file contents).
-- Already present on the system, e.g. installed by apt, by omitting `content`.
+- inline literal unit or Quadlet content; or
+- a unit already installed by another mechanism, such as apt, when `content`
+  is omitted.
 
-The extension is idempotent, auditable, and supports both raw systemd units
-(e.g. `.service`, `.timer`) and Podman Quadlet units (e.g. `.container`,
-`.network`).
+The target split preserves the common lifecycle while making raw-systemd and
+Quadlet-specific paths, generated names, enablement, validation, and cleanup
+explicit in their respective model contracts. Methods are idempotent and
+persist structured resources for later workflow/report inspection.
 
-Core operations:
+## Domain boundary
 
-- `deploy` – upload the unit file when `content` is given, run
-  `daemon-reload`, optionally enable/start, and optionally run a readiness
-  gate.
-- `start` / `stop` / `restart` – lifecycle operations via `systemctl`.
-- `status` – query active/sub/enabled/load state.
-- `destroy` – stop/disable, remove tracked uploaded files, reload.
+The model owns:
 
-## Research notes
+- unit-name validation and raw-systemd versus Quadlet classification;
+- systemd and Quadlet target-directory selection;
+- `systemctl` lifecycle commands;
+- Quadlet enablement, including the generated-unit `.wants/` workaround;
+- optional readiness helper services;
+- tracked uploaded-file metadata and cleanup.
 
-### `@swamp/ssh`
+The shared remote package owns only the adapter to `@swamp/ssh`: command
+execution, file copy, result normalization, and generic target binding. It must
+not contain `systemctl`, Quadlet, `userMode`, PostgreSQL, or Podman policy.
+Custom model code must not invoke `ssh`, `scp`, `rsync`, or `tailscale`
+directly.
 
-`swamp extension info @swamp/ssh --json` shows that `@swamp/ssh` is a **model**
-for managing a fleet of hosts. It exposes `apply`, `exec`, `copy`, `script`,
-etc., but those are model methods, not a reusable library. A model cannot import
-or call another model's methods at runtime; orchestration across models is the
-job of a workflow.
+The upstream `@swamp/ssh` model remains responsible for transport selection,
+Tailscale SSH, OpenSSH ControlMaster behavior, authentication, retries,
+host-level output, and per-host audit resources.
 
-`swamp model type describe @swamp/ssh --json` returns "Model type not found"
-because the extension is not installed locally. Even if installed, it would only
-surface method schemas, not a callable API.
+## Model configuration
 
-**Decision:** do not take a hard runtime dependency on `@swamp/ssh`. The new
-extension will implement the transport directly with `ssh` and `tailscale ssh`,
-streaming file contents over stdin to `cat > <remote-path>`. Users who already
-use `@swamp/ssh` can still pass a host's `name`/`user` into this model's
-`connection` fields via CEL, but the extension works standalone.
+The target shape adopted by both remote-backed custom models is:
 
-### `@keeb/docker`
-
-`swamp extension info @keeb/docker --json` shows a familiar remote-host
-pattern:
-
-- `sshHost` and `sshUser` are global arguments.
-- Each method shells out to the remote host over SSH.
-- Operations are idempotent (e.g., `run` stops an existing container first).
-
-We will follow the same pattern: per-model-instance connection settings and
-local `Deno.Command` invocations of `ssh`/`systemctl`.
-
-## Model type decision
-
-**One model type:** `@holi0317/systemd`.
-
-One model instance represents one unit. Both raw systemd and Quadlet units are
-driven by `systemctl`; the only difference is the directory the file lands in.
-That directory is derived from the unit name extension:
-
-- Quadlet-specific extensions (`.container`, `.volume`, `.network`, `.pod`,
-  `.image`, `.build`) go to the Quadlet directory.
-- Everything else (`.service`, `.timer`, `.socket`, etc.) goes to the raw
-  systemd directory.
-
-`.service` and `.timer` are always treated as raw systemd units. This removes
-the need for a `kind` global argument and keeps model definitions concise.
-
-## Global arguments schema
-
-```ts
-import { z } from "npm:zod@4";
-
-const ConnectionSchema = z.object({
-  host: z.string().min(1).describe("SSH/Tailscale hostname or IP"),
-  user: z.string().default("root").describe("Remote user"),
-  transport: z.enum(["ssh", "tailscale"]).default("ssh"),
-  port: z.number().int().min(1).max(65535).optional()
-    .describe("SSH port; only used when transport is ssh"),
-  identity: z.string().optional()
-    .describe("Local path to an SSH private key; only used when transport is ssh"),
-  identityPassphrase: z.string().optional().meta({ sensitive: true })
-    .describe("Passphrase for the SSH private key"),
-  sudo: z.boolean().default(false)
-    .describe("Use sudo for systemctl commands and file moves into system directories"),
-  timeoutSeconds: z.number().int().positive().default(300)
-    .describe("Default timeout for remote commands"),
-});
-
-const GlobalArgsSchema = z.object({
-  connection: ConnectionSchema,
-  unitName: z.string().min(1).describe(
-    "Full systemd unit name, e.g. node-exporter.service",
-  ),
-  content: z.string().optional().describe(
-    "Optional literal unit file contents. When omitted, the unit is assumed to already exist on the system.",
-  ),
-  userMode: z.enum(["system", "user"]).default("system")
-    .describe("Manage system units or rootless user units"),
-});
-
-type GlobalArgs = z.infer<typeof GlobalArgsSchema>;
+```yaml
+remote:
+  fleet: hetzner       # @swamp/ssh model instance
+  host: hetzner        # logical host name in that fleet
+  sudo: true           # request privilege for system operations
+unitName: postgres.container
+content: |
+  [Container]
+  Image=docker.io/library/postgres:16
+userMode: system
+enabled: true          # optional desired enablement
+state: running         # optional desired active state
 ```
 
-When `content` is omitted, `deploy` only enables/starts the unit. This lets the
-same model manage units that were installed by apt or by another mechanism.
+Omit `enabled` or `state` to leave that lifecycle dimension unchanged during
+`apply`. `allowRecreate` remains an `apply` method argument because it is
+per-invocation consent for destructive replacement. Operation timeouts remain
+model-level arguments because a readiness gate and a lifecycle command do not
+necessarily share a useful budget.
 
-## File and unit schemas
+The committed unit and Quadlet definitions follow the permanent model and
+remote-transport principles; future changes should update those documents.
 
-```ts
-const ReadinessSchema = z.object({
-  helperServiceName: z.string().describe("Name of the oneshot helper service"),
-  helperServiceContent: z.string().describe(
-    "Raw systemd .service contents; should be Type=oneshot with a blocking ExecStart and RemainAfterExit=yes",
-  ),
-  timeoutSeconds: z.number().int().positive().default(60),
-  pollIntervalSeconds: z.number().int().positive().default(2),
-});
-```
+## Target directories
 
-The helper service is always written to the raw systemd directory, never the
-Quadlet directory, because it is a plain `Type=oneshot` service.
+The target directory is derived from the unit extension and `userMode`:
+
+| Unit kind | `userMode` | Target directory |
+| --- | --- | --- |
+| Quadlet source (`.container`, `.volume`, `.network`, `.pod`, `.image`, `.build`) | `system` | `/etc/containers/systemd/` |
+| Quadlet source | `user` | `~/.config/containers/systemd/` |
+| Raw systemd unit | `system` | `/etc/systemd/system/` |
+| Raw systemd unit | `user` | `~/.config/systemd/user/` |
+
+For user mode, the extension discovers the remote home directory through the
+shared adapter before constructing the path. System-mode files may be staged
+under `/tmp/swamp-systemd-<uuid>/`, moved into the target directory with the
+requested privilege, assigned mode `0644`, and cleaned up. Cleanup is best
+effort but must run on both success and failure.
 
 ## Methods
 
 ### `deploy`
 
-Upload the unit file when `content` is provided, reload systemd, optionally
-enable/start, and optionally run a readiness gate.
+1. If `content` is present, validate the unit extension, choose the target
+   directory, ensure it exists, upload the file, and run `daemon-reload`.
+2. If `enable` is true, enable the unit. Quadlet-generated units are enabled
+   by creating the appropriate `.wants/` symlinks because this host's systemd
+   refuses to enable generated units directly.
+3. If `start` is true, start the generated or raw systemd unit.
+4. If `readiness` is supplied and the unit was started, deploy and poll a raw
+   oneshot helper service until it is active or reaches a failure state.
+5. Write the `unit` and `runResult` resources.
 
-```ts
-const DeployArgsSchema = z.object({
-  enable: z.boolean().default(true),
-  start: z.boolean().default(false),
-  readiness: ReadinessSchema.optional(),
-});
-```
+### `start`, `stop`, and `restart`
 
-Behavior:
-
-1. If `content` is provided, validate that `unitName` ends with a recognized
-   extension, resolve the target directory from the unit name, upload the file,
-   and run `systemctl daemon-reload`.
-2. If `enable` is true, run `systemctl enable <unitName>`.
-3. If `start` is true, run `systemctl start <unitName>`.
-4. If `readiness` is provided and the unit was started, write the helper
-   `.service` to the raw systemd directory, reload, start it, and poll until it
-   becomes `active` (success) or `failed`/`inactive` (error).
-5. Write the `unit` resource and a `runResult` resource.
-
-Idempotency:
-
-- Upload is idempotent: re-writing the same contents to the same path is a
-  no-op at the systemd level.
-- `enable` is idempotent via `systemctl enable`.
-- `start` is idempotent: starting an already active unit succeeds.
-
-### `start`
-
-```ts
-const StartArgsSchema = z.object({
-  readiness: ReadinessSchema.optional(),
-});
-```
-
-Run `systemctl start <unitName>`. Apply readiness gate if provided. Write
-`runResult`.
-
-### `stop`
-
-```ts
-const StopArgsSchema = z.object({});
-```
-
-Run `systemctl stop <unitName>`. `systemctl stop` is idempotent for inactive
-units. Write `runResult`.
-
-### `restart`
-
-```ts
-const RestartArgsSchema = z.object({});
-```
-
-Run `systemctl restart <unitName>`. Write `runResult`.
+Run the corresponding `systemctl` operation against the raw or generated unit
+name. `start` may run the optional readiness gate. Each method writes a
+`runResult` resource and fails when the remote operation fails.
 
 ### `status`
 
-```ts
-const StatusArgsSchema = z.object({});
-```
-
-Run `systemctl show <unitName> -p ActiveState -p SubState -p UnitFileState -p
-LoadState` and write a `runResult`.
+Run `systemctl show` for `ActiveState`, `SubState`, `UnitFileState`, and
+`LoadState`, then write the command result. Status is an observation; it must
+not be reported as a resource mutation merely because the command succeeded.
 
 ### `destroy`
 
+1. Read the stored `unit` resource when available.
+2. Stop and disable the unit.
+3. Remove only files previously tracked as uploaded by this model instance
+   when `removeFiles` is true.
+4. Run `daemon-reload` after file removal.
+5. Delete the stored `unit` resource and write the `runResult` resource.
+
+Destroying a unit installed by apt or another mechanism must not remove an
+untracked file.
+
+## Readiness gate
+
+A readiness argument contains:
+
 ```ts
-const DestroyArgsSchema = z.object({
-  removeFiles: z.boolean().default(true),
+const ReadinessSchema = z.object({
+  helperServiceName: z.string(),
+  helperServiceContent: z.string(),
+  timeoutSeconds: z.number().int().positive().default(60),
+  pollIntervalSeconds: z.number().int().positive().default(2),
 });
 ```
 
-Behavior:
-
-1. Stop the unit.
-2. Disable the unit.
-3. If `removeFiles` is true, delete the file(s) recorded in the stored `unit`
-   resource (i.e. files previously uploaded by this model instance). For
-   system-installed units with no stored files, this step is skipped.
-4. Run `systemctl daemon-reload` only if files were removed.
-5. Delete the stored `unit` resource if it exists and write `runResult`.
-
-This allows `destroy` to be used on units that were not deployed by swamp
-(e.g. apt-installed packages) without erroring.
+The helper is always a raw `.service` file, even when the managed unit is a
+Quadlet source. It should be a blocking `Type=oneshot` service with
+`RemainAfterExit=yes`. The extension reloads systemd, starts the helper, polls
+`is-active`, and includes helper status output when readiness fails.
 
 ## Resources
+
+The model writes two resource types:
 
 ```ts
 const FileRecordSchema = z.object({
@@ -233,198 +164,67 @@ const UnitResourceSchema = z.object({
   kind: z.enum(["service", "quadlet"]),
   userMode: z.enum(["system", "user"]),
   host: z.string(),
-  user: z.string(),
   unitName: z.string(),
   files: z.array(FileRecordSchema),
   enabled: z.boolean().optional(),
   active: z.boolean().optional(),
-  deployedAt: z.string().datetime(),
-});
-
-const RunResultSchema = z.object({
-  method: z.string(),
-  host: z.string(),
-  unitName: z.string(),
-  changed: z.boolean(),
-  success: z.boolean(),
-  stdout: z.string(),
-  stderr: z.string(),
-  exitCode: z.number().int().optional(),
-  timestamp: z.string().datetime(),
-});
-
-const resources = {
-  unit: {
-    description: "Desired and actual state of the managed systemd unit",
-    schema: UnitResourceSchema,
-    lifetime: "infinite",
-    garbageCollection: 10,
-  },
-  runResult: {
-    description: "Outcome of a method invocation",
-    schema: RunResultSchema,
-    lifetime: "infinite",
-    garbageCollection: 10,
-  },
-};
-```
-
-## File upload behavior
-
-### Target directories
-
-The target directory is derived from the unit name extension and `userMode`:
-
-| Unit extension                              | `userMode` | Target directory                |
-|---------------------------------------------|------------|---------------------------------|
-| `.container`, `.volume`, `.network`, etc.   | system     | `/etc/containers/systemd/`      |
-| `.container`, `.volume`, `.network`, etc.   | user       | `~/.config/containers/systemd/` |
-| `.service`, `.timer`, `.socket`, etc.       | system     | `/etc/systemd/system/`          |
-| `.service`, `.timer`, `.socket`, etc.       | user       | `~/.config/systemd/user/`       |
-
-For user mode the remote `$HOME` is discovered with a single `echo` command
-before uploading.
-
-### Staging directories
-
-System-mode uploads stage files under `/tmp/swamp-systemd-<uuid>/` and then
-move them into the target system directory with `sudo mv` when a non-root user
-is used. User-mode files are written directly into the user config directory.
-
-### Transport details
-
-- **`ssh` transport:**
-  - Commands: `ssh [ -i identity ] [ -p port ] user@host <command>`.
-  - File copy: stream the file through `ssh [ -i identity ] [ -p port ] user@host "cat > <remote-path>"`.
-  - For system directories with a non-root user, stage to `/tmp` and then
-    `sudo mv`/`sudo chmod` into `/etc/...`.
-
-- **`tailscale` transport:**
-  - Commands: `tailscale ssh user@host <command>`.
-  - File copy: stream the file through `tailscale ssh user@host "cat > <remote-path>"`.
-
-## Connection schema summary
-
-```ts
-const ConnectionSchema = z.object({
-  host: z.string().min(1),
-  user: z.string().default("root"),
-  transport: z.enum(["ssh", "tailscale"]).default("ssh"),
-  port: z.number().int().min(1).max(65535).optional(),
-  identity: z.string().optional(),
-  identityPassphrase: z.string().optional().meta({ sensitive: true }),
-  sudo: z.boolean().default(false),
-  timeoutSeconds: z.number().int().positive().default(300),
+  deployedAt: z.iso.datetime(),
 });
 ```
 
-- `transport: "tailscale"` uses the local `tailscale` CLI. No SSH key is
-  required; authentication is handled by tailnet identity.
-- `transport: "ssh"` uses the local `ssh` binary. If `identity` is omitted,
-  the user's SSH agent and `~/.ssh/config` are used.
+`unit` is the desired/managed state needed by `destroy`; `runResult` captures
+method, host, unit, success, stdout, stderr, exit code, and timestamp. Remote
+per-host outcomes are already auditable through the `@swamp/ssh` fleet model.
+Resource names and workflow dependencies should remain stable across the
+transport refactor.
 
-## Example model definition
+## Example
 
 ```yaml
-# models/node-exporter.yaml
-type: "@holi0317/systemd"
-name: node-exporter
+# models/apps/postgres/container.yaml
+type: "@holi0317/systemd/quadlet"
+name: apps-postgres-container
 globalArguments:
-  connection:
-    host: server.tail1234.ts.net
-    user: root
-    transport: tailscale
-  unitName: node-exporter.service
-  # content omitted: unit is installed by apt
-methods:
-  deploy:
-    arguments:
-      enable: true
-      start: true
-```
-
-```bash
-swamp model method run node-exporter deploy
-swamp model method run node-exporter status
-swamp model method run node-exporter destroy
-```
-
-## Example inline unit
-
-```yaml
-# models/caddy.yaml
-type: "@holi0317/systemd"
-name: caddy
-globalArguments:
-  connection:
-    host: server.tail1234.ts.net
-    user: root
-    transport: tailscale
-  unitName: caddy.service
+  remote:
+    fleet: hetzner
+    host: hetzner
+    sudo: true
+  unitName: postgres.container
   content: |
     [Unit]
-    Description=Caddy reverse proxy
-    After=network.target
+    Description=PostgreSQL container
+
+    [Container]
+    Image=docker.io/library/postgres:16
+    ContainerName=postgres
+    Network=postgres.network
+    Volume=/srv/persistent/postgres/16:/var/lib/postgresql/data
 
     [Service]
-    ExecStart=/usr/local/bin/caddy run --config /etc/caddy/Caddyfile
     Restart=always
-
-    [Install]
-    WantedBy=multi-user.target
-methods:
-  deploy:
-    arguments:
-      enable: true
-      start: true
+methods: {}
 ```
 
-## Extension manifest skeleton
+The workflow, not the model, orders this unit after storage and its network:
+`workflows/workflow-storage.yaml` remains the orchestration boundary.
 
-```yaml
-manifestVersion: 1
-name: "@holi0317/systemd"
-version: "2026.08.12.2"
-description: "Deploy and manage a single systemd unit over SSH"
-repository: https://github.com/holi0317/swamp-systemd
+## Open domain decisions
 
-models:
-  - mod.ts
+1. Run `systemd-analyze verify` locally before uploading inline unit content,
+   or rely on the remote daemon reload as the syntax check.
+2. Decide whether support for `doas` or `su` belongs in the upstream fleet
+   contract before adding another privilege mode.
+3. Decide whether user-mode deployment should manage
+   `loginctl enable-linger` or require that host prerequisite explicitly.
+4. Decide when a successful readiness helper should be removed and how that
+   interacts with later `destroy` cleanup.
+5. Add contract tests for Quadlet unit-name mapping, target paths, generated
+   `.wants/` links, readiness failure states, and tracked-file deletion.
 
-paths:
-  base: manifest
+## Publication
 
-additionalFiles:
-  - README.md
-  - LICENSE
-
-platforms: []
-```
-
-## Open questions
-
-1. **Pre-flight validation.** Should `deploy` run `systemd-analyze verify`
-   locally on the rendered unit file before uploading? This would catch syntax
-   errors early but adds a host-side dependency.
-
-2. **Privilege escalation beyond sudo.** Some hosts use `doas` or `su`. Should
-   the connection schema support an `escalation: "sudo" | "doas" | "su"`
-   option?
-
-3. **Generated Quadlet cleanup.** When Quadlet files are removed and
-   `daemon-reload` runs, systemd removes the generated services. Are there edge
-   cases (e.g., `RemainAfterExit` units) where a manual `systemctl reset-failed`
-   is needed?
-
-4. **User-mode systemd activation.** Rootless Quadlet relies on a running user
-   systemd instance. Should the extension call `loginctl enable-linger <user>`
-   automatically when `userMode: user` is used?
-
-5. **Integration with `@swamp/ssh` fleets.** Should the model accept a
-   `hostRef` argument that points to a `@swamp/ssh` host resource so users do
-   not duplicate connection data? This can be implemented later via CEL-driven
-   fields without a hard dependency.
-
-6. **Helper service cleanup.** Should the readiness helper `.service` file be
-   removed after a successful readiness check to avoid leaving one-shot units
-   on the host?
+The checked-in `extensions/models/systemd/manifest.yaml` is authoritative.
+Use the extension guide's manifest formatting, quality, bundle, and smoke-test
+checks before publishing. The local `packages/remote-ssh` package must resolve
+inside the extension bundle; it must not become an undocumented runtime
+installation requirement.

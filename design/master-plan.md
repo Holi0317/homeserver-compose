@@ -38,7 +38,9 @@ retention is required.
   use separate logical databases.
 - **Podman + Quadlet.** Applications run as rootless or system containers
   defined by Quadlet files (`.container`, `.network`, `.volume`, `.pod`) and
-  managed through the `@holi0317/systemd` extension.
+  managed by the custom `@holi0317/systemd/quadlet` model. Custom raw systemd
+  resources use `@holi0317/systemd/unit`; `@adam/cfgmgmt/systemd` remains the
+  behavioral starting point and is used where its contract fits.
 - **Shared Valkey.** One Redis-compatible Valkey instance with virtual-host
   separation (separate logical databases or ACL users) for caching/session
   needs.
@@ -50,8 +52,19 @@ retention is required.
   `extensions/models/` only as a last resort, and model them after
   Ansible/Terraform idioms (idempotent `apply`, explicit `ensure`, state
   resources).
+- **Shared remote boundary.** Remote-backed custom models use the internal
+  `@holi0317/remote-ssh` Deno workspace package, which delegates to the single
+  `@swamp/ssh` fleet model. It owns no domain policy and does not shell out to
+  SSH directly. See [`remote-execution.md`](./remote-execution.md).
+- **Model boundaries.** Use namespaced types for distinct resource contracts,
+  prefer existing `@adam/cfgmgmt` models, and split model kinds only when
+  lifecycle/state semantics differ. See
+  [`model-design-principles.md`](./model-design-principles.md).
 - **Secrets in vault.** Passwords, API keys, and tokens must live in swamp
   vault, never in plain-text model files.
+
+The permanent remote transport architecture is documented in
+[`remote-execution.md`](./remote-execution.md).
 
 ## 5. Repository conventions
 
@@ -74,7 +87,7 @@ models/
       *.container
       *.network
       *.service
-      *.yaml              # per-unit @holi0317/systemd model files
+      *.yaml              # per-resource cfgmgmt or systemd model files
 workflows/
   workflow-bootstrap-machine.yaml   # base OS + tailscale
   workflow-storage.yaml             # disks + postgres
@@ -82,14 +95,16 @@ workflows/
   workflow-shared.yaml              # valkey
   workflow-apps.yaml                # shared services + applications
 extensions/models/
-  systemd/              # @holi0317/systemd extension
+  systemd/              # systemd model family
+    mod.ts              # current legacy entrypoint during migration
+    quadlet.ts           # target @holi0317/systemd/quadlet model
+    unit.ts              # reserved; add only for a demonstrated gap
+  postgres/              # @holi0317/postgres model family
     mod.ts
-    _lib/
-      ssh.ts
-  postgres/             # @holi0317/postgres extension
+packages/
+  remote-ssh/            # shared @swamp/ssh adapter workspace package
     mod.ts
-    _lib/
-      ssh.ts
+    deno.json
 ```
 
 ## 6. Workflows

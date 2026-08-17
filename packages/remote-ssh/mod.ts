@@ -335,26 +335,3 @@ export async function uploadFile(
     }
   }
 }
-
-/** Run systemctl on the target host. */
-export function execSystemctl(
-  ctx: RemoteContext,
-  definition: string,
-  host: string,
-  userMode: "system" | "user",
-  sudo: boolean,
-  subcommand: string[],
-  timeoutSec: number,
-): Promise<RemoteRunResult> {
-  const parts = ["systemctl"];
-  if (userMode === "user") {
-    parts.push("--user");
-  }
-  parts.push(...subcommand);
-
-  return runRemoteExec(ctx, definition, host, {
-    command: parts.map(shlexQuote).join(" "),
-    sudo: usesSudo(userMode, sudo),
-    timeoutSec,
-  });
-}

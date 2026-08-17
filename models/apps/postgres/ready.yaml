@@ -1,13 +1,14 @@
-type: '@holi0317/systemd'
-typeVersion: 2026.08.13.1
+type: '@holi0317/systemd/unit'
+typeVersion: 2026.08.16.2
 id: 0a763d7e-4620-4067-8fc8-f0130ffbaf94
 name: apps-postgres-ready
 version: 1
 tags: {}
 globalArguments:
-  sshModel: hetzner
-  host: hetzner
-  sudo: true
+  remote:
+    fleet: hetzner
+    host: hetzner
+    sudo: true
   unitName: postgres-ready.service
   content: |
     [Unit]
@@ -21,8 +22,9 @@ globalArguments:
     ExecStart=/usr/bin/podman exec postgres pg_isready -U postgres
     RemainAfterExit=yes
   userMode: system
+  enabled: true
+  state: running
 methods:
-  deploy:
+  apply:
     arguments:
-      enable: true
-      start: true
+      allowRecreate: false

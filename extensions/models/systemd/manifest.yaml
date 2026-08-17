@@ -1,12 +1,13 @@
 manifestVersion: 1
 name: "@holi0317/systemd"
-version: "2026.08.13.1"
+version: "2026.08.16.2"
 description: "Deploy and manage systemd units and Podman Quadlet files over SSH"
 repository: https://github.com/holi0317/homeserver-compose
 paths:
   base: manifest
 models:
-  - mod.ts
+  - unit.ts
+  - quadlet.ts
 additionalFiles: []
 platforms: []
 dependencies:

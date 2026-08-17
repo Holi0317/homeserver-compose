@@ -1,13 +1,14 @@
-type: '@holi0317/systemd'
-typeVersion: 2026.08.13.1
+type: '@holi0317/systemd/quadlet'
+typeVersion: 2026.08.16.2
 id: 83183346-1182-452f-a357-839b34a6bb99
 name: apps-postgres-container
 version: 1
 tags: {}
 globalArguments:
-  sshModel: hetzner
-  host: hetzner
-  sudo: true
+  remote:
+    fleet: hetzner
+    host: hetzner
+    sudo: true
   unitName: postgres.container
   content: |
     [Unit]
@@ -40,8 +41,9 @@ globalArguments:
     [Install]
     WantedBy=default.target
   userMode: system
+  enabled: true
+  state: running
 methods:
-  deploy:
+  apply:
     arguments:
-      enable: true
-      start: true
+      allowRecreate: false
