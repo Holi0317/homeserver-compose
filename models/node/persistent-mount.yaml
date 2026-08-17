@@ -6,8 +6,8 @@ version: 1
 tags: {}
 globalArguments:
   remote:
-    fleet: hetzner
-    host: hetzner
+    fleet: athena
+    host: athena
     sudo: true
   unitName: srv-persistent.mount
   content: |

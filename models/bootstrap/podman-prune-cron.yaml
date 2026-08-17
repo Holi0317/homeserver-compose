@@ -14,9 +14,9 @@ globalArguments:
   day: '*'
   month: '*'
   weekday: '0'
-  nodeHost: '${{ data.latest("hetzner", "host-hetzner").attributes.address }}'
-  nodeUser: '${{ data.latest("hetzner", "host-hetzner").attributes.user }}'
-  nodePort: '${{ data.latest("hetzner", "host-hetzner").attributes.port }}'
+  nodeHost: '${{ data.latest("athena", "host-athena").attributes.address }}'
+  nodeUser: '${{ data.latest("athena", "host-athena").attributes.user }}'
+  nodePort: '${{ data.latest("athena", "host-athena").attributes.port }}'
   become: true
   becomeUser: root
 methods: {}

@@ -5,8 +5,8 @@ name: nextcloud-role
 version: 1
 tags: {}
 globalArguments:
-  sshModel: hetzner
-  host: hetzner
+  sshModel: athena
+  host: athena
   sudo: true
   roleName: nextcloud
   login: true

@@ -1,16 +1,16 @@
 type: '@swamp/ssh'
 typeVersion: 2026.07.28.1
 id: f6e5d1c5-5d9b-4702-a898-5166a0747f91
-name: hetzner
+name: athena
 version: 1
 tags: {}
 globalArguments:
-  name: hetzner
+  name: athena
   transport:
     kind: tailscale
     user: hollis.wu
   hosts:
-    - name: hetzner
+    - name: athena
       address: sg-athena.tail351aa.ts.net
       tags: []
 methods: {}

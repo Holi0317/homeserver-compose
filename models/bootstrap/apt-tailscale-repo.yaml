@@ -10,14 +10,14 @@ globalArguments:
   uris:
     - 'https://pkgs.tailscale.com/stable/debian'
   suites:
-    - '${{ data.latest("bootstrap-os-codename", data.latest("hetzner", "host-hetzner").attributes.address).attributes.stdout }}'
+    - '${{ data.latest("bootstrap-os-codename", data.latest("athena", "host-athena").attributes.address).attributes.stdout }}'
   components:
     - main
   signedBy: /usr/share/keyrings/tailscale-archive-keyring.gpg
-  gpgKeyUrl: '${{ "https://pkgs.tailscale.com/stable/debian/" + data.latest("bootstrap-os-codename", data.latest("hetzner", "host-hetzner").attributes.address).attributes.stdout + ".noarmor.gpg" }}'
-  nodeHost: '${{ data.latest("hetzner", "host-hetzner").attributes.address }}'
-  nodeUser: '${{ data.latest("hetzner", "host-hetzner").attributes.user }}'
-  nodePort: '${{ data.latest("hetzner", "host-hetzner").attributes.port }}'
+  gpgKeyUrl: '${{ "https://pkgs.tailscale.com/stable/debian/" + data.latest("bootstrap-os-codename", data.latest("athena", "host-athena").attributes.address).attributes.stdout + ".noarmor.gpg" }}'
+  nodeHost: '${{ data.latest("athena", "host-athena").attributes.address }}'
+  nodeUser: '${{ data.latest("athena", "host-athena").attributes.user }}'
+  nodePort: '${{ data.latest("athena", "host-athena").attributes.port }}'
   become: true
   becomeUser: root
 methods: {}

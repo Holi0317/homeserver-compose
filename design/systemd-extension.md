@@ -55,9 +55,8 @@ The target shape adopted by both remote-backed custom models is:
 
 ```yaml
 remote:
-  fleet: hetzner       # @swamp/ssh model instance
-  host: hetzner        # logical host name in that fleet
-  sudo: true           # request privilege for system operations
+  fleet: athena        # @swamp/ssh model instance
+  host: athena         # logical host name in that fleet
 unitName: postgres.container
 content: |
   [Container]
@@ -186,9 +185,8 @@ type: "@holi0317/systemd/quadlet"
 name: apps-postgres-container
 globalArguments:
   remote:
-    fleet: hetzner
-    host: hetzner
-    sudo: true
+    fleet: athena
+    host: athena
   unitName: postgres.container
   content: |
     [Unit]

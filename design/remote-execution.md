@@ -51,9 +51,8 @@ Remote model schemas should expose one reusable target reference:
 
 ```yaml
 remote:
-  fleet: hetzner       # @swamp/ssh model instance
-  host: hetzner        # logical host name in that fleet
-  sudo: true           # domain default; individual operations may narrow it
+  fleet: athena        # @swamp/ssh model instance
+  host: athena         # logical host name in that fleet
 ```
 
 `fleet` describes the referenced model. `host` identifies the fleet member.

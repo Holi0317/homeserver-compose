@@ -6,8 +6,8 @@ version: 1
 tags: {}
 globalArguments:
   remote:
-    fleet: hetzner
-    host: hetzner
+    fleet: athena
+    host: athena
     sudo: true
   unitName: postgres.container
   content: |

@@ -72,8 +72,8 @@ The permanent remote transport architecture is documented in
 vaults/
   @swamp/1password/
 models/
-  infra/
-    hetzner.yaml          # @swamp/ssh fleet / host definition
+  node/
+    athena.yaml          # @swamp/ssh fleet / host definition
     persistent-mount.yaml # native systemd mount for /srv/persistent
   bootstrap/
     *.yaml                # base OS configuration (journald, apt, registries, etc.)
@@ -104,8 +104,8 @@ packages/
 ```
 
 Application-owned resources belong under `models/apps/<app>/` and use short,
-resource-oriented filenames. Infrastructure resources belong under
-`models/infra/`; bootstrap resources remain under `models/bootstrap/`.
+resource-oriented filenames. Node resources belong under `models/node/`;
+bootstrap resources remain under `models/bootstrap/`.
 
 ### Model definition filenames
 
