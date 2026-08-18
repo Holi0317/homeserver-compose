@@ -1,5 +1,5 @@
 type: '@holi0317/caddy/config'
-typeVersion: 2026.08.18.1
+typeVersion: 2026.08.18.2
 id: aa57737d-ff75-4fe3-b5ec-6fc0a8361e09
 name: ingress-config
 version: 1
@@ -7,4 +7,8 @@ tags: {}
 globalArguments:
   inventory:
     sites: []
+  remote:
+    fleet: athena
+    host: athena
+    sudo: true
 methods: {}

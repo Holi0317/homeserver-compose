@@ -19,8 +19,6 @@ globalArguments:
     [Service]
     Type=oneshot
     ExecStart=/usr/bin/install -d -o 0 -g 1000 -m 0750 /srv/persistent/caddy/config
-    ExecStart=/bin/sh -c '/usr/bin/printf %s eyJhZG1pbiI6eyJsaXN0ZW4iOiJsb2NhbGhvc3Q6MjAxOSJ9LCJhcHBzIjp7Imh0dHAiOnsic2VydmVycyI6eyJpbmdyZXNzIjp7Imxpc3RlbiI6WyI6ODAiXSwicm91dGVzIjpbeyJtYXRjaCI6W3sicGF0aCI6WyIvaGVhbHRoeiJdfV0sImhhbmRsZSI6W3siaGFuZGxlciI6InN0YXRpY19yZXNwb25zZSIsInN0YXR1c19jb2RlIjoiMjAwIiwiYm9keSI6Im9rIn1dfV19fX19fQ== | /usr/bin/base64 -d > /srv/persistent/caddy/config/caddy.json'
-    ExecStart=/usr/bin/chmod 0640 /srv/persistent/caddy/config/caddy.json
     RemainAfterExit=yes
 
     [Install]
