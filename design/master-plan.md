@@ -130,6 +130,8 @@ not duplicated.
 | Storage + Postgres | `workflows/workflow-machine-storage.yaml` | ✅ Done | Native `srv-persistent.mount` unit, Postgres quadlet |
 | Monitoring | `workflows/workflow-machine-monitoring.yaml` | ⬜ Not started | VictoriaMetrics, VictoriaLogs, Grafana, node_exporter, alerting |
 | Shared services | `workflows/workflow-machine-shared.yaml` | ⬜ Not started | Valkey |
+| Public ingress + Cloudflare DNS | `workflows/workflow-machine-ingress-public.yaml` | ⬜ Not started | Caddy public-internet edge, Cloudflare DDNS, public ACME, and explicit application routes |
+| Tailnet services | `workflows/workflow-machine-ingress-tailnet.yaml` | ⬜ Deferred | Tailscale Service-host exposure after the public ingress phase |
 | Applications | `workflows/workflow-machine-apps.yaml` | ⬜ In progress | Nextcloud database resources are present; application containers remain to be migrated |
 
 ## 7. Application inventory
@@ -146,6 +148,7 @@ service is deployed, reachable, monitored, and backed up (where applicable).
 - [x] PostgreSQL 16 on `/srv/persistent/postgres/16`
 - [ ] Valkey (shared Redis-compatible cache)
 - [ ] Cron script deployment + failure monitoring
+- [ ] Cloudflare DNS and DDNS for public hostnames
 
 ### Observability
 
@@ -161,8 +164,6 @@ service is deployed, reachable, monitored, and backed up (where applicable).
 - [ ] Jellyfin
 - [ ] Immich
 - [ ] Gitea
-- [ ] Authentik
-- [ ] DDNS updater
 - [ ] CUPS
 - [ ] AirSane
 
@@ -192,4 +193,6 @@ service is deployed, reachable, monitored, and backed up (where applicable).
 3. Deploy the monitoring stack on NVMe.
 4. Mount the Hetzner Storage Box at `/srv/media`.
 5. Deploy Valkey as a shared service.
-6. Begin application deployments (Nextcloud / Jellyfin / Immich first).
+6. Implement public Caddy ingress and Cloudflare DNS/DDNS.
+7. Begin application deployments (Nextcloud / Jellyfin / Immich first).
+8. Add Tailscale Services exposure after the public ingress phase is stable.

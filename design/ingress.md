@@ -1,27 +1,39 @@
-# Design: Public ingress and tailnet services
+# Design: Public Caddy ingress, Cloudflare DNS, and tailnet services
 
 **Status:** Proposed
 
 This document defines the planned ingress architecture for the Athena
-homelab. It covers public HTTP ingress, private tailnet access, generated
-configuration, Tailscale Services, and short go-link redirects. It does not
-implement the resources yet.
+homelab. It covers public HTTP ingress, Cloudflare DNS and DDNS, private
+tailnet access, generated configuration, Tailscale Services, and short
+go-link redirects. It does not implement the resources yet.
+
+The rollout is intentionally split into two phases. Phase 1 establishes
+Caddy as the public-internet edge and Cloudflare as authoritative DNS. Phase 2
+adds Tailscale Services for private tailnet exposure after the public path is
+stable; tailnet exposure is not a prerequisite for public ingress.
 
 ## Decision summary
 
-Use **Caddy** as the public HTTP reverse proxy and use **Tailscale Services**
-as the private, tailnet-facing service layer.
+Use **Caddy** as the public HTTP reverse proxy and **Cloudflare** as the
+authoritative DNS provider for public hostnames. Use **Tailscale Services** as
+a later, private tailnet-facing service layer.
 
 Caddy owns:
 
 - public HTTP and HTTPS listeners;
-- public DNS host routing;
+- public host routing;
 - public ACME certificates;
 - HTTP middleware and application-specific proxy behavior;
 - backend load balancing and health checks;
 - generated configuration and graceful reloads.
 
-Tailscale Services owns:
+Cloudflare DNS owns:
+
+- authoritative public DNS for the domain;
+- explicitly managed public A and AAAA records;
+- DDNS updates for records that follow Athena's public address.
+
+Tailscale Services owns in the later phase:
 
 - stable private service identities;
 - TailVIP and MagicDNS service addresses;
@@ -30,9 +42,11 @@ Tailscale Services owns:
 - future multi-host routing for internal services;
 - tailnet-facing HTTPS certificates for `*.ts.net` service names.
 
-The two systems are complementary. Tailscale Services is not the public
-internet ingress, and Caddy is not the source of truth for tailnet identity or
-tailnet authorization.
+The Cloudflare Caddy DNS provider module and the DDNS updater have different
+responsibilities. The Caddy module can create temporary DNS-01 ACME challenge
+records; it does not update the public A or AAAA records used for DDNS. Caddy
+and Cloudflare DNS are the public-ingress phase, while Tailscale Services is a
+later private-access phase.
 
 ## Why Caddy
 
@@ -57,18 +71,48 @@ Caddy provides the required proxy capabilities:
 
 The public Caddy container must not use the rootful Podman API socket. Route
 discovery is intentionally explicit and generated rather than inferred from
-container labels.
+container labels. If DNS-01 is required, the Caddy image must include a
+pinned Cloudflare DNS provider module; that community module is not bundled
+with stock Caddy.
+
+## Cloudflare DNS and DDNS
+
+Cloudflare is authoritative for the public zone. Public hostnames must have
+explicit A and/or AAAA records that resolve to Athena's current public
+address. A DDNS model updates only the configured records when that address
+changes and verifies the resulting records through the Cloudflare API.
+
+Caddy's Cloudflare DNS provider module is used only for ACME DNS-01
+validation, when DNS-01 is needed for a hostname or wildcard certificate.
+HTTP-01 or TLS-ALPN validation remains preferable when the public listener
+requirements make those challenges sufficient. The module is a community
+extension and requires a pinned custom Caddy image or equivalent build; it is
+not evidence that Caddy can manage DDNS records.
+
+Cloudflare API tokens must be least-privilege, scoped to the required zone and
+DNS record operations, and supplied through a vault. The DDNS model and Caddy
+runtime must not embed tokens in model files or generated configuration.
+
+Before implementation, inspect the registry candidate `@webframp/cloudflare`
+and the installed model types for DNS record coverage. Use an existing model
+if its lifecycle and idempotency contract fit; create a custom model only if
+the candidate does not cover the required DDNS behavior.
 
 ## Request paths
 
-A public application exposed through both networks has two front doors:
+Phase 1 public applications have one public front door:
 
 ```text
-Public internet
+Cloudflare authoritative DNS A/AAAA record
+  -> public IP of Athena
   -> nc.holi0317.net:443
   -> Caddy public listener
   -> application frontend
+```
 
+Phase 2 adds a separate private front door:
+
+```text
 Tailnet
   -> nextcloud.<tailnet-name>.ts.net:443
   -> Tailscale Service svc:nextcloud
@@ -77,7 +121,8 @@ Tailnet
 ```
 
 The public and private hostnames are normally different. This avoids split-DNS
-complexity and makes the trust boundary visible to users and operators.
+complexity and makes the trust boundary visible to users and operators. The
+public route must work without any Tailscale Service advertisement.
 
 A future split-DNS configuration may make a public hostname resolve to a
 TailVIP for tailnet clients, but that is not the initial design.
@@ -418,40 +463,54 @@ The eventual implementation should preserve these boundaries:
 @holi0317/systemd/quadlet
   owns Caddy and Podman network lifecycle
 
+Cloudflare DNS/DDNS model
+  owns explicit dynamic A/AAAA updates and record verification
+
+Caddy image definition
+  owns the pinned Caddy binary and any pinned Cloudflare DNS module
+
 Caddy configuration model
   owns ingress inventory rendering, validation, file deployment,
   graceful reload, applied digest, and rollback state
 
 Tailscale Service-host model
   owns local Serve JSON, endpoint configuration, advertisement,
-  drain, and status
+  drain, and status in the deferred private-access phase
 
 Tailscale control-plane resource
   owns Service definition, TailVIP identity, tags, and grants
 
-workflow-machine-ingress
-  orders network, Caddy, config, applications, and Service advertisements
+workflow-machine-ingress-public
+  orders network, Caddy, Cloudflare DNS/DDNS, config, and public applications
+
+workflow-machine-ingress-tailnet
+  orders Tailscale prerequisites, Service-host endpoints, tailnet routes,
+  and go links after the public phase
 ```
 
 Remote model operations must use the repository's shared
 `@holi0317/remote-ssh` adapter and ultimately the `@swamp/ssh` fleet model.
 Custom models must not invoke local `ssh`, `scp`, `rsync`, or private SSH pools.
 
-The workflow, not the Caddy or Tailscale model, owns ordering between
-resources.
+Each workflow, not the Caddy, Cloudflare, or Tailscale model, owns ordering
+between resources. The public workflow must not depend on the tailnet
+workflow.
 
 ## Security requirements
 
 - Do not mount the rootful Podman API socket into Caddy.
 - Do not expose Caddy's admin API publicly or on the ingress network.
 - Publish only Caddy ports `80` and `443` to the public host interface.
-- Keep application, database, cache, and FPM ports private.
+- Keep application, database, cache, FPM, and DDNS control interfaces private.
 - Expose public sites explicitly; no container auto-discovery.
 - Trust Tailscale identity headers only on a loopback-only trusted path.
 - Store ACME state and Caddy data under persistent storage with restricted
   permissions.
-- Store Tailscale control-plane credentials and any DNS credentials in vaults.
+- Store Cloudflare API tokens, Tailscale control-plane credentials, and any
+  other DNS credentials in vaults.
+- Scope Cloudflare tokens to the required zone and DNS record operations.
 - Treat public and tailnet hostnames as separate security policies.
+- Pin and review the custom Caddy DNS provider module before deployment.
 - Drain Tailscale Service hosts before endpoint replacement or removal.
 - Validate generated configurations before changing the active file.
 - Restore the prior known-good configuration after an unsuccessful reload.
@@ -462,6 +521,7 @@ This design does not initially provide:
 
 - high availability for public ingress on the single Athena host;
 - automatic discovery of arbitrary Podman containers;
+- Tailscale Service exposure as a prerequisite for public ingress;
 - a public Tailscale Funnel endpoint;
 - split DNS for public hostnames;
 - a general-purpose URL-shortener database or UI;
@@ -470,18 +530,31 @@ This design does not initially provide:
 
 ## Implementation order
 
-1. Confirm Athena's Tailscale version, tag identity, HTTPS enablement, and
-   Service-host approval policy.
-2. Define the ingress network and Caddy Quadlet.
-3. Implement Caddy configuration rendering and validation.
-4. Deploy Caddy with a minimal health endpoint and one test route.
-5. Add the Nextcloud frontend and shared ingress network.
-6. Add public Nextcloud routing and public ACME validation.
-7. Define and advertise `svc:nextcloud` with a tailnet HTTPS endpoint.
-8. Add tailnet-specific Caddy routing and verify both certificates and access
-   policies.
-9. Add the `svc:go` redirect service and centrally generated go-link map.
-10. Migrate remaining applications one at a time.
+### Phase 1: Public Caddy ingress and Cloudflare DNS
+
+1. Confirm the Cloudflare zone, Athena's current public address, required A and
+   AAAA records, least-privilege API token scope, and DDNS requirements.
+2. Inspect the `@webframp/cloudflare` registry candidate and Caddy's Cloudflare
+   DNS provider module; pin versions before implementation.
+3. Define the ingress network and Caddy Quadlet, including the custom Caddy
+   image if DNS-01 support is required.
+4. Implement Caddy configuration rendering and validation.
+5. Implement idempotent Cloudflare DDNS updates and record verification.
+6. Deploy Caddy with a minimal health endpoint and one test route, using the
+   ACME staging endpoint while testing certificate automation.
+7. Add the Nextcloud frontend and shared ingress network.
+8. Add public Nextcloud routing, public ACME validation, and DNS verification.
+9. Migrate additional public applications one at a time.
+
+### Phase 2: Private Tailscale Services
+
+10. Confirm Athena's Tailscale version, tag identity, HTTPS enablement,
+    Service-host approval policy, and grants.
+11. Define and advertise `svc:nextcloud` with a tailnet HTTPS endpoint.
+12. Add tailnet-specific Caddy routing and verify both certificates and access
+    policies.
+13. Add the `svc:go` redirect service and centrally generated go-link map.
+14. Migrate remaining tailnet-only exposure one application at a time.
 
 ## References
 
@@ -498,3 +571,5 @@ This design does not initially provide:
 - [Tailscale Services GA](https://tailscale.com/blog/services-ga)
 - [Tailscale HTTPS certificates](https://tailscale.com/docs/how-to/set-up-https-certificates)
 - [Tailscale Serve](https://tailscale.com/docs/features/tailscale-serve)
+- [Caddy Cloudflare DNS provider module](https://caddyserver.com/docs/modules/dns.providers.cloudflare)
+- [Cloudflare DNS record API](https://developers.cloudflare.com/api/resources/dns/subresources/records/methods/)
