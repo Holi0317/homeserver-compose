@@ -1,0 +1,12 @@
+manifestVersion: 1
+name: "@holi0317/caddy"
+version: "2026.08.18.1"
+description: "Render typed public ingress inventory as deterministic Caddy JSON"
+repository: https://github.com/holi0317/homeserver-compose
+paths:
+  base: manifest
+models:
+  - renderer.ts
+additionalFiles: []
+platforms: []
+dependencies: []
