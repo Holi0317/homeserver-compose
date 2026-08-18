@@ -1,0 +1,50 @@
+type: '@holi0317/systemd/quadlet'
+typeVersion: 2026.08.16.2
+id: f9355f96-077b-4b63-bc54-c54779b6f4d7
+name: caddy-container
+version: 1
+tags: {}
+globalArguments:
+  remote:
+    fleet: athena
+    host: athena
+    sudo: true
+  unitName: caddy.container
+  content: |
+    [Unit]
+    Description=Caddy public ingress
+    Wants=ingress.network caddy-data-dir.service caddy-config-dir.service
+    After=ingress.network caddy-data-dir.service caddy-config-dir.service
+    Requires=ingress.network caddy-data-dir.service caddy-config-dir.service
+    RequiresMountsFor=/srv/persistent/caddy
+
+    [Container]
+    Image=docker.io/library/caddy:2.11.4-alpine
+    ContainerName=caddy
+    Network=ingress.network
+    PublishPort=80:80
+    PublishPort=443:443
+    Volume=/srv/persistent/caddy/data:/data:Z
+    Volume=/srv/persistent/caddy/config:/etc/caddy:ro,Z
+    Command=caddy run --config /etc/caddy/caddy.json --adapter json
+    ReloadCmd=caddy reload --config /etc/caddy/caddy.json --adapter json
+    HealthCmd=caddy validate --config /etc/caddy/caddy.json --adapter json
+    HealthInterval=30s
+    HealthTimeout=5s
+    HealthRetries=5
+    HealthStartPeriod=10s
+
+    [Service]
+    Restart=always
+    RestartSec=5
+    TimeoutStartSec=900
+
+    [Install]
+    WantedBy=multi-user.target
+  userMode: system
+  enabled: true
+  state: running
+methods:
+  apply:
+    arguments:
+      allowRecreate: false

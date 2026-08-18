@@ -1,0 +1,32 @@
+type: '@holi0317/systemd/unit'
+typeVersion: 2026.08.16.2
+id: 6af1d9dc-249c-4a2d-9f13-742f258ae992
+name: caddy-data-dir
+version: 1
+tags: {}
+globalArguments:
+  remote:
+    fleet: athena
+    host: athena
+    sudo: true
+  unitName: caddy-data-dir.service
+  content: |
+    [Unit]
+    Description=Prepare Caddy persistent data directory
+    RequiresMountsFor=/srv/persistent
+    Before=caddy.service
+
+    [Service]
+    Type=oneshot
+    ExecStart=/usr/bin/install -d -o 1000 -g 1000 -m 0750 /srv/persistent/caddy/data
+    RemainAfterExit=yes
+
+    [Install]
+    WantedBy=multi-user.target
+  userMode: system
+  enabled: true
+  state: running
+methods:
+  apply:
+    arguments:
+      allowRecreate: false

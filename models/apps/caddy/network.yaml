@@ -1,0 +1,26 @@
+type: '@holi0317/systemd/quadlet'
+typeVersion: 2026.08.16.2
+id: cb6a78c0-590d-4eb6-ac97-86b9cc890c69
+name: ingress-network
+version: 1
+tags: {}
+globalArguments:
+  remote:
+    fleet: athena
+    host: athena
+    sudo: true
+  unitName: ingress.network
+  content: |
+    [Network]
+    Driver=bridge
+    Subnet=172.31.0.0/16
+    Gateway=172.31.0.1
+    Label=app=ingress
+  userMode: system
+  enabled: true
+  state: running
+methods:
+  apply:
+    arguments:
+      allowRecreate: false
+
