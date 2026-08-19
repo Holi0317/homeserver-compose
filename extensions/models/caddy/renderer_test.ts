@@ -246,3 +246,28 @@ Deno.test("upstream TLS policies reject inconsistent settings", () => {
     throw new Error("unsupported weighted policy was accepted");
   }
 });
+
+Deno.test("Dynamic DNS uses explicit zones and vault environment placeholder", () => {
+  const config = JSON.parse(renderInventory({ sites: [] }, {
+    tokenEnv: "CLOUDFLARE_API_TOKEN",
+    domains: { "holi0317.net": ["nc"] },
+    checkInterval: "5m",
+    ttl: "5m",
+    versions: { ipv4: true, ipv6: true },
+  }));
+  const dynamicDns = config.apps.dynamic_dns;
+  if (dynamicDns.providers[0].dns_provider.name !== "cloudflare") {
+    throw new Error("Cloudflare DNS provider was not configured");
+  }
+  if (
+    dynamicDns.providers[0].dns_provider.api_token !==
+      "{env.CLOUDFLARE_API_TOKEN}"
+  ) {
+    throw new Error(
+      "Cloudflare token was embedded instead of referenced by env",
+    );
+  }
+  if (dynamicDns.providers[0].domains["holi0317.net"][0] !== "nc") {
+    throw new Error("explicit DDNS domain was not rendered");
+  }
+});

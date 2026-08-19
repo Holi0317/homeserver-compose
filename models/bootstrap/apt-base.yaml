@@ -7,7 +7,6 @@ tags: {}
 globalArguments:
   packages:
     - podman
-    - curl
     - cron
     - neovim
     - ncdu

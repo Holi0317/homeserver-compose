@@ -19,6 +19,7 @@ globalArguments:
     [Service]
     Type=oneshot
     ExecStart=/usr/bin/install -d -o 1000 -g 1000 -m 0750 /srv/persistent/caddy/data
+    ExecStart=/usr/bin/install -d -o 0 -g 0 -m 0750 /srv/persistent/caddy/build
     RemainAfterExit=yes
 
     [Install]

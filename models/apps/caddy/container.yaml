@@ -13,13 +13,14 @@ globalArguments:
   content: |
     [Unit]
     Description=Caddy public ingress
-    Wants=ingress.network caddy-data-dir.service caddy-config-dir.service
-    After=ingress.network caddy-data-dir.service caddy-config-dir.service
-    Requires=ingress.network caddy-data-dir.service caddy-config-dir.service
+    Wants=ingress.network caddy-data-dir.service caddy-config-dir.service caddy-cloudflare-ddns-build.service
+    After=ingress.network caddy-data-dir.service caddy-config-dir.service caddy-cloudflare-ddns-build.service
+    Requires=ingress.network caddy-data-dir.service caddy-config-dir.service caddy-cloudflare-ddns-build.service
     RequiresMountsFor=/srv/persistent/caddy
 
     [Container]
-    Image=docker.io/library/caddy:2.11.4-alpine
+    Image=localhost/caddy-cloudflare-ddns:2.11.4
+    Secret=cloudflare-api-token,type=env,target=CLOUDFLARE_API_TOKEN
     ContainerName=caddy
     Network=ingress.network
     PublishPort=80:80

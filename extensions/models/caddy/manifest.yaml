@@ -1,13 +1,14 @@
 manifestVersion: 1
 name: "@holi0317/caddy"
-version: "2026.08.18.2"
-description: "Render, validate, and deploy typed public ingress Caddy JSON"
+version: "2026.08.18.3"
+description: "Render and deploy Caddy ingress with Dynamic DNS"
 repository: https://github.com/holi0317/homeserver-compose
 paths:
   base: manifest
 models:
   - renderer.ts
-additionalFiles: []
+additionalFiles:
+  - Containerfile
 platforms: []
 dependencies:
   - "@swamp/ssh"

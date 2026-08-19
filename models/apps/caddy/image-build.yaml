@@ -1,0 +1,34 @@
+type: '@holi0317/systemd/quadlet'
+typeVersion: 2026.08.16.2
+id: 27c4c7cd-9861-45ca-869d-a7ba012256cc
+name: caddy-image-build
+version: 1
+tags: {}
+globalArguments:
+  remote:
+    fleet: athena
+    host: athena
+    sudo: true
+  unitName: caddy-cloudflare-ddns.build
+  content: |
+    [Unit]
+    Description=Build Caddy with Cloudflare DNS and Dynamic DNS modules
+    Requires=caddy-data-dir.service
+    After=caddy-data-dir.service
+    Before=caddy.service
+
+    [Build]
+    ImageTag=localhost/caddy-cloudflare-ddns:2.11.4
+    File=/srv/persistent/caddy/build/Containerfile
+    SetWorkingDirectory=/srv/persistent/caddy/build
+    Pull=missing
+
+    [Install]
+    WantedBy=multi-user.target
+  userMode: system
+  enabled: true
+  state: running
+methods:
+  apply:
+    arguments:
+      allowRecreate: false

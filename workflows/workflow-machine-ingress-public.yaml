@@ -1,0 +1,141 @@
+id: 6780899b-1519-48f2-82ff-a5f6e96eca86
+name: machine-ingress-public
+tags: {}
+jobs:
+  - name: ingress
+    description: Build and deploy public Caddy ingress
+    steps:
+      - name: caddy-data-dir
+        description: Prepare persistent Caddy data and build directories
+        task:
+          type: model_method
+          modelIdOrName: caddy-data-dir
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+      - name: caddy-cloudflare-secret
+        description: Provision the vault-backed Cloudflare API token secret
+        task:
+          type: model_method
+          modelIdOrName: caddy-cloudflare-secret
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+      - name: caddy-build-context
+        description: Copy the pinned xcaddy Containerfile to Athena
+        task:
+          type: model_method
+          modelIdOrName: athena
+          methodName: copy
+          inputs:
+            hosts: athena
+            src: docker/caddy/Containerfile
+            dst: /srv/persistent/caddy/build/Containerfile
+            direction: to
+        dependsOn:
+          - step: caddy-data-dir
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false
+      - name: ingress-network
+        description: Apply the shared public ingress network
+        task:
+          type: model_method
+          modelIdOrName: ingress-network
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+      - name: caddy-config-dir
+        description: Apply the persistent Caddy configuration directory
+        task:
+          type: model_method
+          modelIdOrName: caddy-config-dir
+          methodName: apply
+        dependsOn:
+          - step: caddy-data-dir
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false
+      - name: caddy-image-build
+        description: Build the pinned Caddy Dynamic DNS image with xcaddy
+        task:
+          type: model_method
+          modelIdOrName: caddy-image-build
+          methodName: apply
+        dependsOn:
+          - step: caddy-build-context
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false
+      - name: caddy-image-refresh
+        description: Rebuild the custom Caddy image after copying its Containerfile
+        task:
+          type: model_method
+          modelIdOrName: caddy-image-build
+          methodName: restart
+        dependsOn:
+          - step: caddy-image-build
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false
+
+      - name: ingress-config-render
+        description: Render deterministic Caddy JSON including Dynamic DNS
+        task:
+          type: model_method
+          modelIdOrName: ingress-config
+          methodName: render
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+      - name: ingress-config-apply
+        description: Validate and atomically activate Caddy configuration
+        task:
+          type: model_method
+          modelIdOrName: ingress-config
+          methodName: apply
+          inputs:
+            configName: current
+        dependsOn:
+          - step: ingress-config-render
+            condition:
+              type: succeeded
+          - step: caddy-image-refresh
+            condition:
+              type: succeeded
+          - step: caddy-cloudflare-secret
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false
+      - name: caddy-container
+        description: Start Caddy after image and configuration are ready
+        task:
+          type: model_method
+          modelIdOrName: caddy-container
+          methodName: apply
+        dependsOn:
+          - step: ingress-network
+            condition:
+              type: succeeded
+          - step: caddy-image-refresh
+            condition:
+              type: succeeded
+          - step: ingress-config-apply
+            condition:
+              type: succeeded
+          - step: caddy-cloudflare-secret
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false
+    dependsOn: []
+    weight: 0
+version: 1

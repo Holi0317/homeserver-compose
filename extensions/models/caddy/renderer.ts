@@ -338,7 +338,18 @@ function renderSite(
   };
 }
 
-export function renderInventory(input: unknown): string {
+type DynamicDnsConfig = {
+  tokenEnv: string;
+  domains: Record<string, string[]>;
+  checkInterval: string;
+  ttl: string;
+  versions: { ipv4: boolean; ipv6: boolean };
+};
+
+export function renderInventory(
+  input: unknown,
+  dynamicDns?: DynamicDnsConfig,
+): string {
   const inventory = InventorySchema.parse(input);
   const orderedSites = [...inventory.sites].sort((left, right) =>
     left.name.localeCompare(right.name)
@@ -397,6 +408,26 @@ export function renderInventory(input: unknown): string {
     };
   }
 
+  if (dynamicDns !== undefined) {
+    const domains = Object.fromEntries(
+      Object.entries(dynamicDns.domains)
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([zone, names]) => [zone, [...names].sort()]),
+    );
+    const apps = config.apps as Record<string, unknown>;
+    apps.dynamic_dns = {
+      providers: [{
+        dns_provider: {
+          name: "cloudflare",
+          api_token: `{env.${dynamicDns.tokenEnv}}`,
+        },
+        domains,
+      }],
+      check_interval: dynamicDns.checkInterval,
+      ttl: dynamicDns.ttl,
+      versions: dynamicDns.versions,
+    };
+  }
   return `${JSON.stringify(config, null, 2)}\n`;
 }
 const RenderedConfigSchema = z.strictObject({
@@ -405,8 +436,23 @@ const RenderedConfigSchema = z.strictObject({
   siteNames: z.array(Identifier),
 });
 
+const DynamicDnsSchema = z.strictObject({
+  tokenEnv: z.literal("CLOUDFLARE_API_TOKEN").default("CLOUDFLARE_API_TOKEN"),
+  domains: z.record(z.string().min(1), z.array(z.string().min(1)).min(1)),
+  checkInterval: Duration.default("5m"),
+  ttl: Duration.default("5m"),
+  versions: z.strictObject({
+    ipv4: z.boolean().default(true),
+    ipv6: z.boolean().default(true),
+  }).default({ ipv4: true, ipv6: true }),
+}).refine(
+  (value) => Object.keys(value.domains).length > 0,
+  "must configure at least one DNS zone",
+);
+
 const GlobalArgumentsSchema = z.strictObject({
   inventory: InventorySchema.default({ sites: [] }),
+  dynamicDns: DynamicDnsSchema.optional(),
 });
 
 const RemoteSchema = z.strictObject({
@@ -422,7 +468,7 @@ const ConfigGlobalArgumentsSchema = GlobalArgumentsSchema.extend({
     "must be an absolute path without traversal",
   ).default("/srv/persistent/caddy/config"),
   caddyImage: z.string().min(1).regex(/\S+/, "must not contain whitespace")
-    .default("docker.io/library/caddy:2.11.4-alpine"),
+    .default("localhost/caddy-cloudflare-ddns:2.11.4"),
   serviceName: Identifier.default("caddy.service"),
   timeoutSeconds: z.number().int().positive().default(300),
 });
@@ -438,20 +484,78 @@ async function sha256(value: string): Promise<string> {
   ).join("");
 }
 
-async function validateWithCaddy(json: string): Promise<void> {
+async function ensureLocalCaddyImage(
+  image: string,
+  context: CaddyMethodContext,
+): Promise<void> {
+  const existing = await new Deno.Command("podman", {
+    args: ["image", "exists", image],
+    stdout: "null",
+    stderr: "piped",
+  }).output();
+  if (existing.success) return;
+  const containerfile = context.extensionFile("Containerfile");
+  const contextDirectory = containerfile.slice(
+    0,
+    containerfile.lastIndexOf("/"),
+  );
+  const build = await new Deno.Command("podman", {
+    args: [
+      "build",
+      "--tag",
+      image,
+      "--file",
+      containerfile,
+      contextDirectory,
+    ],
+    stdout: "piped",
+    stderr: "piped",
+  }).output();
+  if (!build.success) {
+    throw new Error(
+      `Unable to build local Caddy image ${image}: ${
+        new TextDecoder().decode(build.stderr).trim()
+      }`,
+    );
+  }
+}
+
+async function validateWithCaddy(
+  json: string,
+  image: string,
+  context: CaddyMethodContext,
+): Promise<void> {
+  await ensureLocalCaddyImage(image, context);
   const configPath = await Deno.makeTempFile({ suffix: ".json" });
   try {
     await Deno.writeTextFile(configPath, json);
     let output: Deno.CommandOutput;
     try {
-      output = await new Deno.Command("caddy", {
-        args: ["validate", "--config", configPath, "--adapter", "json"],
+      output = await new Deno.Command("podman", {
+        args: [
+          "run",
+          "--rm",
+          "--volume",
+          `${configPath}:/etc/caddy/caddy.json:ro`,
+          "--env",
+          "CLOUDFLARE_API_TOKEN=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+
+          image,
+          "caddy",
+          "validate",
+          "--config",
+          "/etc/caddy/caddy.json",
+          "--adapter",
+          "json",
+        ],
         stdout: "piped",
         stderr: "piped",
       }).output();
     } catch (error) {
       throw new Error(
-        `Caddy validation requires the caddy executable: ${String(error)}`,
+        `Caddy image validation requires local podman and ${image}: ${
+          String(error)
+        }`,
       );
     }
     if (!output.success) {
@@ -464,7 +568,7 @@ async function validateWithCaddy(json: string): Promise<void> {
 }
 
 const ValidateArgumentsSchema = ConfigGlobalArgumentsSchema.extend({
-  configName: z.string().min(1),
+  configName: z.string().min(1).default("current"),
 });
 
 const ApplyArgumentsSchema = ValidateArgumentsSchema;
@@ -482,6 +586,7 @@ const DeploymentSchema = z.strictObject({
 
 type CaddyMethodContext = RemoteContext & {
   globalArgs: unknown;
+  extensionFile: (path: string) => string;
   readResource: (
     instanceName: string,
   ) => Promise<Record<string, unknown> | null>;
@@ -495,10 +600,9 @@ type CaddyMethodContext = RemoteContext & {
 function remotePath(directory: string, filename: string): string {
   return `${directory.replace(/\/+$/, "")}/${filename}`;
 }
-
 export const model = {
   type: "@holi0317/caddy/config",
-  version: "2026.08.18.2",
+  version: "2026.08.18.3",
   globalArguments: ConfigGlobalArgumentsSchema,
   resources: {
     config: {
@@ -525,18 +629,27 @@ export const model = {
         const globalArguments = ConfigGlobalArgumentsSchema.parse(
           context.globalArgs,
         );
-        const json = renderInventory(globalArguments.inventory);
+        const json = renderInventory(
+          globalArguments.inventory,
+          globalArguments.dynamicDns,
+        );
         const digest = await sha256(json);
         const siteNames = globalArguments.inventory.sites
           .filter((site) => site.enabled && site.public !== undefined)
           .map((site) => site.name)
           .sort();
-        const handle = await context.writeResource("config", digest, {
+        const config = { digest, json, siteNames };
+        const digestHandle = await context.writeResource(
+          "config",
           digest,
-          json,
-          siteNames,
-        });
-        return { dataHandles: [handle] };
+          config,
+        );
+        const currentHandle = await context.writeResource(
+          "config",
+          "current",
+          config,
+        );
+        return { dataHandles: [digestHandle, currentHandle] };
       },
     },
     validate: {
@@ -553,7 +666,11 @@ export const model = {
             `Rendered Caddy configuration ${validatedArgs.configName} was not found`,
           );
         }
-        await validateWithCaddy(resource.json);
+        await validateWithCaddy(
+          resource.json,
+          validatedArgs.caddyImage,
+          context,
+        );
         return { dataHandles: [] };
       },
     },
@@ -583,7 +700,11 @@ export const model = {
           );
         }
         const digest = resource.digest;
-        await validateWithCaddy(resource.json);
+        await validateWithCaddy(
+          resource.json,
+          globalArguments.caddyImage,
+          context,
+        );
 
         const candidatePath = remotePath(
           globalArguments.configDirectory,
@@ -630,7 +751,10 @@ export const model = {
                 "--rm",
                 "--volume",
                 `${candidatePath}:/etc/caddy/caddy.json:ro,Z`,
+                "--secret",
+                "cloudflare-api-token,type=env,target=CLOUDFLARE_API_TOKEN",
                 globalArguments.caddyImage,
+                "caddy",
                 "validate",
                 "--config",
                 "/etc/caddy/caddy.json",

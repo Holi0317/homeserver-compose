@@ -1,7 +1,0 @@
-{
-  "name": "@holi0317/cloudflare",
-  "version": "0.1.0",
-  "exports": {
-    "./ddns": "./ddns.ts"
-  }
-}

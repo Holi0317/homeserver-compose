@@ -79,24 +79,30 @@ with stock Caddy.
 
 Cloudflare is authoritative for the public zone. Public hostnames must have
 explicit A and/or AAAA records that resolve to Athena's current public
-address. A DDNS model updates only the configured records when that address
-changes and verifies the resulting records through the Cloudflare API.
+address.
 
-Caddy's Cloudflare DNS provider module is used only for ACME DNS-01
-validation, when DNS-01 is needed for a hostname or wildcard certificate.
-HTTP-01 or TLS-ALPN validation remains preferable when the public listener
-requirements make those challenges sufficient. The module is a community
-extension and requires a pinned custom Caddy image or equivalent build; it is
-not evidence that Caddy can manage DDNS records.
+Caddy owns DDNS through the pinned `caddy-dynamicdns` app and the Cloudflare
+`caddy-dns` provider module. The custom Caddy image is built with `xcaddy` and
+must pin the Caddy base version and both module revisions. The generated Caddy
+JSON configures only the explicit zones and record names that public ingress
+manages; it must not discover or mutate unrelated records.
 
-Cloudflare API tokens must be least-privilege, scoped to the required zone and
-DNS record operations, and supplied through a vault. The DDNS model and Caddy
-runtime must not embed tokens in model files or generated configuration.
+The Cloudflare provider module has two distinct roles in this image:
 
-Before implementation, inspect the registry candidate `@webframp/cloudflare`
-and the installed model types for DNS record coverage. Use an existing model
-if its lifecycle and idempotency contract fit; create a custom model only if
-the candidate does not cover the required DDNS behavior.
+- `caddy-dynamicdns` uses it to update the configured A/AAAA records when
+  Athena's public address changes;
+- Caddy's ACME DNS-01 integration uses it for temporary challenge records when
+  DNS-01 is required.
+
+Neither role is implemented through a separate Cloudflare API sync model. The
+Cloudflare API token is supplied to the Caddy container through a vault-backed
+environment variable and never embedded in generated JSON. HTTP-01 or
+TLS-ALPN remains preferable when those challenges are sufficient.
+
+The custom image is managed declaratively with Quadlet: a `.build` unit builds
+the pinned `xcaddy` image, and the Caddy `.container` depends on that build.
+If the image is later published, a pinned `.image` pull unit may replace the
+local build without changing the container contract.
 
 ## Request paths
 
@@ -534,12 +540,13 @@ This design does not initially provide:
 
 1. Confirm the Cloudflare zone, Athena's current public address, required A and
    AAAA records, least-privilege API token scope, and DDNS requirements.
-2. Inspect the `@webframp/cloudflare` registry candidate and Caddy's Cloudflare
-   DNS provider module; pin versions before implementation.
-3. Define the ingress network and Caddy Quadlet, including the custom Caddy
-   image if DNS-01 support is required.
-4. Implement Caddy configuration rendering and validation.
-5. Implement idempotent Cloudflare DDNS updates and record verification.
+2. Inspect the Caddy Dynamic DNS app and Cloudflare DNS provider module;
+   pin their source revisions and the Caddy base version for an xcaddy build.
+3. Define the ingress network, Caddy Quadlet, custom image build, and
+   vault-backed Cloudflare token secret.
+4. Implement Caddy configuration rendering and custom-image validation.
+5. Configure Caddy Dynamic DNS for only the explicit public zones and records;
+   do not add a standalone Cloudflare DDNS model.
 6. Deploy Caddy with a minimal health endpoint and one test route, using the
    ACME staging endpoint while testing certificate automation.
 7. Add the Nextcloud frontend and shared ingress network.
