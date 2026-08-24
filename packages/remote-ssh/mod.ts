@@ -115,6 +115,7 @@ export async function runRemoteExec(
     okExitCodes?: number[] | "any";
     timeoutSec?: number;
     env?: Record<string, string>;
+    stdin?: string;
     captureOutput?: boolean;
   },
 ): Promise<RemoteRunResult> {
@@ -128,6 +129,7 @@ export async function runRemoteExec(
   if (options.okExitCodes !== undefined) args.okExitCodes = options.okExitCodes;
   if (options.timeoutSec !== undefined) args.timeoutSec = options.timeoutSec;
   if (options.env !== undefined) args.env = options.env;
+  if (options.stdin !== undefined) args.stdin = options.stdin;
   if (options.captureOutput !== undefined) {
     args.captureOutput = options.captureOutput;
   }

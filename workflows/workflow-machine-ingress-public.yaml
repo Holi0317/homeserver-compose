@@ -24,7 +24,7 @@ jobs:
         weight: 0
         allowFailure: false
       - name: caddy-build-context
-        description: Copy the pinned xcaddy Containerfile to Athena
+        description: Stage the pinned xcaddy Containerfile on Athena
         task:
           type: model_method
           modelIdOrName: athena
@@ -32,10 +32,29 @@ jobs:
           inputs:
             hosts: athena
             src: docker/caddy/Containerfile
-            dst: /srv/persistent/caddy/build/Containerfile
+            dst: /tmp/caddy-Containerfile
             direction: to
         dependsOn:
           - step: caddy-data-dir
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false
+      - name: caddy-build-context-install
+        description: Install the Caddy build context with root ownership
+        task:
+          type: model_method
+          modelIdOrName: athena
+          methodName: exec
+          inputs:
+            hosts: athena
+            sudo: true
+            command: >-
+              install -o 0 -g 0 -m 0644 /tmp/caddy-Containerfile
+              /srv/persistent/caddy/build/Containerfile && rm -f
+              /tmp/caddy-Containerfile
+        dependsOn:
+          - step: caddy-build-context
             condition:
               type: succeeded
         weight: 0
@@ -68,7 +87,7 @@ jobs:
           modelIdOrName: caddy-image-build
           methodName: apply
         dependsOn:
-          - step: caddy-build-context
+          - step: caddy-build-context-install
             condition:
               type: succeeded
         weight: 0

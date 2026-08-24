@@ -2,6 +2,7 @@ import { z } from "npm:zod@4";
 import {
   type RemoteContext,
   runRemoteExec,
+  shlexQuote,
   SshRefSchema,
 } from "@holi0317/remote-ssh";
 
@@ -96,18 +97,22 @@ async function inspectSecret(
   return { exists: result.exitCode === 0 };
 }
 
+function shellCommand(script: string): string {
+  return `sh -c ${shlexQuote(script)}`;
+}
+
 function createSecretCommand(name: string): string {
-  return `set -eu; printf '%s' "$SWAMP_SECRET_VALUE" | podman secret create ${
-    secretName(name)
-  } -`;
+  return shellCommand(
+    `set -eu; podman secret create ${secretName(name)} -`,
+  );
 }
 
 function replaceSecretCommand(name: string): string {
-  return `set -eu; podman secret rm ${
-    secretName(name)
-  }; printf '%s' "$SWAMP_SECRET_VALUE" | podman secret create ${
-    secretName(name)
-  } -`;
+  return shellCommand(
+    `set -eu; podman secret rm ${secretName(name)}; podman secret create ${
+      secretName(name)
+    } -`,
+  );
 }
 
 function state(
@@ -163,7 +168,7 @@ async function writeSecret(
     command,
     sudo: ga.sudo,
     timeoutSec: ga.timeoutSeconds,
-    env: { SWAMP_SECRET_VALUE: value },
+    stdin: value,
   });
   if (result.exitCode !== 0) {
     throw new Error(

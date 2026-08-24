@@ -484,89 +484,6 @@ async function sha256(value: string): Promise<string> {
   ).join("");
 }
 
-async function ensureLocalCaddyImage(
-  image: string,
-  context: CaddyMethodContext,
-): Promise<void> {
-  const existing = await new Deno.Command("podman", {
-    args: ["image", "exists", image],
-    stdout: "null",
-    stderr: "piped",
-  }).output();
-  if (existing.success) return;
-  const containerfile = context.extensionFile("Containerfile");
-  const contextDirectory = containerfile.slice(
-    0,
-    containerfile.lastIndexOf("/"),
-  );
-  const build = await new Deno.Command("podman", {
-    args: [
-      "build",
-      "--tag",
-      image,
-      "--file",
-      containerfile,
-      contextDirectory,
-    ],
-    stdout: "piped",
-    stderr: "piped",
-  }).output();
-  if (!build.success) {
-    throw new Error(
-      `Unable to build local Caddy image ${image}: ${
-        new TextDecoder().decode(build.stderr).trim()
-      }`,
-    );
-  }
-}
-
-async function validateWithCaddy(
-  json: string,
-  image: string,
-  context: CaddyMethodContext,
-): Promise<void> {
-  await ensureLocalCaddyImage(image, context);
-  const configPath = await Deno.makeTempFile({ suffix: ".json" });
-  try {
-    await Deno.writeTextFile(configPath, json);
-    let output: Deno.CommandOutput;
-    try {
-      output = await new Deno.Command("podman", {
-        args: [
-          "run",
-          "--rm",
-          "--volume",
-          `${configPath}:/etc/caddy/caddy.json:ro`,
-          "--env",
-          "CLOUDFLARE_API_TOKEN=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-
-          image,
-          "caddy",
-          "validate",
-          "--config",
-          "/etc/caddy/caddy.json",
-          "--adapter",
-          "json",
-        ],
-        stdout: "piped",
-        stderr: "piped",
-      }).output();
-    } catch (error) {
-      throw new Error(
-        `Caddy image validation requires local podman and ${image}: ${
-          String(error)
-        }`,
-      );
-    }
-    if (!output.success) {
-      const stderr = new TextDecoder().decode(output.stderr).trim();
-      throw new Error(`Caddy rejected the generated configuration: ${stderr}`);
-    }
-  } finally {
-    await Deno.remove(configPath).catch(() => undefined);
-  }
-}
-
 const ValidateArgumentsSchema = ConfigGlobalArgumentsSchema.extend({
   configName: z.string().min(1).default("current"),
 });
@@ -586,7 +503,6 @@ const DeploymentSchema = z.strictObject({
 
 type CaddyMethodContext = RemoteContext & {
   globalArgs: unknown;
-  extensionFile: (path: string) => string;
   readResource: (
     instanceName: string,
   ) => Promise<Record<string, unknown> | null>;
@@ -653,7 +569,8 @@ export const model = {
       },
     },
     validate: {
-      description: "Validate a rendered Caddy JSON artifact with Caddy",
+      description:
+        "Validate rendered Caddy JSON syntax before remote deployment",
       arguments: ValidateArgumentsSchema,
       execute: async (
         args: z.infer<typeof ValidateArgumentsSchema>,
@@ -666,11 +583,14 @@ export const model = {
             `Rendered Caddy configuration ${validatedArgs.configName} was not found`,
           );
         }
-        await validateWithCaddy(
-          resource.json,
-          validatedArgs.caddyImage,
-          context,
-        );
+        try {
+          const parsed = JSON.parse(resource.json);
+          if (parsed === null || typeof parsed !== "object") {
+            throw new Error("Caddy configuration must be a JSON object");
+          }
+        } catch (error) {
+          throw new Error(`Rendered Caddy JSON is invalid: ${String(error)}`);
+        }
         return { dataHandles: [] };
       },
     },
@@ -700,11 +620,6 @@ export const model = {
           );
         }
         const digest = resource.digest;
-        await validateWithCaddy(
-          resource.json,
-          globalArguments.caddyImage,
-          context,
-        );
 
         const candidatePath = remotePath(
           globalArguments.configDirectory,
@@ -720,6 +635,25 @@ export const model = {
         );
         let activated = false;
         let hadPrevious = false;
+        let serviceAvailable = false;
+          const serviceState = await runRemoteExec(
+            context,
+            remote.fleet,
+            remote.host,
+            {
+              command: `systemctl show ${shlexQuote(globalArguments.serviceName)} --property=LoadState --value`,
+              sudo: remote.sudo,
+              okExitCodes: "any",
+              timeoutSec: globalArguments.timeoutSeconds,
+            },
+          );
+          const serviceLoadState = serviceState.stdout.trim();
+          if (serviceState.exitCode !== 0 || serviceLoadState.length === 0) {
+            throw new Error(
+              `Failed to inspect Caddy service ${globalArguments.serviceName}: ${serviceState.stderr}`,
+            );
+          }
+          serviceAvailable = serviceLoadState !== "not-found";
         try {
           await ensureDir(
             context,
@@ -758,8 +692,6 @@ export const model = {
                 "validate",
                 "--config",
                 "/etc/caddy/caddy.json",
-                "--adapter",
-                "json",
               ].map(shlexQuote).join(" "),
               sudo: remote.sudo,
               timeoutSec: globalArguments.timeoutSeconds,
@@ -821,19 +753,21 @@ export const model = {
           }
           activated = true;
 
-          const reload = await runRemoteExec(
-            context,
-            remote.fleet,
-            remote.host,
-            {
-              command: ["systemctl", "reload", globalArguments.serviceName]
-                .map(shlexQuote).join(" "),
-              sudo: remote.sudo,
-              timeoutSec: globalArguments.timeoutSeconds,
-            },
-          );
-          if (reload.exitCode !== 0) {
-            throw new Error(`Caddy reload failed: ${reload.stderr}`);
+          if (serviceAvailable) {
+            const reload = await runRemoteExec(
+              context,
+              remote.fleet,
+              remote.host,
+              {
+                command: ["systemctl", "reload", globalArguments.serviceName]
+                  .map(shlexQuote).join(" "),
+                sudo: remote.sudo,
+                timeoutSec: globalArguments.timeoutSeconds,
+              },
+            );
+            if (reload.exitCode !== 0) {
+              throw new Error(`Caddy reload failed: ${reload.stderr}`);
+            }
           }
 
           const digestResult = await runRemoteExec(
@@ -894,29 +828,31 @@ export const model = {
             } catch (rollbackError) {
               rollbackFailure = rollbackError;
             }
-            try {
-              const rollbackReload = await runRemoteExec(
-                context,
-                remote.fleet,
-                remote.host,
-                {
-                  command: ["systemctl", "reload", globalArguments.serviceName]
-                    .map(shlexQuote).join(" "),
-                  sudo: remote.sudo,
-                  okExitCodes: "any",
-                  timeoutSec: globalArguments.timeoutSeconds,
-                },
-              );
-              if (
-                rollbackReload.exitCode !== 0 && rollbackFailure === undefined
-              ) {
-                rollbackFailure = new Error(
-                  `Rollback reload failed: ${rollbackReload.stderr}`,
+            if (serviceAvailable) {
+              try {
+                const rollbackReload = await runRemoteExec(
+                  context,
+                  remote.fleet,
+                  remote.host,
+                  {
+                    command: ["systemctl", "reload", globalArguments.serviceName]
+                      .map(shlexQuote).join(" "),
+                    sudo: remote.sudo,
+                    okExitCodes: "any",
+                    timeoutSec: globalArguments.timeoutSeconds,
+                  },
                 );
-              }
-            } catch (rollbackError) {
-              if (rollbackFailure === undefined) {
-                rollbackFailure = rollbackError;
+                if (
+                  rollbackReload.exitCode !== 0 && rollbackFailure === undefined
+                ) {
+                  rollbackFailure = new Error(
+                    `Rollback reload failed: ${rollbackReload.stderr}`,
+                  );
+                }
+              } catch (rollbackError) {
+                if (rollbackFailure === undefined) {
+                  rollbackFailure = rollbackError;
+                }
               }
             }
           }

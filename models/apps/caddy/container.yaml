@@ -27,15 +27,15 @@ globalArguments:
     PublishPort=443:443
     Volume=/srv/persistent/caddy/data:/data:Z
     Volume=/srv/persistent/caddy/config:/etc/caddy:ro,Z
-    Command=caddy run --config /etc/caddy/caddy.json --adapter json
-    ReloadCmd=caddy reload --config /etc/caddy/caddy.json --adapter json
-    HealthCmd=caddy validate --config /etc/caddy/caddy.json --adapter json
+    Exec=caddy run --config /etc/caddy/caddy.json
+    HealthCmd=caddy validate --config /etc/caddy/caddy.json
     HealthInterval=30s
     HealthTimeout=5s
     HealthRetries=5
     HealthStartPeriod=10s
 
     [Service]
+    ExecReload=/usr/bin/podman exec caddy caddy reload --config /etc/caddy/caddy.json
     Restart=always
     RestartSec=5
     TimeoutStartSec=900

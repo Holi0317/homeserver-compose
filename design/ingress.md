@@ -196,7 +196,7 @@ The planned container has:
 - a persistent `/config` directory;
 - a read-only bind mount of a host configuration directory;
 - no public admin API port;
-- a `ReloadCmd` that invokes `caddy reload` through `systemctl reload`.
+- a systemd `ExecReload` that invokes `podman exec` to reload Caddy;
 
 Conceptually:
 
@@ -209,12 +209,14 @@ PublishPort=80:80
 PublishPort=443:443
 Volume=/srv/persistent/caddy/data:/data:Z
 Volume=/srv/persistent/caddy/config:/etc/caddy:ro,Z
-Command=caddy run --config /etc/caddy/caddy.json --adapter json
-ReloadCmd=caddy reload --config /etc/caddy/caddy.json --adapter json
+Exec=caddy run --config /etc/caddy/caddy.json
+
+[Service]
+ExecReload=/usr/bin/podman exec caddy caddy reload --config /etc/caddy/caddy.json
 ```
 
-`ReloadCmd` causes Quadlet to generate an `ExecReload` that runs `podman exec`
-inside the container. The operational command is therefore:
+`ExecReload` causes systemd to run `podman exec` inside the existing
+container. The operational command is therefore:
 
 ```sh
 systemctl reload caddy.service
