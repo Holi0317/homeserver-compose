@@ -80,50 +80,50 @@ url_api = "https://api.github.com/repos/gastownhall/beads/releases/assets/515294
 provenance = "github-attestations"
 
 [[tools."github:swamp-club/swamp"]]
-version = "20260811.225020.0-sha.84041051"
+version = "20260822.011157.0-sha.06b61472"
 backend = "github:swamp-club/swamp"
 
 [tools."github:swamp-club/swamp"."platforms.linux-arm64"]
-checksum = "sha256:6882f68d53d4c6d7742d51c24952c01e57fd4cc3ae7cf6625ba6d18f770b15d1"
-url = "https://github.com/swamp-club/swamp/releases/download/v20260811.225020.0-sha.84041051/swamp-linux-aarch64"
-url_api = "https://api.github.com/repos/swamp-club/swamp/releases/assets/510744608"
+checksum = "sha256:13df9bc896bafb8b19db790f64e02d05ab40a745a322828726bc4e3ec2104d84"
+url = "https://github.com/swamp-club/swamp/releases/download/v20260822.011157.0-sha.06b61472/swamp-linux-aarch64"
+url_api = "https://api.github.com/repos/swamp-club/swamp/releases/assets/524467946"
 provenance = "github-attestations"
 
 [tools."github:swamp-club/swamp"."platforms.linux-arm64-musl"]
-checksum = "sha256:6882f68d53d4c6d7742d51c24952c01e57fd4cc3ae7cf6625ba6d18f770b15d1"
-url = "https://github.com/swamp-club/swamp/releases/download/v20260811.225020.0-sha.84041051/swamp-linux-aarch64"
-url_api = "https://api.github.com/repos/swamp-club/swamp/releases/assets/510744608"
+checksum = "sha256:13df9bc896bafb8b19db790f64e02d05ab40a745a322828726bc4e3ec2104d84"
+url = "https://github.com/swamp-club/swamp/releases/download/v20260822.011157.0-sha.06b61472/swamp-linux-aarch64"
+url_api = "https://api.github.com/repos/swamp-club/swamp/releases/assets/524467946"
 provenance = "github-attestations"
 
 [tools."github:swamp-club/swamp"."platforms.linux-x64"]
-checksum = "sha256:23a75fa2f849cad74b23619d49f177a22a63106d0298312f2493dc5dadf344eb"
-url = "https://github.com/swamp-club/swamp/releases/download/v20260811.225020.0-sha.84041051/swamp-linux-x86_64"
-url_api = "https://api.github.com/repos/swamp-club/swamp/releases/assets/510744609"
+checksum = "sha256:e0836903c1a0f3760db4520a10371fc710cfd6897cd2f3a683aeb4da815a0c21"
+url = "https://github.com/swamp-club/swamp/releases/download/v20260822.011157.0-sha.06b61472/swamp-linux-x86_64"
+url_api = "https://api.github.com/repos/swamp-club/swamp/releases/assets/524467943"
 provenance = "github-attestations"
 
 [tools."github:swamp-club/swamp"."platforms.linux-x64-musl"]
-checksum = "sha256:23a75fa2f849cad74b23619d49f177a22a63106d0298312f2493dc5dadf344eb"
-url = "https://github.com/swamp-club/swamp/releases/download/v20260811.225020.0-sha.84041051/swamp-linux-x86_64"
-url_api = "https://api.github.com/repos/swamp-club/swamp/releases/assets/510744609"
+checksum = "sha256:e0836903c1a0f3760db4520a10371fc710cfd6897cd2f3a683aeb4da815a0c21"
+url = "https://github.com/swamp-club/swamp/releases/download/v20260822.011157.0-sha.06b61472/swamp-linux-x86_64"
+url_api = "https://api.github.com/repos/swamp-club/swamp/releases/assets/524467943"
 provenance = "github-attestations"
 
 [tools."github:swamp-club/swamp"."platforms.macos-arm64"]
-checksum = "sha256:8bbf56f755521412eeeb89fbcb2ec7f0e0d3ce1161ce796d9a3c91381972c53e"
-url = "https://github.com/swamp-club/swamp/releases/download/v20260811.225020.0-sha.84041051/swamp-darwin-aarch64"
-url_api = "https://api.github.com/repos/swamp-club/swamp/releases/assets/510744614"
+checksum = "sha256:689417b280ce36806b16a6a31dae185b3ee93d6d02e5e115ee1c82ae08a5833b"
+url = "https://github.com/swamp-club/swamp/releases/download/v20260822.011157.0-sha.06b61472/swamp-darwin-aarch64"
+url_api = "https://api.github.com/repos/swamp-club/swamp/releases/assets/524467940"
 provenance = "github-attestations"
 provenance_verified = true
 
 [tools."github:swamp-club/swamp"."platforms.macos-x64"]
-checksum = "sha256:bc92758454630cfc366c3279ec5f3ffe7fda0adfce12835d8341107f72b59a11"
-url = "https://github.com/swamp-club/swamp/releases/download/v20260811.225020.0-sha.84041051/swamp-darwin-x86_64"
-url_api = "https://api.github.com/repos/swamp-club/swamp/releases/assets/510744613"
+checksum = "sha256:f15aaadb932c6f41717d16c599ffa8c42efebde8dc71725efafac7e597171a00"
+url = "https://github.com/swamp-club/swamp/releases/download/v20260822.011157.0-sha.06b61472/swamp-darwin-x86_64"
+url_api = "https://api.github.com/repos/swamp-club/swamp/releases/assets/524467942"
 provenance = "github-attestations"
 
 [tools."github:swamp-club/swamp"."platforms.windows-x64"]
-checksum = "sha256:0c9bb23d7780b79e23ea6cec5b107f63b1a7fe4ec92d3ca24c653070c1b098aa"
-url = "https://github.com/swamp-club/swamp/releases/download/v20260811.225020.0-sha.84041051/swamp-windows-x86_64.exe"
-url_api = "https://api.github.com/repos/swamp-club/swamp/releases/assets/510744610"
+checksum = "sha256:446998e47e95f206cfd414e885e86963c801c8a77a5d04c323c7afbb9c7bcb1d"
+url = "https://github.com/swamp-club/swamp/releases/download/v20260822.011157.0-sha.06b61472/swamp-windows-x86_64.exe"
+url_api = "https://api.github.com/repos/swamp-club/swamp/releases/assets/524467945"
 provenance = "github-attestations"
 
 [[tools."pipx:ansible-core"]]
@@ -134,47 +134,47 @@ backend = "pipx:ansible-core"
 uvx_args = "--with ansible"
 
 [[tools.uv]]
-version = "0.12.3"
+version = "0.12.5"
 backend = "aqua:astral-sh/uv"
 
 [tools.uv."platforms.linux-arm64"]
-checksum = "sha256:fa513fca1eb2913334c944fe9adbdd410274a1cbe8dd05d03699a9eb85311d4e"
-url = "https://github.com/astral-sh/uv/releases/download/0.12.3/uv-aarch64-unknown-linux-musl.tar.gz"
-url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/505387718"
+checksum = "sha256:9bf43b4d1a07665bf64d4c4e710930b382321a785e0eb10aac07f46471f86a31"
+url = "https://github.com/astral-sh/uv/releases/download/0.12.5/uv-aarch64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/514850990"
 provenance = "github-attestations"
 
 [tools.uv."platforms.linux-arm64-musl"]
-checksum = "sha256:fa513fca1eb2913334c944fe9adbdd410274a1cbe8dd05d03699a9eb85311d4e"
-url = "https://github.com/astral-sh/uv/releases/download/0.12.3/uv-aarch64-unknown-linux-musl.tar.gz"
-url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/505387718"
+checksum = "sha256:8767a0e77f2cd45436401b1b42bf7e9ed5a4a91a74a5305d6fe93249d0f6dbc5"
+url = "https://github.com/astral-sh/uv/releases/download/0.12.5/uv-aarch64-unknown-linux-musl.tar.gz"
+url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/514850993"
 provenance = "github-attestations"
 
 [tools.uv."platforms.linux-x64"]
-checksum = "sha256:0643b9fb8c9fb27458e709ce6ff939695013c41975ff7b02d3f3b138d8d4bdb3"
-url = "https://github.com/astral-sh/uv/releases/download/0.12.3/uv-x86_64-unknown-linux-musl.tar.gz"
-url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/505387821"
+checksum = "sha256:68a509da24b06b4223a1c0175fb5eb5bc79342b76cbeff0cfe51ac3f5b17b6b2"
+url = "https://github.com/astral-sh/uv/releases/download/0.12.5/uv-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/514851093"
 provenance = "github-attestations"
 
 [tools.uv."platforms.linux-x64-musl"]
-checksum = "sha256:0643b9fb8c9fb27458e709ce6ff939695013c41975ff7b02d3f3b138d8d4bdb3"
-url = "https://github.com/astral-sh/uv/releases/download/0.12.3/uv-x86_64-unknown-linux-musl.tar.gz"
-url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/505387821"
+checksum = "sha256:a4742988791c9aeae68c78150d6cba762062ad2a47e53738c2779d2b596bfcdb"
+url = "https://github.com/astral-sh/uv/releases/download/0.12.5/uv-x86_64-unknown-linux-musl.tar.gz"
+url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/514851105"
 provenance = "github-attestations"
 
 [tools.uv."platforms.macos-arm64"]
-checksum = "sha256:546f7f8a6c70ff13a3a9d2bc958db3427298cebf3e0cb756f9177133b7068843"
-url = "https://github.com/astral-sh/uv/releases/download/0.12.3/uv-aarch64-apple-darwin.tar.gz"
-url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/505387707"
+checksum = "sha256:5bb0e5fe008a773c3dbcb97ff79cd89e1241464fe9d2f986d52ad8f1b037bd62"
+url = "https://github.com/astral-sh/uv/releases/download/0.12.5/uv-aarch64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/514850968"
 provenance = "github-attestations"
 
 [tools.uv."platforms.macos-x64"]
-checksum = "sha256:4c9f52262a14da336e4a42ed24992d12d0c956acde87619e4611d321dffa602b"
-url = "https://github.com/astral-sh/uv/releases/download/0.12.3/uv-x86_64-apple-darwin.tar.gz"
-url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/505387807"
+checksum = "sha256:b3b2137477cf96c9686ebfb71524614cec780c673fd73e59bce099aef02e70e8"
+url = "https://github.com/astral-sh/uv/releases/download/0.12.5/uv-x86_64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/514851078"
 provenance = "github-attestations"
 
 [tools.uv."platforms.windows-x64"]
-checksum = "sha256:b23350c79e8ad0192b8124af13a0f17e8d4e4549524785e1aef389ae5a06990e"
-url = "https://github.com/astral-sh/uv/releases/download/0.12.3/uv-x86_64-pc-windows-msvc.zip"
-url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/505387809"
+checksum = "sha256:4c4d49d8738847d9b71ba319e49a5688c93eac0fe6204b1df24e98528dddf39a"
+url = "https://github.com/astral-sh/uv/releases/download/0.12.5/uv-x86_64-pc-windows-msvc.zip"
+url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/514851084"
 provenance = "github-attestations"
