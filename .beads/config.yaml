@@ -67,4 +67,4 @@
 
 sync.remote: "git+https://github.com/Holi0317/homeserver-compose.git"
 export:
-    auto: true
+    auto: false
