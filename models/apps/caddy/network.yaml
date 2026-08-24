@@ -13,6 +13,7 @@ globalArguments:
   content: |
     [Network]
     Driver=bridge
+    IPv6=true
     Subnet=172.31.0.0/16
     Gateway=172.31.0.1
     Label=app=ingress

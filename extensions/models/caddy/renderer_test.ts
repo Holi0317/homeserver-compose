@@ -271,3 +271,15 @@ Deno.test("Dynamic DNS uses explicit zones and vault environment placeholder", (
     throw new Error("explicit DDNS domain was not rendered");
   }
 });
+Deno.test("Dynamic DNS auto TTL emits Cloudflare automatic sentinel", () => {
+  const config = JSON.parse(renderInventory({ sites: [] }, {
+    tokenEnv: "CLOUDFLARE_API_TOKEN",
+    domains: { "holi0317.net": ["smoke"] },
+    checkInterval: "5m",
+    ttl: "auto",
+    versions: { ipv4: true, ipv6: true },
+  }));
+  if (config.apps.dynamic_dns.ttl !== "1s") {
+    throw new Error("Cloudflare automatic TTL was not rendered as 1s");
+  }
+});

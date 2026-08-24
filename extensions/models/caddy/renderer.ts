@@ -424,7 +424,7 @@ export function renderInventory(
         domains,
       }],
       check_interval: dynamicDns.checkInterval,
-      ttl: dynamicDns.ttl,
+      ttl: dynamicDns.ttl === "auto" ? "1s" : dynamicDns.ttl,
       versions: dynamicDns.versions,
     };
   }
@@ -440,7 +440,7 @@ const DynamicDnsSchema = z.strictObject({
   tokenEnv: z.literal("CLOUDFLARE_API_TOKEN").default("CLOUDFLARE_API_TOKEN"),
   domains: z.record(z.string().min(1), z.array(z.string().min(1)).min(1)),
   checkInterval: Duration.default("5m"),
-  ttl: Duration.default("5m"),
+  ttl: z.union([Duration, z.literal("auto")]).default("auto"),
   versions: z.strictObject({
     ipv4: z.boolean().default(true),
     ipv6: z.boolean().default(true),
