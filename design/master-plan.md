@@ -169,9 +169,10 @@ service is deployed, reachable, monitored, and backed up (where applicable).
 
 ## 8. Known issues and decisions
 
-- **Postgres superuser password is in 1Password vault** (`homelab` →
-  `postgres.superuser`) but is still the bootstrap value `CHANGEME`. Rotate it
-  before any real data is loaded.
+- **Postgres superuser password** lives in the 1Password vault (`homelab` →
+  `postgres.superuser`); it was rotated off the bootstrap `CHANGEME` value on
+  2026-08-26 via `postgres-role.rotate_password`, which stores a locally
+  computed SCRAM-SHA-256 verifier so the plaintext never leaves the machine.
 - **Quadlet enablement:** the current `@holi0317/systemd` extension enables
   Quadlet units by creating `.wants/` symlinks because `systemctl enable`
   refuses generated units on this Debian/systemd version.

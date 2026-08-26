@@ -69,14 +69,9 @@ async function inspectDatabase(
   context: MethodContext,
   ga: GlobalArguments,
 ): Promise<DatabaseRow | null> {
-  const result = await execPsql(
-    context,
-    ga,
-    "postgres",
-    databaseQuery(ga.database),
-    {},
-    { tuplesOnly: true },
-  );
+  const result = await execPsql(context, ga, "postgres", databaseQuery(ga.database), {
+    tuplesOnly: true,
+  });
   const row = parsePipeRow(result.stdout);
   if (!row || row.length !== 3) return null;
   return {
@@ -97,7 +92,6 @@ async function assertOwnerRole(
     `SELECT rolcanlogin::text FROM pg_roles WHERE rolname = ${
       pgLiteral(ga.ownerRole)
     };`,
-    {},
     { tuplesOnly: true },
   );
   const row = result.stdout.trim();

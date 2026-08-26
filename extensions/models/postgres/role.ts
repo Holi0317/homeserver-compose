@@ -5,6 +5,7 @@ import {
   parsePipeRow,
   pgIdent,
   pgLiteral,
+  scramSha256Verifier,
   type PostgresMethodContext,
   PostgresTargetSchema,
 } from "./_lib.ts";
@@ -107,14 +108,9 @@ async function inspectRole(
   context: MethodContext,
   ga: GlobalArguments,
 ): Promise<RoleRow | null> {
-  const result = await execPsql(
-    context,
-    ga,
-    "postgres",
-    roleQuery(ga.roleName),
-    {},
-    { tuplesOnly: true },
-  );
+  const result = await execPsql(context, ga, "postgres", roleQuery(ga.roleName), {
+    tuplesOnly: true,
+  });
   const row = parsePipeRow(result.stdout);
   if (!row || row.length !== 9) return null;
   return {
@@ -157,18 +153,26 @@ function roleAttributeClauses(
   return clauses;
 }
 
-function createRoleSql(ga: GlobalArguments): string {
-  const password = ga.password === undefined
-    ? ""
-    : " PASSWORD :'role_password'";
+async function passwordClause(
+  ga: GlobalArguments,
+): Promise<string> {
+  if (ga.password === undefined) return "";
+  return ` PASSWORD ${
+    pgLiteral(await scramSha256Verifier(ga.password))
+  }`;
+}
+
+async function createRoleSql(ga: GlobalArguments): Promise<string> {
+  const password = await passwordClause(ga);
   return `CREATE ROLE ${pgIdent(ga.roleName)} WITH ${
     roleAttributeClauses(ga, true).join(" ")
   }${password};`;
 }
 
-function alterRoleSql(ga: GlobalArguments): string | null {
+async function alterRoleSql(ga: GlobalArguments): Promise<string | null> {
   const clauses = roleAttributeClauses(ga, false);
-  if (ga.password !== undefined) clauses.push("PASSWORD :'role_password'");
+  const password = await passwordClause(ga);
+  if (password !== "") clauses.push(password.trim());
   return clauses.length > 0
     ? `ALTER ROLE ${pgIdent(ga.roleName)} WITH ${clauses.join(" ")};`
     : null;
@@ -265,19 +269,12 @@ export const model = {
             context,
             ga,
             "postgres",
-            createRoleSql(ga),
-            ga.password === undefined ? {} : { role_password: ga.password },
+            await createRoleSql(ga),
           );
         } else {
-          const sql = alterRoleSql(ga);
+          const sql = await alterRoleSql(ga);
           if (sql !== null) {
-            await execPsql(
-              context,
-              ga,
-              "postgres",
-              sql,
-              ga.password === undefined ? {} : { role_password: ga.password },
-            );
+            await execPsql(context, ga, "postgres", sql);
           }
         }
         const after = await inspectRole(context, ga);
@@ -323,13 +320,10 @@ export const model = {
         context: MethodContext,
       ) => {
         const ga = context.globalArgs;
-        await execPsql(
-          context,
-          ga,
-          "postgres",
-          `ALTER ROLE ${pgIdent(ga.roleName)} PASSWORD :'role_password';`,
-          { role_password: args.newPassword },
-        );
+        const sql = `ALTER ROLE ${pgIdent(ga.roleName)} PASSWORD ${
+          pgLiteral(await scramSha256Verifier(args.newPassword))
+        };`;
+        await execPsql(context, ga, "postgres", sql);
         const after = await inspectRole(context, ga);
         if (after === null) {
           throw new Error(
