@@ -1,0 +1,34 @@
+type: '@adam/cfgmgmt/file'
+typeVersion: 2026.03.18.1
+id: bd8ac5be-8e1e-4c5a-b20c-5f03e07932ee
+name: grafana-datasources
+version: 1
+tags: {}
+globalArguments:
+  path: /etc/grafana/provisioning/datasources/datasources.yaml
+  ensure: present
+  content: |
+    apiVersion: 1
+
+    datasources:
+      - name: VictoriaMetrics
+        uid: victoriametrics
+        type: prometheus
+        access: proxy
+        url: http://victoriametrics:8428
+        isDefault: true
+
+      - name: VictoriaLogs
+        uid: victorialogs
+        type: victoriametrics-logs-datasource
+        access: proxy
+        url: http://victorialogs:9428
+  owner: root
+  group: root
+  mode: '0644'
+  nodeHost: '${{ data.latest("athena", "host-athena").attributes.address }}'
+  nodeUser: '${{ data.latest("athena", "host-athena").attributes.user }}'
+  nodePort: '${{ data.latest("athena", "host-athena").attributes.port }}'
+  become: true
+  becomeUser: root
+methods: {}

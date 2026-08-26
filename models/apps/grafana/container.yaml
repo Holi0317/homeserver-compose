@@ -1,0 +1,55 @@
+type: '@holi0317/systemd/quadlet'
+typeVersion: 2026.08.16.2
+id: d6dea754-bf2e-4554-9c31-831f5e8958ca
+name: grafana-container
+version: 1
+tags: {}
+globalArguments:
+  remote:
+    fleet: athena
+    host: athena
+    sudo: true
+  unitName: grafana.container
+  content: |
+    [Unit]
+    Description=Grafana dashboards
+    Wants=metrics.network grafana-data-dir.service
+    After=metrics.network grafana-data-dir.service
+    Requires=metrics.network grafana-data-dir.service
+
+    [Container]
+    Image=docker.io/grafana/grafana:13.0.7
+    ContainerName=grafana
+    User=65534:65534
+    Network=metrics.network
+    PublishPort=127.0.0.1:3000:3000
+    Volume=/var/lib/grafana:/var/lib/grafana:Z
+    Volume=/etc/grafana/provisioning:/etc/grafana/provisioning:ro,Z
+    Volume=/etc/grafana/dashboards:/etc/grafana/dashboards:ro,Z
+    Environment=GF_SECURITY_ADMIN_USER=admin
+    Environment=GF_SECURITY_ADMIN_PASSWORD=${{ vault.get(homelab, grafana.admin-password) }}
+    Environment=GF_AUTH_ANONYMOUS_ENABLED=false
+    Environment=GF_USERS_ALLOW_SIGN_UP=false
+    Environment=GF_ANALYTICS_REPORTING_ENABLED=false
+    Environment=GF_INSTALL_PLUGINS=victoriametrics-logs-datasource
+    HealthCmd=wget -q --spider http://127.0.0.1:3000/api/health
+    HealthInterval=30s
+    HealthTimeout=5s
+    HealthRetries=5
+    HealthStartPeriod=60s
+
+    [Service]
+    MemoryMax=1G
+    Restart=always
+    RestartSec=5
+    TimeoutStartSec=900
+
+    [Install]
+    WantedBy=multi-user.target
+  userMode: system
+  enabled: true
+  state: running
+methods:
+  apply:
+    arguments:
+      allowRecreate: false

@@ -1,0 +1,31 @@
+type: '@adam/cfgmgmt/file'
+typeVersion: 2026.03.18.1
+id: e097d679-2565-44d6-9667-7a4add540816
+name: grafana-dashboard-provider
+version: 1
+tags: {}
+globalArguments:
+  path: /etc/grafana/provisioning/dashboards/provider.yml
+  ensure: present
+  content: |
+    apiVersion: 1
+
+    providers:
+      - name: default
+        orgId: 1
+        folder: ""
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 30
+        allowUiUpdates: true
+        options:
+          path: /etc/grafana/dashboards
+  owner: root
+  group: root
+  mode: '0644'
+  nodeHost: '${{ data.latest("athena", "host-athena").attributes.address }}'
+  nodeUser: '${{ data.latest("athena", "host-athena").attributes.user }}'
+  nodePort: '${{ data.latest("athena", "host-athena").attributes.port }}'
+  become: true
+  becomeUser: root
+methods: {}

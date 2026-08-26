@@ -1,0 +1,33 @@
+type: '@holi0317/systemd/unit'
+typeVersion: 2026.08.16.2
+id: c42ce719-b76a-4ff1-84af-2abfcd93c094
+name: grafana-data-dir
+version: 1
+tags: {}
+globalArguments:
+  remote:
+    fleet: athena
+    host: athena
+    sudo: true
+  unitName: grafana-data-dir.service
+  content: |
+    [Unit]
+    Description=Prepare Grafana data and config directories (NVMe)
+    Before=grafana.service
+
+    [Service]
+    Type=oneshot
+    # Grafana state lives on the local NVMe root filesystem per the master
+    # plan; it is acceptable to lose on a rebuild.
+    ExecStart=/usr/bin/install -d -o root -g root -m 0755 /etc/grafana /etc/grafana/provisioning /etc/grafana/provisioning/datasources /etc/grafana/provisioning/dashboards /etc/grafana/provisioning/alerting /etc/grafana/dashboards
+    RemainAfterExit=yes
+
+    [Install]
+    WantedBy=multi-user.target
+  userMode: system
+  enabled: true
+  state: running
+methods:
+  apply:
+    arguments:
+      allowRecreate: false

@@ -152,10 +152,10 @@ service is deployed, reachable, monitored, and backed up (where applicable).
 
 ### Observability
 
-- [ ] Node exporter
-- [ ] VictoriaMetrics
-- [ ] VictoriaLogs
-- [ ] Grafana
+- [x] Node exporter
+- [x] VictoriaMetrics
+- [x] VictoriaLogs
+- [x] Grafana
 - [ ] Alerting rules + notification channel
 
 ### Applications
