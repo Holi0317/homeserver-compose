@@ -16,11 +16,26 @@ globalArguments:
     sources:
       journald:
         type: journald
+    transforms:
+      clean:
+        type: remap
+        inputs:
+          - journald
+        source: |
+          # Strip Go log-package timestamp prefixes; VL already has _time.
+          .message = replace(string(.message) ?? "", r'^\d{4}-\d{2}-\d{2} [\d:.]+ [+-]\d{4} UTC m=\+[\d.]+ ', "")
+          # Collapse verbose podman event dumps into one short line.
+          if exists(.PODMAN_EVENT) {
+            event = string(.PODMAN_EVENT) ?? ""
+            status = string(.PODMAN_HEALTH_STATUS) ?? ""
+            who = string(.PODMAN_SYSTEMD_UNIT) ?? string(.CONTAINER_NAME) ?? ""
+            .message = "podman " + event + " " + who + " " + status
+          }
 
     sinks:
       victorialogs:
         inputs:
-          - journald
+          - clean
         type: elasticsearch
         endpoints:
           - http://victorialogs:9428/insert/elasticsearch/
