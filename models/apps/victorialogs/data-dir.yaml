@@ -1,0 +1,33 @@
+type: '@holi0317/systemd/unit'
+typeVersion: 2026.08.16.2
+id: c452a953-45c9-4471-a744-7161e7d016ac
+name: victorialogs-data-dir
+version: 1
+tags: {}
+globalArguments:
+  remote:
+    fleet: athena
+    host: athena
+    sudo: true
+  unitName: victorialogs-data-dir.service
+  content: |
+    [Unit]
+    Description=Prepare VictoriaLogs data directory (NVMe)
+    Before=victoria-logs.service
+
+    [Service]
+    Type=oneshot
+    # Log storage lives on the local NVMe root filesystem per the master plan;
+    # it is heavy-write, latency-sensitive, and acceptable to lose.
+    ExecStart=/usr/bin/install -d -o 65534 -g 65534 -m 0750 /var/lib/victorialogs
+    RemainAfterExit=yes
+
+    [Install]
+    WantedBy=multi-user.target
+  userMode: system
+  enabled: true
+  state: running
+methods:
+  apply:
+    arguments:
+      allowRecreate: false

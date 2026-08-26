@@ -1,0 +1,43 @@
+type: '@adam/cfgmgmt/file'
+typeVersion: 2026.03.18.1
+id: bc8db2a9-30d6-4d69-b410-153dcd7206eb
+name: victorialogs-vector-config
+version: 1
+tags: {}
+globalArguments:
+  path: /etc/vector/vector.yml
+  ensure: present
+  content: |
+    # Ships host + container journald logs to VictoriaLogs.
+    api:
+      enabled: true
+      address: 127.0.0.1:8686
+
+    sources:
+      journald:
+        type: journald
+
+    sinks:
+      victorialogs:
+        inputs:
+          - journald
+        type: elasticsearch
+        endpoints:
+          - http://victorialogs:9428/insert/elasticsearch/
+        api_version: v8
+        compression: gzip
+        healthcheck:
+          enabled: false
+        query:
+          _msg_field: message
+          _time_field: timestamp
+          _stream_fields: host,container_name
+  owner: root
+  group: root
+  mode: '0644'
+  nodeHost: '${{ data.latest("athena", "host-athena").attributes.address }}'
+  nodeUser: '${{ data.latest("athena", "host-athena").attributes.user }}'
+  nodePort: '${{ data.latest("athena", "host-athena").attributes.port }}'
+  become: true
+  becomeUser: root
+methods: {}

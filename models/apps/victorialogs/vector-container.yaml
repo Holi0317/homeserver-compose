@@ -1,0 +1,44 @@
+type: '@holi0317/systemd/quadlet'
+typeVersion: 2026.08.16.2
+id: 725c0218-97c6-4a4e-ae81-981d258ea4f7
+name: victorialogs-vector-container
+version: 1
+tags: {}
+globalArguments:
+  remote:
+    fleet: athena
+    host: athena
+    sudo: true
+  unitName: log-shipper.container
+  content: |
+    [Unit]
+    Description=Vector log shipper (journald to VictoriaLogs)
+    Wants=metrics.network victorialogs-vector-config-dir.service
+    After=metrics.network
+    Requires=metrics.network
+
+    [Container]
+    Image=docker.io/timberio/vector:0.57.0-debian
+    ContainerName=log-shipper
+    User=0:0
+    Network=metrics.network
+    Volume=/etc/vector/vector.yml:/etc/vector/vector.yml:ro,Z
+    Volume=/var/log/journal:/var/log/journal:ro,Z
+    Volume=/run/log/journal:/run/log/journal:ro,Z
+    Volume=/etc/machine-id:/etc/machine-id:ro,Z
+    Exec=--config /etc/vector/vector.yml
+
+    [Service]
+    Restart=always
+    RestartSec=5
+    TimeoutStartSec=900
+
+    [Install]
+    WantedBy=multi-user.target
+  userMode: system
+  enabled: true
+  state: running
+methods:
+  apply:
+    arguments:
+      allowRecreate: false

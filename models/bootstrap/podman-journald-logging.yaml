@@ -1,0 +1,23 @@
+type: '@adam/cfgmgmt/file'
+typeVersion: 2026.03.18.1
+id: dd2da11e-9a5e-47aa-ad7c-c6fda3e2db35
+name: bootstrap-podman-journald-logging
+version: 1
+tags: {}
+globalArguments:
+  path: /etc/containers/containers.conf.d/99-journald-logging.conf
+  ensure: present
+  content: |
+    # Route container stdout/stderr into journald so the Vector log shipper
+    # can forward service logs to VictoriaLogs.
+    [engine]
+    log_driver="journald"
+  owner: root
+  group: root
+  mode: '0644'
+  nodeHost: '${{ data.latest("athena", "host-athena").attributes.address }}'
+  nodeUser: '${{ data.latest("athena", "host-athena").attributes.user }}'
+  nodePort: '${{ data.latest("athena", "host-athena").attributes.port }}'
+  become: true
+  becomeUser: root
+methods: {}

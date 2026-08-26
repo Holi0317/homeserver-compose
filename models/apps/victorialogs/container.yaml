@@ -1,0 +1,44 @@
+type: '@holi0317/systemd/quadlet'
+typeVersion: 2026.08.16.2
+id: 0742a529-48c2-4c13-907d-646d210cae18
+name: victorialogs-container
+version: 1
+tags: {}
+globalArguments:
+  remote:
+    fleet: athena
+    host: athena
+    sudo: true
+  unitName: victoria-logs.container
+  content: |
+    [Unit]
+    Description=VictoriaLogs single-node log database
+    After=metrics.network victorialogs-data-dir.service
+    Requires=metrics.network victorialogs-data-dir.service
+
+    [Container]
+    Image=docker.io/victoriametrics/victoria-logs:v1.52.0
+    ContainerName=victorialogs
+    User=65534:65534
+    Network=metrics.network
+    PublishPort=127.0.0.1:9428:9428
+    Volume=/var/lib/victorialogs:/data:Z
+    Exec=-storageDataPath=/data -retentionPeriod=90d -memory.allowedPercent=25
+
+    [Service]
+    # Explicit resource ceiling; -memory.allowedPercent keeps the in-process
+    # cache budget below this systemd limit.
+    MemoryMax=1536M
+    Restart=always
+    RestartSec=5
+    TimeoutStartSec=900
+
+    [Install]
+    WantedBy=multi-user.target
+  userMode: system
+  enabled: true
+  state: running
+methods:
+  apply:
+    arguments:
+      allowRecreate: false
