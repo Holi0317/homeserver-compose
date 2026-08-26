@@ -1,0 +1,32 @@
+type: '@adam/cfgmgmt/file'
+typeVersion: 2026.03.18.1
+id: 0ea0c78e-335a-423f-87c1-609d34b5f60a
+name: grafana-alert-contact-point
+version: 1
+tags: {}
+globalArguments:
+  path: /etc/grafana/provisioning/alerting/contact-points.yaml
+  ensure: present
+  content: |
+    apiVersion: 1
+
+    contactPoints:
+      - orgId: 1
+        name: telegram
+        receivers:
+          - uid: telegram-receiver
+            type: telegram
+            disableResolveMessage: false
+            settings:
+              bottoken: '${{ vault.get(homelab, telegram.bot-token) }}'
+              chatid: '${{ vault.get(homelab, telegram.chat-id) }}'
+              message: '{{ template "default.message" . }}'
+  owner: '65534'
+  group: '65534'
+  mode: '0600'
+  nodeHost: '${{ data.latest("athena", "host-athena").attributes.address }}'
+  nodeUser: '${{ data.latest("athena", "host-athena").attributes.user }}'
+  nodePort: '${{ data.latest("athena", "host-athena").attributes.port }}'
+  become: true
+  becomeUser: root
+methods: {}

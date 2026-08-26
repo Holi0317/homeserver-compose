@@ -156,7 +156,7 @@ service is deployed, reachable, monitored, and backed up (where applicable).
 - [x] VictoriaMetrics
 - [x] VictoriaLogs
 - [x] Grafana
-- [ ] Alerting rules + notification channel
+- [x] Alerting rules + notification channel
 
 ### Applications
 

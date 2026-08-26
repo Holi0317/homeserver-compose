@@ -1,0 +1,28 @@
+type: '@adam/cfgmgmt/file'
+typeVersion: 2026.03.18.1
+id: 38d3039e-25d4-4af5-b07d-35660b4431b8
+name: grafana-alert-policy
+version: 1
+tags: {}
+globalArguments:
+  path: /etc/grafana/provisioning/alerting/policies.yaml
+  ensure: present
+  content: |
+    apiVersion: 1
+
+    policies:
+      - orgId: 1
+        receiver: telegram
+        group_by: [grafana_folder, alertname]
+        group_wait: 30s
+        group_interval: 5m
+        repeat_interval: 4h
+  owner: root
+  group: root
+  mode: '0644'
+  nodeHost: '${{ data.latest("athena", "host-athena").attributes.address }}'
+  nodeUser: '${{ data.latest("athena", "host-athena").attributes.user }}'
+  nodePort: '${{ data.latest("athena", "host-athena").attributes.port }}'
+  become: true
+  becomeUser: root
+methods: {}

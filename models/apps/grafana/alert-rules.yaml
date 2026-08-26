@@ -1,0 +1,166 @@
+type: '@adam/cfgmgmt/file'
+typeVersion: 2026.03.18.1
+id: 20749169-1e1d-4297-99fe-6906e44278d6
+name: grafana-alert-rules
+version: 1
+tags: {}
+globalArguments:
+  path: /etc/grafana/provisioning/alerting/rules.yaml
+  ensure: present
+  content: |
+    apiVersion: 1
+
+    groups:
+      - orgId: 1
+        name: host-health
+        folder: Monitoring
+        interval: 60s
+        rules:
+          - uid: node-exporter-down
+            title: Host node_exporter down
+            condition: C
+            for: 2m
+            annotations:
+              summary: node_exporter has been unreachable for 2 minutes
+            labels:
+              severity: critical
+            data:
+              - refId: A
+                relativeTimeRange:
+                  from: 120
+                  to: 0
+                datasourceUid: victoriametrics
+                model:
+                  datasource:
+                    type: prometheus
+                    uid: victoriametrics
+                  expr: 'up{job="node"}'
+                  instant: true
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+              - refId: C
+                datasourceUid: __expr__
+                model:
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  type: threshold
+                  conditions:
+                    - evaluator:
+                        type: lt
+                        params: [1]
+
+          - uid: host-disk-full
+            title: Host filesystem above 85%
+            condition: C
+            for: 10m
+            annotations:
+              summary: 'Filesystem {{ $labels.mountpoint }} usage is above 85%'
+            labels:
+              severity: warning
+            data:
+              - refId: A
+                relativeTimeRange:
+                  from: 600
+                  to: 0
+                datasourceUid: victoriametrics
+                model:
+                  datasource:
+                    type: prometheus
+                    uid: victoriametrics
+                  expr: '(node_filesystem_size_bytes{fstype!~"tmpfs|overlay"} - node_filesystem_free_bytes{fstype!~"tmpfs|overlay"}) / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"} * 100'
+                  instant: true
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+              - refId: C
+                datasourceUid: __expr__
+                model:
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  type: threshold
+                  conditions:
+                    - evaluator:
+                        type: gt
+                        params: [85]
+
+          - uid: host-memory-low
+            title: Host available memory below 10%
+            condition: C
+            for: 10m
+            annotations:
+              summary: Less than 10% of host memory is available
+            labels:
+              severity: warning
+            data:
+              - refId: A
+                relativeTimeRange:
+                  from: 600
+                  to: 0
+                datasourceUid: victoriametrics
+                model:
+                  datasource:
+                    type: prometheus
+                    uid: victoriametrics
+                  expr: 'node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100'
+                  instant: true
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+              - refId: C
+                datasourceUid: __expr__
+                model:
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  type: threshold
+                  conditions:
+                    - evaluator:
+                        type: lt
+                        params: [10]
+
+          - uid: victoriametrics-scrape-down
+            title: VictoriaMetrics self-scrape failing
+            condition: C
+            for: 5m
+            annotations:
+              summary: VictoriaMetrics has not scraped itself successfully for 5 minutes
+            labels:
+              severity: critical
+            data:
+              - refId: A
+                relativeTimeRange:
+                  from: 300
+                  to: 0
+                datasourceUid: victoriametrics
+                model:
+                  datasource:
+                    type: prometheus
+                    uid: victoriametrics
+                  expr: 'up{job="victoriametrics"}'
+                  instant: true
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+              - refId: C
+                datasourceUid: __expr__
+                model:
+                  datasource:
+                    type: __expr__
+                    uid: __expr__
+                  expression: A
+                  type: threshold
+                  conditions:
+                    - evaluator:
+                        type: lt
+                        params: [1]
+  owner: root
+  group: root
+  mode: '0644'
+  nodeHost: '${{ data.latest("athena", "host-athena").attributes.address }}'
+  nodeUser: '${{ data.latest("athena", "host-athena").attributes.user }}'
+  nodePort: '${{ data.latest("athena", "host-athena").attributes.port }}'
+  become: true
+  becomeUser: root
+methods: {}
