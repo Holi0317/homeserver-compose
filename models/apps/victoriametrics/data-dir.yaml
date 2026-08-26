@@ -1,0 +1,33 @@
+type: '@holi0317/systemd/unit'
+typeVersion: 2026.08.16.2
+id: 1e43a610-9dec-4649-b92c-fa333a9c0716
+name: victoriametrics-data-dir
+version: 1
+tags: {}
+globalArguments:
+  remote:
+    fleet: athena
+    host: athena
+    sudo: true
+  unitName: victoriametrics-data-dir.service
+  content: |
+    [Unit]
+    Description=Prepare VictoriaMetrics data directory (NVMe)
+    Before=victoriametrics.service
+
+    [Service]
+    Type=oneshot
+    # Metrics storage lives on the local NVMe root filesystem per the master
+    # plan; it is heavy-write, latency-sensitive, and acceptable to lose.
+    ExecStart=/usr/bin/install -d -o 65534 -g 65534 -m 0750 /var/lib/victoriametrics
+    RemainAfterExit=yes
+
+    [Install]
+    WantedBy=multi-user.target
+  userMode: system
+  enabled: true
+  state: running
+methods:
+  apply:
+    arguments:
+      allowRecreate: false

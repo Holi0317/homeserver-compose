@@ -1,0 +1,33 @@
+type: '@adam/cfgmgmt/file'
+typeVersion: 2026.03.18.1
+id: 55a65d65-d9ae-436d-bf99-6006a63bbe02
+name: victoriametrics-scrape-config
+version: 1
+tags: {}
+globalArguments:
+  path: /etc/victoriametrics/promscrape.yml
+  ensure: present
+  content: |
+    global:
+      scrape_interval: 30s
+      scrape_timeout: 10s
+
+    scrape_configs:
+      - job_name: victoriametrics
+        static_configs:
+          - targets:
+              - localhost:8428
+
+      - job_name: node
+        static_configs:
+          - targets:
+              - node-exporter:9100
+  owner: root
+  group: root
+  mode: '0644'
+  nodeHost: '${{ data.latest("athena", "host-athena").attributes.address }}'
+  nodeUser: '${{ data.latest("athena", "host-athena").attributes.user }}'
+  nodePort: '${{ data.latest("athena", "host-athena").attributes.port }}'
+  become: true
+  becomeUser: root
+methods: {}

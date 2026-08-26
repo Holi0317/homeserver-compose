@@ -1,0 +1,18 @@
+type: '@adam/cfgmgmt/directory'
+typeVersion: 2026.03.18.1
+id: c88b75e5-cf3a-4a4a-9aaf-b181cb8b05ad
+name: victoriametrics-config-dir
+version: 1
+tags: {}
+globalArguments:
+  path: /etc/victoriametrics
+  ensure: present
+  owner: root
+  group: root
+  mode: '0755'
+  nodeHost: '${{ data.latest("athena", "host-athena").attributes.address }}'
+  nodeUser: '${{ data.latest("athena", "host-athena").attributes.user }}'
+  nodePort: '${{ data.latest("athena", "host-athena").attributes.port }}'
+  become: true
+  becomeUser: root
+methods: {}

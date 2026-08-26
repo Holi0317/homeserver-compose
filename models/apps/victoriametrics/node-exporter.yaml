@@ -1,0 +1,41 @@
+type: '@holi0317/systemd/quadlet'
+typeVersion: 2026.08.16.2
+id: 320feda9-2a9c-4245-a153-08b83c006942
+name: victoriametrics-node-exporter
+version: 1
+tags: {}
+globalArguments:
+  remote:
+    fleet: athena
+    host: athena
+    sudo: true
+  unitName: node-exporter.container
+  content: |
+    [Unit]
+    Description=Prometheus node exporter for host metrics
+    Wants=metrics.network
+    After=metrics.network
+    Requires=metrics.network
+
+    [Container]
+    Image=quay.io/prometheus/node-exporter:v1.12.1
+    ContainerName=node-exporter
+    Network=metrics.network
+    Volume=/:/host:ro,rslave
+    Exec=--path.rootfs=/host
+    # Runs on the bridge network so VictoriaMetrics can scrape it by container
+    # DNS name; interface counters therefore reflect the netns, not the host.
+
+    [Service]
+    Restart=always
+    RestartSec=5
+
+    [Install]
+    WantedBy=multi-user.target
+  userMode: system
+  enabled: true
+  state: running
+methods:
+  apply:
+    arguments:
+      allowRecreate: false

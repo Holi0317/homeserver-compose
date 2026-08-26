@@ -1,0 +1,51 @@
+type: '@holi0317/systemd/quadlet'
+typeVersion: 2026.08.16.2
+id: 7fd7f9d8-0c3c-4c63-add0-6cd94b952c95
+name: victoriametrics-container
+version: 1
+tags: {}
+globalArguments:
+  remote:
+    fleet: athena
+    host: athena
+    sudo: true
+  unitName: victoriametrics.container
+  content: |
+    [Unit]
+    Description=VictoriaMetrics single-node metrics database
+    Wants=metrics.network victoriametrics-data-dir.service
+    After=metrics.network victoriametrics-data-dir.service
+    Requires=metrics.network victoriametrics-data-dir.service
+
+    [Container]
+    Image=docker.io/victoriametrics/victoria-metrics:v1.150.0
+    ContainerName=victoriametrics
+    User=65534:65534
+    Network=metrics.network
+    PublishPort=127.0.0.1:8428:8428
+    Volume=/var/lib/victoriametrics:/data:Z
+    Volume=/etc/victoriametrics/promscrape.yml:/etc/victoriametrics/promscrape.yml:ro,Z
+    Exec=-storageDataPath=/data -retentionPeriod=90d -memory.allowedPercent=25 -promscrape.config=/etc/victoriametrics/promscrape.yml
+    HealthCmd=wget -q --spider http://127.0.0.1:8428/health
+    HealthInterval=30s
+    HealthTimeout=5s
+    HealthRetries=5
+    HealthStartPeriod=15s
+
+    [Service]
+    # Explicit resource ceiling; -memory.allowedPercent keeps the in-process
+    # cache budget below this systemd limit.
+    MemoryMax=1536M
+    Restart=always
+    RestartSec=5
+    TimeoutStartSec=900
+
+    [Install]
+    WantedBy=multi-user.target
+  userMode: system
+  enabled: true
+  state: running
+methods:
+  apply:
+    arguments:
+      allowRecreate: false

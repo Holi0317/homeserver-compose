@@ -1,0 +1,25 @@
+type: '@holi0317/systemd/quadlet'
+typeVersion: 2026.08.16.2
+id: 1923a0ab-0784-4ea2-bf2f-769ce51efe76
+name: metrics-network
+version: 1
+tags: {}
+globalArguments:
+  remote:
+    fleet: athena
+    host: athena
+    sudo: true
+  unitName: metrics.network
+  content: |
+    [Network]
+    Driver=bridge
+    Subnet=172.29.0.0/16
+    Gateway=172.29.0.1
+    Label=app=metrics
+  userMode: system
+  enabled: true
+  state: running
+methods:
+  apply:
+    arguments:
+      allowRecreate: false
