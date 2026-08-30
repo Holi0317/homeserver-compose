@@ -176,9 +176,11 @@ service is deployed, reachable, monitored, and backed up (where applicable).
 - **Quadlet enablement:** the current `@holi0317/systemd` extension enables
   Quadlet units by creating `.wants/` symlinks because `systemctl enable`
   refuses generated units on this Debian/systemd version.
-- **Storage Box mount:** not yet implemented. Decide whether to use
-  NFSv4.1 (recommended) or CIFS, and whether root-squash requires a dedicated
-  media user.
+- **Storage Box mount:** not yet implemented. Storage Boxes offer **no NFS**
+  (FTP/SFTP/rsync/Borg/SMB/WebDAV only), so the earlier NFSv4.1 plan is not
+  viable; SMB/CIFS is the mount option (no extended attributes — unsuitable
+  for application state, fine for media). Found during lab-6td.6; see
+  `design/opencloud-vs-nextcloud.md`.
 - **Storage management:** journald is capped at 512 MB, apt cache is
   auto-cleaned weekly, systemd-coredump is capped at 1 GB, and dangling
   container images are pruned weekly. Container image pulls for `docker.io`
