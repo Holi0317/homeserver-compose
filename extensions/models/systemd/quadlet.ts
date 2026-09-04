@@ -167,7 +167,7 @@ function identityForTarget(target: ResourceTarget): string {
 /** Model for one Podman Quadlet source file and generated unit. */
 export const model = {
   type: "@holi0317/systemd/quadlet",
-  version: "2026.08.16.2",
+  version: "2026.09.04.1",
   globalArguments: QuadletGlobalArgumentsSchema,
   resources: {
     unit: {

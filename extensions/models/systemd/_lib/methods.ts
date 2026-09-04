@@ -407,6 +407,30 @@ export function createSystemdMethods<State extends ManagedState>(
         return { dataHandles: [handle] };
       },
     },
+    reload: {
+      description: "Reload the managed systemd unit",
+      arguments: z.object({}),
+      execute: async (
+        _args: Record<string, never>,
+        context: MethodContext,
+      ) => {
+        const ga = context.globalArgs;
+        const result = await execSystemctl(
+          context,
+          ga,
+          ["reload", operations.runtimeName(ga.unitName)],
+        );
+        if (result.exitCode !== 0) {
+          throw new Error(`reload ${ga.unitName} failed: ${result.stderr}`);
+        }
+        const handle = await context.writeResource(
+          "runResult",
+          "reload",
+          resultData("reload", ga, result),
+        );
+        return { dataHandles: [handle] };
+      },
+    },
     status: {
       description: "Query active, sub, enabled, and load state",
       arguments: z.object({}),

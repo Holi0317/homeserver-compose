@@ -75,7 +75,7 @@ async function setEnablement(
 /** Model for one conventional raw systemd unit file. */
 export const model = {
   type: "@holi0317/systemd/unit",
-  version: "2026.08.16.2",
+  version: "2026.09.04.1",
   globalArguments: UnitGlobalArgumentsSchema,
   resources: {
     unit: {

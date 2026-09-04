@@ -217,3 +217,96 @@ Deno.test("apply converges global enabled and state arguments", async () => {
     throw new Error("apply did not persist actual lifecycle state");
   }
 });
+
+Deno.test("reload invokes systemctl and records a structured result", async () => {
+  const commands: string[] = [];
+  const writes: Array<{
+    spec: string;
+    name: string;
+    data: Record<string, unknown>;
+  }> = [];
+  const context = {
+    globalArgs: {
+      remote,
+      unitName: "tailscale-serve.service",
+      userMode: "system",
+    },
+    readResource: () => Promise.resolve(null),
+    writeResource: (
+      spec: string,
+      name: string,
+      data: Record<string, unknown>,
+    ) => {
+      writes.push({ spec, name, data });
+      return Promise.resolve({ name });
+    },
+    deleteResource: () => Promise.resolve(),
+    runModel: ({ arguments: args }: { arguments: { command: string } }) => {
+      commands.push(args.command);
+      return Promise.resolve({
+        ok: true,
+        resources: [{
+          attributes: { stdout: "reloaded\n", stderr: "", exitCode: 0 },
+        }],
+      });
+    },
+  };
+
+  const reload = unit.methods.reload.execute as unknown as (
+    args: unknown,
+    context: unknown,
+  ) => Promise<unknown>;
+  await reload({}, context);
+
+  if (
+    commands.length !== 1 || !commands[0].includes(
+      "'systemctl' 'reload' 'tailscale-serve.service'",
+    )
+  ) {
+    throw new Error("reload did not invoke systemctl reload for the unit");
+  }
+  const result = writes.find((write) => write.spec === "runResult");
+  if (
+    result?.name !== "reload" ||
+    result.data.method !== "reload" ||
+    result.data.success !== true ||
+    result.data.changed !== true ||
+    result.data.stdout !== "reloaded\n"
+  ) {
+    throw new Error("reload did not persist its structured run result");
+  }
+});
+
+Deno.test("reload propagates systemctl failures", async () => {
+  const context = {
+    globalArgs: {
+      remote,
+      unitName: "tailscale-serve.service",
+      userMode: "system",
+    },
+    readResource: () => Promise.resolve(null),
+    writeResource: () => Promise.reject(new Error("run result was written")),
+    deleteResource: () => Promise.resolve(),
+    runModel: () =>
+      Promise.resolve({
+        ok: true,
+        resources: [{
+          attributes: { stdout: "", stderr: "unit is inactive", exitCode: 1 },
+        }],
+      }),
+  };
+
+  const reload = unit.methods.reload.execute as unknown as (
+    args: unknown,
+    context: unknown,
+  ) => Promise<unknown>;
+  try {
+    await reload({}, context);
+    throw new Error("reload failure did not propagate");
+  } catch (error) {
+    if (!String(error).includes("reload tailscale-serve.service failed")) {
+      throw error;
+    }
+    if (!String(error).includes("unit is inactive")) throw error;
+  }
+});
