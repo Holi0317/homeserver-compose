@@ -9,6 +9,9 @@ globalArguments:
   ensure: present
   content: |
     apiVersion: 1
+    deleteRules:
+      - orgId: 1
+        uid: delivery-test
 
     groups:
       - orgId: 1
@@ -56,7 +59,7 @@ globalArguments:
             condition: C
             for: 10m
             annotations:
-              summary: 'Filesystem {{ $labels.mountpoint }} usage is above 85%'
+              summary: 'Filesystem ${{ "{" + "{" }} $labels.mountpoint ${{ "}" + "}" }} usage is above 85%'
             labels:
               severity: warning
             data:
