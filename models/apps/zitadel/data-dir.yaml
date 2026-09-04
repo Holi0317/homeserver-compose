@@ -1,0 +1,32 @@
+type: '@holi0317/systemd/unit'
+typeVersion: 2026.08.16.2
+id: 1e5a2a15-c89f-4525-8cb1-d599b52a9c65
+name: zitadel-data-dir
+version: 1
+tags: {}
+globalArguments:
+  remote:
+    fleet: athena
+    host: athena
+    sudo: true
+  unitName: zitadel-data-dir.service
+  content: |
+    [Unit]
+    Description=Prepare protected Zitadel bootstrap state
+    RequiresMountsFor=/srv/persistent
+    Before=zitadel-api.service zitadel-login.service
+
+    [Service]
+    Type=oneshot
+    ExecStart=/usr/bin/install -d -o 0 -g 0 -m 0700 /srv/persistent/zitadel /srv/persistent/zitadel/bootstrap
+    RemainAfterExit=yes
+
+    [Install]
+    WantedBy=multi-user.target
+  userMode: system
+  enabled: true
+  state: running
+methods:
+  apply:
+    arguments:
+      allowRecreate: false

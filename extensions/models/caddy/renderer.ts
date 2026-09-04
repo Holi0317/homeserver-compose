@@ -61,10 +61,51 @@ export const MiddlewareSchema = z.strictObject({
 export const UpstreamSchema = z.strictObject({
   name: Identifier,
   port: z.number().int().min(1).max(65535),
+  protocol: z.enum(["http", "h2c"]).default("http"),
   tls: z.strictObject({
     insecureSkipVerify: z.boolean().default(false),
   }).optional(),
+}).superRefine((upstream, context) => {
+  if (upstream.protocol === "h2c" && upstream.tls !== undefined) {
+    context.addIssue({
+      code: "custom",
+      path: ["tls"],
+      message: "h2c upstreams cannot configure TLS",
+    });
+  }
 });
+
+const UpstreamsSchema = z.array(UpstreamSchema).min(1).superRefine(
+  (upstreams, context) => {
+    const first = upstreams[0];
+    const firstTransport = `${first.protocol}:${
+      first.tls?.insecureSkipVerify ?? "plain"
+    }`;
+    const names = new Set<string>();
+    for (let index = 0; index < upstreams.length; index++) {
+      const upstream = upstreams[index];
+      const key = `${upstream.name}:${upstream.port}`;
+      if (names.has(key)) {
+        context.addIssue({
+          code: "custom",
+          path: [index],
+          message: `duplicate upstream ${key}`,
+        });
+      }
+      names.add(key);
+      const transport = `${upstream.protocol}:${
+        upstream.tls?.insecureSkipVerify ?? "plain"
+      }`;
+      if (transport !== firstTransport) {
+        context.addIssue({
+          code: "custom",
+          path: [index],
+          message: "all upstreams must use the same transport policy",
+        });
+      }
+    }
+  },
+);
 
 const ActiveHealthSchema = z.strictObject({
   uri: z.string().min(1),
@@ -100,49 +141,48 @@ const LoadBalancingSchema = z.strictObject({
   tryInterval: Duration.optional(),
 });
 
+const RouteSchema = z.strictObject({
+  path: z.string().min(1).max(2048).regex(
+    /^\/(?:[^\s?*]*)$/,
+    "must be an absolute path without whitespace, query, or wildcard characters",
+  ),
+  upstreams: UpstreamsSchema,
+});
+
 const PublicSiteSchema = z.strictObject({
   host: Hostname,
   tls: z.enum(["automatic", "internal", "off"]).default("automatic"),
-  upstreams: z.array(UpstreamSchema).min(1),
+  upstreams: UpstreamsSchema.optional(),
+  routes: z.array(RouteSchema).min(1).optional(),
   middleware: MiddlewareSchema.optional(),
   forwardedHeaders: HeaderValues.optional(),
   healthChecks: HealthChecksSchema.optional(),
   loadBalancing: LoadBalancingSchema.optional(),
 }).superRefine((site, context) => {
-  const secure = site.upstreams.filter((upstream) => upstream.tls !== undefined)
-    .length;
-  if (secure !== 0 && secure !== site.upstreams.length) {
+  if (site.upstreams === undefined && site.routes === undefined) {
     context.addIssue({
       code: "custom",
       path: ["upstreams"],
-      message: "all upstreams must use the same HTTP or HTTPS transport",
+      message: "configure upstreams or path-specific routes",
     });
   }
-  if (secure === site.upstreams.length && secure > 0) {
-    const verificationPolicies = new Set(
-      site.upstreams.map((upstream) => upstream.tls!.insecureSkipVerify),
-    );
-    if (verificationPolicies.size !== 1) {
-      context.addIssue({
-        code: "custom",
-        path: ["upstreams"],
-        message:
-          "all HTTPS upstreams must use the same TLS verification policy",
-      });
-    }
+  if (site.upstreams !== undefined && site.routes !== undefined) {
+    context.addIssue({
+      code: "custom",
+      path: ["routes"],
+      message: "configure either upstreams or path-specific routes, not both",
+    });
   }
-
-  const names = new Set<string>();
-  for (const upstream of site.upstreams) {
-    const key = `${upstream.name}:${upstream.port}`;
-    if (names.has(key)) {
+  const routePaths = new Set<string>();
+  for (const route of site.routes ?? []) {
+    if (routePaths.has(route.path)) {
       context.addIssue({
         code: "custom",
-        path: ["upstreams"],
-        message: `duplicate upstream ${key}`,
+        path: ["routes"],
+        message: `duplicate route path ${route.path}`,
       });
     }
-    names.add(key);
+    routePaths.add(route.path);
   }
 });
 
@@ -264,45 +304,26 @@ function renderHealthChecks(
   return rendered;
 }
 
-function renderSite(
-  site: Inventory["sites"][number],
-  listener: "http" | "https",
-): CaddyHandler | null {
-  if (!site.enabled || site.public === undefined) return null;
-
-  const publicSite = site.public;
-  const tlsEnabled = publicSite.tls !== "off";
-  if (listener === "https" && !tlsEnabled) return null;
-  if (listener === "http" && tlsEnabled) {
-    return {
-      match: [{ host: [publicSite.host] }],
-      handle: [{
-        handler: "static_response",
-        status_code: "308",
-        headers: {
-          Location: ["https://{http.request.host}{http.request.uri}"],
-        },
-      }],
-      terminal: true,
-    };
-  }
-
-  const secureUpstreams = publicSite.upstreams[0].tls !== undefined;
+function renderProxy(
+  upstreams: z.infer<typeof UpstreamsSchema>,
+  publicSite: z.infer<typeof PublicSiteSchema>,
+): CaddyHandler {
+  const firstUpstream = upstreams[0];
   const reverseProxy: CaddyHandler = {
     handler: "reverse_proxy",
-    upstreams: [...publicSite.upstreams]
+    upstreams: [...upstreams]
       .sort((left, right) =>
         `${left.name}:${left.port}`.localeCompare(`${right.name}:${right.port}`)
       )
       .map((upstream) => ({ dial: `${upstream.name}:${upstream.port}` })),
   };
 
-  if (secureUpstreams) {
+  if (firstUpstream.protocol === "h2c") {
+    reverseProxy.transport = { protocol: "http", versions: ["h2c"] };
+  } else if (firstUpstream.tls !== undefined) {
     reverseProxy.transport = {
       protocol: "http",
-      tls: {
-        insecure_skip_verify: publicSite.upstreams[0].tls!.insecureSkipVerify,
-      },
+      tls: { insecure_skip_verify: firstUpstream.tls.insecureSkipVerify },
     };
   }
   if (publicSite.forwardedHeaders !== undefined) {
@@ -327,13 +348,61 @@ function renderSite(
       reverseProxy.lb_try_interval = publicSite.loadBalancing.tryInterval;
     }
   }
+  return reverseProxy;
+}
 
+function renderSite(
+  site: Inventory["sites"][number],
+  listener: "http" | "https",
+): CaddyHandler | null {
+  if (!site.enabled || site.public === undefined) return null;
+
+  const publicSite = site.public;
+  const tlsEnabled = publicSite.tls !== "off";
+  if (listener === "https" && !tlsEnabled) return null;
+  if (listener === "http" && tlsEnabled) {
+    return {
+      match: [{ host: [publicSite.host] }],
+      handle: [{
+        handler: "static_response",
+        status_code: "308",
+        headers: {
+          Location: ["https://{http.request.host}{http.request.uri}"],
+        },
+      }],
+      terminal: true,
+    };
+  }
+
+  const routes = publicSite.routes !== undefined
+    ? [...publicSite.routes].sort((left, right) =>
+      right.path.length - left.path.length ||
+      left.path.localeCompare(right.path)
+    )
+    : [{ path: "/", upstreams: publicSite.upstreams! }];
+  if (publicSite.routes === undefined) {
+    return {
+      match: [{ host: [publicSite.host] }],
+      handle: [
+        ...renderMiddleware(publicSite.middleware ?? {}),
+        renderProxy(publicSite.upstreams!, publicSite),
+      ],
+      terminal: true,
+    };
+  }
   return {
     match: [{ host: [publicSite.host] }],
-    handle: [
-      ...renderMiddleware(publicSite.middleware ?? {}),
-      reverseProxy,
-    ],
+    handle: [{
+      handler: "subroute",
+      routes: routes.map((route) => ({
+        match: [{ path: [route.path === "/" ? "/*" : `${route.path}*`] }],
+        handle: [
+          ...renderMiddleware(publicSite.middleware ?? {}),
+          renderProxy(route.upstreams, publicSite),
+        ],
+        terminal: true,
+      })),
+    }],
     terminal: true,
   };
 }
@@ -518,7 +587,7 @@ function remotePath(directory: string, filename: string): string {
 }
 export const model = {
   type: "@holi0317/caddy/config",
-  version: "2026.08.18.3",
+  version: "2026.09.04.1",
   globalArguments: ConfigGlobalArgumentsSchema,
   resources: {
     config: {
@@ -636,24 +705,26 @@ export const model = {
         let activated = false;
         let hadPrevious = false;
         let serviceAvailable = false;
-          const serviceState = await runRemoteExec(
-            context,
-            remote.fleet,
-            remote.host,
-            {
-              command: `systemctl show ${shlexQuote(globalArguments.serviceName)} --property=LoadState --value`,
-              sudo: remote.sudo,
-              okExitCodes: "any",
-              timeoutSec: globalArguments.timeoutSeconds,
-            },
+        const serviceState = await runRemoteExec(
+          context,
+          remote.fleet,
+          remote.host,
+          {
+            command: `systemctl show ${
+              shlexQuote(globalArguments.serviceName)
+            } --property=LoadState --value`,
+            sudo: remote.sudo,
+            okExitCodes: "any",
+            timeoutSec: globalArguments.timeoutSeconds,
+          },
+        );
+        const serviceLoadState = serviceState.stdout.trim();
+        if (serviceState.exitCode !== 0 || serviceLoadState.length === 0) {
+          throw new Error(
+            `Failed to inspect Caddy service ${globalArguments.serviceName}: ${serviceState.stderr}`,
           );
-          const serviceLoadState = serviceState.stdout.trim();
-          if (serviceState.exitCode !== 0 || serviceLoadState.length === 0) {
-            throw new Error(
-              `Failed to inspect Caddy service ${globalArguments.serviceName}: ${serviceState.stderr}`,
-            );
-          }
-          serviceAvailable = serviceLoadState !== "not-found";
+        }
+        serviceAvailable = serviceLoadState !== "not-found";
         try {
           await ensureDir(
             context,
@@ -835,7 +906,11 @@ export const model = {
                   remote.fleet,
                   remote.host,
                   {
-                    command: ["systemctl", "reload", globalArguments.serviceName]
+                    command: [
+                      "systemctl",
+                      "reload",
+                      globalArguments.serviceName,
+                    ]
                       .map(shlexQuote).join(" "),
                     sudo: remote.sudo,
                     okExitCodes: "any",

@@ -1,0 +1,52 @@
+type: '@holi0317/systemd/quadlet'
+typeVersion: 2026.08.16.2
+id: 8f865225-746c-4bdd-af1b-c11f7b8143d0
+name: zitadel-login
+version: 1
+tags: {}
+globalArguments:
+  remote:
+    fleet: athena
+    host: athena
+    sudo: true
+  unitName: zitadel-login.container
+  content: |
+    [Unit]
+    Description=Zitadel Login UI
+    Wants=zitadel.network zitadel-api.service ingress.network
+    After=zitadel.network zitadel-api.service ingress.network
+    Requires=zitadel.network zitadel-api.service ingress.network
+    RequiresMountsFor=/srv/persistent/zitadel
+
+    [Container]
+    Image=ghcr.io/zitadel/zitadel-login:v4.16.0
+    ContainerName=zitadel-login
+    User=0
+    Network=zitadel.network
+    Network=ingress.network
+    Volume=/srv/persistent/zitadel/bootstrap:/zitadel/bootstrap:ro,Z
+    Environment=ZITADEL_API_URL=http://zitadel-api:8080
+    Environment=NEXT_PUBLIC_BASE_PATH=/ui/v2/login
+    Environment=ZITADEL_SERVICE_USER_TOKEN_FILE=/zitadel/bootstrap/login-client.pat
+    Environment=CUSTOM_REQUEST_HEADERS=Host:auth.holi0317.net,X-Forwarded-Proto:https
+    HealthCmd=/bin/sh -c 'node /app/healthcheck.mjs http://127.0.0.1:3000/ui/v2/login/healthy'
+    HealthInterval=10s
+    HealthTimeout=30s
+    HealthRetries=12
+    HealthStartPeriod=30s
+
+    [Service]
+    MemoryMax=512M
+    Restart=always
+    RestartSec=5
+    TimeoutStartSec=300
+
+    [Install]
+    WantedBy=multi-user.target
+  userMode: system
+  enabled: true
+  state: running
+methods:
+  apply:
+    arguments:
+      allowRecreate: false

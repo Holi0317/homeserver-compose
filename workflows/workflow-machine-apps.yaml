@@ -67,3 +67,90 @@ jobs:
               type: succeeded
         weight: 0
         allowFailure: false
+      - name: zitadel-role
+        description: Provision the Zitadel PostgreSQL login role
+        task:
+          type: model_method
+          modelIdOrName: zitadel-role
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+
+      - name: zitadel-database
+        description: Provision the Zitadel PostgreSQL database
+        task:
+          type: model_method
+          modelIdOrName: zitadel-database
+          methodName: apply
+        dependsOn:
+          - step: zitadel-role
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false
+
+      - name: zitadel-data-dir
+        description: Prepare protected persistent Zitadel bootstrap state
+        task:
+          type: model_method
+          modelIdOrName: zitadel-data-dir
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+
+      - name: zitadel-network
+        description: Apply the private Zitadel container network
+        task:
+          type: model_method
+          modelIdOrName: zitadel-network
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+
+      - name: ingress-network
+        description: Ensure the shared Caddy ingress network exists
+        task:
+          type: model_method
+          modelIdOrName: ingress-network
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+
+      - name: zitadel-api
+        description: Start the Zitadel API and initialize its instance
+        task:
+          type: model_method
+          modelIdOrName: zitadel-api
+          methodName: apply
+        dependsOn:
+          - step: zitadel-database
+            condition:
+              type: succeeded
+          - step: zitadel-data-dir
+            condition:
+              type: succeeded
+          - step: zitadel-network
+            condition:
+              type: succeeded
+          - step: ingress-network
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false
+
+      - name: zitadel-login
+        description: Start the Zitadel Login UI after the API is ready
+        task:
+          type: model_method
+          modelIdOrName: zitadel-login
+          methodName: apply
+        dependsOn:
+          - step: zitadel-api
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false

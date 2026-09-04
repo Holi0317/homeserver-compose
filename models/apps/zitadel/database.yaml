@@ -1,0 +1,18 @@
+type: '@holi0317/postgres/database'
+typeVersion: 2026.08.16.1
+id: 331bd112-83bd-47aa-8b37-302a4b3d8a3b
+name: zitadel-database
+version: 1
+tags: {}
+globalArguments:
+  sshModel: athena
+  host: athena
+  sudo: true
+  timeoutSeconds: 300
+  containerName: postgres
+  database: zitadel
+  ownerRole: zitadel
+  encoding: UTF8
+methods:
+  apply:
+    arguments: {}

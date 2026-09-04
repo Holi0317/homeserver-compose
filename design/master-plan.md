@@ -130,9 +130,9 @@ not duplicated.
 | Storage + Postgres | `workflows/workflow-machine-storage.yaml` | ✅ Done | Native `srv-persistent.mount` unit, Postgres quadlet |
 | Monitoring | `workflows/workflow-machine-monitoring.yaml` | ⬜ Not started | VictoriaMetrics, VictoriaLogs, Grafana, node_exporter, alerting |
 | Shared services | `workflows/workflow-machine-shared.yaml` | ⬜ Not started | Valkey |
-| Public ingress + Cloudflare DNS | `workflows/workflow-machine-ingress-public.yaml` | ⬜ Not started | Caddy public-internet edge, Cloudflare DDNS, public ACME, and explicit application routes |
+| Public ingress + Cloudflare DNS | `workflows/workflow-machine-ingress-public.yaml` | ✅ Done | Caddy public edge, Cloudflare DDNS, public ACME, and Zitadel route |
 | Tailnet services | `workflows/workflow-machine-ingress-tailnet.yaml` | ⬜ Deferred | Tailscale Service-host exposure after the public ingress phase |
-| Applications | `workflows/workflow-machine-apps.yaml` | ⬜ In progress | Nextcloud database resources are present; application containers remain to be migrated |
+| Applications | `workflows/workflow-machine-apps.yaml` | ⬜ In progress | Nextcloud and Grafana resources remain; Zitadel foundation is deployed |
 
 ## 7. Application inventory
 
@@ -148,7 +148,7 @@ service is deployed, reachable, monitored, and backed up (where applicable).
 - [x] PostgreSQL 16 on `/srv/persistent/postgres/16`
 - [ ] Valkey (shared Redis-compatible cache)
 - [ ] Cron script deployment + failure monitoring
-- [ ] Cloudflare DNS and DDNS for public hostnames
+- [x] Cloudflare DNS and DDNS for public hostnames
 
 ### Observability
 
@@ -157,6 +157,10 @@ service is deployed, reachable, monitored, and backed up (where applicable).
 - [x] VictoriaLogs
 - [x] Grafana
 - [x] Alerting rules + notification channel
+
+### Foundation applications
+
+- [x] Zitadel authentication foundation (API, Login V2, PostgreSQL, Caddy ingress)
 
 ### Applications
 
@@ -173,6 +177,13 @@ service is deployed, reachable, monitored, and backed up (where applicable).
   `postgres.superuser`); it was rotated off the bootstrap `CHANGEME` value on
   2026-08-26 via `postgres-role.rotate_password`, which stores a locally
   computed SCRAM-SHA-256 verifier so the plaintext never leaves the machine.
+- **Zitadel foundation:** deployed as API + Login V2 Quadlets on v4.16.0 with
+  PostgreSQL database `zitadel`, protected bootstrap state at
+  `/srv/persistent/zitadel/bootstrap`, and vault keys
+  `zitadel.master-key`, `zitadel.admin-password`, and
+  `postgres.zitadel.password`. Public issuer and console login are verified at
+  `https://auth.holi0317.net`; Authentik is not part of the replacement
+  runtime boundary.
 - **Quadlet enablement:** the current `@holi0317/systemd` extension enables
   Quadlet units by creating `.wants/` symlinks because `systemctl enable`
   refuses generated units on this Debian/systemd version.
@@ -190,12 +201,11 @@ service is deployed, reachable, monitored, and backed up (where applicable).
 
 ## 9. Next recommended steps
 
-1. Rotate the Postgres superuser password (`postgres.superuser`) in 1Password.
-2. Authenticate 1Password CLI (`eval $(op signin)`) and store app DB passwords
-   (e.g. `postgres.nextcloud.password`), then run `nextcloud-db.provision`.
-3. Deploy the monitoring stack on NVMe.
-4. Mount the Hetzner Storage Box at `/srv/media`.
-5. Deploy Valkey as a shared service.
-6. Implement public Caddy ingress and Cloudflare DNS/DDNS.
-7. Begin application deployments (Nextcloud / Jellyfin / Immich first).
-8. Add Tailscale Services exposure after the public ingress phase is stable.
+1. Authenticate 1Password CLI and provision remaining application database
+   credentials, then converge their database models.
+2. Mount the Hetzner Storage Box at `/srv/media` using the selected SMB/CIFS
+   boundary.
+3. Deploy Valkey as a shared private service.
+4. Deploy the remaining applications (Nextcloud / Jellyfin / Immich first) and
+   register each relying application with Zitadel OIDC.
+5. Add Tailscale Services exposure after the public ingress phase is stable.

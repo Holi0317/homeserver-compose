@@ -1,0 +1,71 @@
+type: '@holi0317/systemd/quadlet'
+typeVersion: 2026.08.16.2
+id: 32f138c8-4c3d-46b8-8a1c-ce0d73dab6f9
+name: zitadel-api
+version: 1
+tags: {}
+globalArguments:
+  remote:
+    fleet: athena
+    host: athena
+    sudo: true
+  unitName: zitadel-api.container
+  content: |
+    [Unit]
+    Description=Zitadel identity API
+    Wants=zitadel.network postgres.service zitadel-data-dir.service ingress.network
+    After=zitadel.network postgres.service zitadel-data-dir.service ingress.network
+    Requires=zitadel.network postgres.service zitadel-data-dir.service ingress.network
+    RequiresMountsFor=/srv/persistent/zitadel
+
+    [Container]
+    Image=ghcr.io/zitadel/zitadel:v4.16.0
+    ContainerName=zitadel-api
+    User=0
+    Network=zitadel.network
+    Network=postgres.network
+    Network=ingress.network
+    Volume=/srv/persistent/zitadel/bootstrap:/zitadel/bootstrap:Z
+    Exec=start-from-init --masterkey '${{ vault.get(homelab, zitadel.master-key) }}'
+    Environment=ZITADEL_PORT=8080
+    Environment=ZITADEL_EXTERNALDOMAIN=auth.holi0317.net
+    Environment=ZITADEL_EXTERNALPORT=443
+    Environment=ZITADEL_EXTERNALSECURE=true
+    Environment=ZITADEL_TLS_ENABLED=false
+    Environment=ZITADEL_DATABASE_POSTGRES_DSN=postgresql://zitadel:${{ vault.get(homelab, postgres.zitadel.password) }}@postgres:5432/zitadel?sslmode=disable
+    Environment=ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME=zitadel-admin
+    Environment=ZITADEL_FIRSTINSTANCE_ORG_HUMAN_FIRSTNAME=ZITADEL
+    Environment=ZITADEL_FIRSTINSTANCE_ORG_HUMAN_LASTNAME=Admin
+    Environment=ZITADEL_FIRSTINSTANCE_ORG_HUMAN_EMAIL_ADDRESS=admin@holi0317.net
+    Environment=ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD=${{ vault.get(homelab, zitadel.admin-password) }}
+    Environment=ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORDCHANGEREQUIRED=false
+    Environment=ZITADEL_FIRSTINSTANCE_LOGINCLIENTPATPATH=/zitadel/bootstrap/login-client.pat
+    Environment=ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_USERNAME=login-client
+    Environment=ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_NAME=Zitadel Login Client
+    Environment=ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_PAT_EXPIRATIONDATE=2099-01-01T00:00:00Z
+    Environment=ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED=true
+    Environment=ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_BASEURI=https://auth.holi0317.net/ui/v2/login/
+    Environment=ZITADEL_OIDC_DEFAULTLOGINURLV2=https://auth.holi0317.net/ui/v2/login/login?authRequest=
+    Environment=ZITADEL_OIDC_DEFAULTLOGOUTURLV2=https://auth.holi0317.net/ui/v2/login/logout?post_logout_redirect=
+    Environment=ZITADEL_SAML_DEFAULTLOGINURLV2=https://auth.holi0317.net/ui/v2/login/login?samlRequest=
+    Environment=ZITADEL_LOGSTORE_ACCESS_STDOUT_ENABLED=true
+    # The v4 image is distroless and Quadlet HealthCmd uses /bin/sh -c;
+    # readiness is verified through the public API and console smoke checks.
+    HealthCmd=none
+
+    [Service]
+    MemoryMax=1536M
+    Restart=always
+    RestartSec=5
+    TimeoutStartSec=900
+
+    ExecStartPost=/bin/sh -c 'i=0; while [ "$i" -lt 60 ]; do if [ -f /srv/persistent/zitadel/bootstrap/login-client.pat ]; then chmod 0600 /srv/persistent/zitadel/bootstrap/login-client.pat; exit 0; fi; i=$((i + 1)); sleep 1; done; exit 1'
+    [Install]
+    WantedBy=multi-user.target
+  userMode: system
+  enabled: true
+  state: running
+methods:
+  apply:
+    arguments:
+      allowRecreate: false

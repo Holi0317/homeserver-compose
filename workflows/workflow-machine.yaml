@@ -35,6 +35,23 @@ jobs:
           type: succeeded
     weight: 0
 
+  - name: ingress
+    description: Deploy the public Caddy ingress edge.
+    steps:
+      - name: machine-ingress-public
+        description: Run the public ingress domain workflow.
+        task:
+          type: workflow
+          workflowIdOrName: machine-ingress-public
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+    dependsOn:
+      - job: apps
+        condition:
+          type: succeeded
+    weight: 0
+
   - name: apps
     description: Deploy shared services and applications.
     steps:

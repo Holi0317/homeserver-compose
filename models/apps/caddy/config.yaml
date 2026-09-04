@@ -1,12 +1,36 @@
 type: '@holi0317/caddy/config'
-typeVersion: 2026.08.18.3
+typeVersion: 2026.09.04.1
 id: aa57737d-ff75-4fe3-b5ec-6fc0a8361e09
 name: ingress-config
 version: 1
 tags: {}
 globalArguments:
   inventory:
-    sites: []
+    sites:
+      - name: zitadel
+        enabled: true
+        public:
+          host: auth.holi0317.net
+          tls: automatic
+          routes:
+            - path: /ui/v2/login
+              upstreams:
+                - name: zitadel-login
+                  port: 3000
+            - path: /
+              upstreams:
+                - name: zitadel-api
+                  port: 8080
+                  protocol: h2c
+  dynamicDns:
+    domains:
+      holi0317.net:
+        - auth.holi0317.net
+    checkInterval: 5m
+    ttl: auto
+    versions:
+      ipv4: true
+      ipv6: true
   remote:
     fleet: athena
     host: athena

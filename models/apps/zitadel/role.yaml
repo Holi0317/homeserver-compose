@@ -1,0 +1,17 @@
+type: '@holi0317/postgres/role'
+typeVersion: 2026.08.16.1
+id: 52bb63a1-1cff-4a2c-9c53-02d9603977a3
+name: zitadel-role
+version: 1
+tags: {}
+globalArguments:
+  sshModel: athena
+  host: athena
+  sudo: true
+  roleName: zitadel
+  login: true
+  inherit: false
+  password: '${{ vault.get(homelab, postgres.zitadel.password) }}'
+methods:
+  apply:
+    arguments: {}

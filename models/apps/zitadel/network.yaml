@@ -1,0 +1,25 @@
+type: '@holi0317/systemd/quadlet'
+typeVersion: 2026.08.16.2
+id: f4da5e80-257b-4696-a9e8-79613a94d014
+name: zitadel-network
+version: 1
+tags: {}
+globalArguments:
+  remote:
+    fleet: athena
+    host: athena
+    sudo: true
+  unitName: zitadel.network
+  content: |
+    [Network]
+    Driver=bridge
+    Subnet=172.32.0.0/16
+    Gateway=172.32.0.1
+    Label=app=zitadel
+  userMode: system
+  enabled: true
+  state: running
+methods:
+  apply:
+    arguments:
+      allowRecreate: false

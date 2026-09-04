@@ -283,3 +283,35 @@ Deno.test("Dynamic DNS auto TTL emits Cloudflare automatic sentinel", () => {
     throw new Error("Cloudflare automatic TTL was not rendered as 1s");
   }
 });
+Deno.test("path-specific routes render as ordered subroutes with h2c", () => {
+  const config = JSON.parse(renderInventory({
+    sites: [{
+      name: "zitadel",
+      public: {
+        host: "auth.example.test",
+        routes: [
+          {
+            path: "/",
+            upstreams: [{ name: "zitadel-api", port: 8080, protocol: "h2c" }],
+          },
+          {
+            path: "/ui/v2/login",
+            upstreams: [{ name: "zitadel-login", port: 3000 }],
+          },
+        ],
+      },
+    }],
+  }));
+  const site = config.apps.http.servers.ingressHttps.routes[0];
+  const subroute = site.handle[0];
+  if (subroute.handler !== "subroute" || subroute.routes.length !== 2) {
+    throw new Error("path-specific routes were not rendered as a subroute");
+  }
+  if (subroute.routes[0].match[0].path[0] !== "/ui/v2/login*") {
+    throw new Error("specific Zitadel login route was not ordered first");
+  }
+  const apiProxy = subroute.routes[1].handle[0];
+  if (apiProxy.transport?.versions?.[0] !== "h2c") {
+    throw new Error("Zitadel API route did not enable h2c upstream transport");
+  }
+});
