@@ -44,3 +44,26 @@ jobs:
               type: succeeded
         weight: 0
         allowFailure: false
+
+      - name: grafana-role
+        description: Provision the Grafana PostgreSQL login role
+        task:
+          type: model_method
+          modelIdOrName: grafana-role
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+
+      - name: grafana-database
+        description: Provision the Grafana PostgreSQL database
+        task:
+          type: model_method
+          modelIdOrName: grafana-database
+          methodName: apply
+        dependsOn:
+          - step: grafana-role
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false

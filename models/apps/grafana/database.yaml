@@ -1,0 +1,18 @@
+type: '@holi0317/postgres/database'
+typeVersion: 2026.08.16.1
+id: 8a663735-ae02-4df1-9723-de8ebbf57be4
+name: grafana-database
+version: 1
+tags: {}
+globalArguments:
+  sshModel: athena
+  host: athena
+  sudo: true
+  timeoutSeconds: 300
+  containerName: postgres
+  database: grafana
+  ownerRole: grafana
+  encoding: UTF8
+methods:
+  apply:
+    arguments: {}

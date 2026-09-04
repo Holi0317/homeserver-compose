@@ -1,0 +1,17 @@
+type: '@holi0317/postgres/role'
+typeVersion: 2026.08.16.1
+id: 62801175-a8c3-487d-a9db-70904379ebc9
+name: grafana-role
+version: 1
+tags: {}
+globalArguments:
+  sshModel: athena
+  host: athena
+  sudo: true
+  roleName: grafana
+  login: true
+  inherit: false
+  password: '${{ vault.get(homelab, grafana.db-password) }}'
+methods:
+  apply:
+    arguments: {}

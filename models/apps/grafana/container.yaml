@@ -13,21 +13,27 @@ globalArguments:
   content: |
     [Unit]
     Description=Grafana dashboards
-    Wants=metrics.network grafana-data-dir.service
-    After=metrics.network grafana-data-dir.service
-    Requires=metrics.network grafana-data-dir.service
+    Wants=metrics.network postgres-network.service grafana-data-dir.service
+    After=metrics.network postgres.service grafana-data-dir.service
+    Requires=metrics.network postgres.service grafana-data-dir.service
 
     [Container]
     Image=docker.io/grafana/grafana:13.0.7
     ContainerName=grafana
     User=65534:65534
     Network=metrics.network
+    Network=postgres.network
     PublishPort=127.0.0.1:3000:3000
     Volume=/var/lib/grafana:/var/lib/grafana:Z
     Volume=/etc/grafana/provisioning:/etc/grafana/provisioning:ro,Z
     Volume=/etc/grafana/dashboards:/etc/grafana/dashboards:ro,Z
     Environment=GF_SECURITY_ADMIN_USER=admin
     Environment=GF_SECURITY_ADMIN_PASSWORD=${{ vault.get(homelab, grafana.admin-password) }}
+    Environment=GF_DATABASE_TYPE=postgres
+    Environment=GF_DATABASE_HOST=postgres:5432
+    Environment=GF_DATABASE_NAME=grafana
+    Environment=GF_DATABASE_USER=grafana
+    Environment=GF_DATABASE_PASSWORD=${{ vault.get(homelab, grafana.db-password) }}
     Environment=GF_AUTH_ANONYMOUS_ENABLED=false
     Environment=GF_USERS_ALLOW_SIGN_UP=false
     Environment=GF_ANALYTICS_REPORTING_ENABLED=false
