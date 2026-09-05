@@ -330,6 +330,37 @@ Tailnet client
   -> Caddy internal route
   -> nextcloud-web
 ```
+For the managed Caddy deployment, every tailnet site is routed through one
+container listener on port `18080`, published only as
+`127.0.0.1:18080` on Athena. Tailscale Serve endpoints therefore target
+`http://127.0.0.1:18080` and Caddy selects the backend using the incoming
+Service hostname. Public listeners remain on ports 80 and 443.
+Tailscale's declarative `set-config` format does not preserve the distinction
+between an HTTPS listener and an HTTP backend on the Tailscale version used by
+Athena: importing `tcp:443` with an `http://` target creates a plaintext HTTP
+endpoint on port 443. The managed Service unit therefore uses the explicit
+`tailscale serve --https=443 127.0.0.1:18080` command instead of `set-config`.
+See [Tailscale issue #18381](https://github.com/tailscale/tailscale/issues/18381).
+If the Service definition also includes `tcp:80`, the same unit may configure
+`--http=80 127.0.0.1:18081`. Caddy listens on that second loopback-only port
+and returns a 308 redirect to the HTTPS Service URL; the HTTPS endpoint keeps
+using `127.0.0.1:18080` for Grafana. This requires the Service port and grant
+to be applied before the Serve unit is converged.
+
+Both listeners handle bare service names too. Caddy matches requests whose
+Host is the first DNS label of a tailnet site (for example `grafana`) and
+answers with a 308 redirect to `https://<site>.tail351aa.ts.net` plus the
+original path and query. This makes `http://grafana` on port 80 a single-hop
+redirect to the full Service FQDN. MagicDNS resolves bare service names to the
+node address, so the HTTP path is reachable. The HTTPS path is not: Tailscale
+provisioned certificates only cover `*.tail351aa.ts.net` names, so tailscaled
+aborts the TLS handshake with an internal-error alert for SNI `grafana` before
+any HTTP traffic reaches Caddy. The matching bare-name route on port 18080
+exists for completeness and any future ingress that delivers such requests;
+`https://grafana` cannot be redirected under the current Tailscale Serve
+behavior. Requests already addressed to the full FQDN keep the generic
+`https://{host}{uri}` redirect on port 18081 and direct proxying on port
+18080.
 
 The alternative is to forward the Tailscale Service directly to a
 loopback-published application port. That is simpler but duplicates some

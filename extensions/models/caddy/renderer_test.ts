@@ -121,13 +121,17 @@ Deno.test("renderer emits explicit proxy policies", () => {
   }
 });
 
-Deno.test("public exposure is opt-in and tailnet fields are rejected", () => {
+Deno.test("public and tailnet exposure have separate listeners", () => {
   const disabled = JSON.parse(renderInventory({
     sites: [{
       name: "private",
       enabled: false,
       public: {
         host: "private.example.test",
+        upstreams: [{ name: "private-web", port: 80 }],
+      },
+      tailnet: {
+        host: "private.tail351aa.ts.net",
         upstreams: [{ name: "private-web", port: 80 }],
       },
     }],
@@ -138,34 +142,139 @@ Deno.test("public exposure is opt-in and tailnet fields are rejected", () => {
   ) {
     throw new Error("disabled public site was exposed");
   }
+  if (disabled.apps.http.servers.ingressTailnet !== undefined) {
+    throw new Error("disabled tailnet site was exposed");
+  }
 
-  const invalid = InventorySchema.safeParse({
+  const config = JSON.parse(renderInventory({
     sites: [{
       name: "nextcloud",
-      tailnet: { host: "nextcloud.example.ts.net" },
+      public: {
+        host: "nextcloud.example.test",
+        upstreams: [{ name: "nextcloud-web", port: 80 }],
+      },
+      tailnet: {
+        host: "nextcloud.tail351aa.ts.net",
+        upstreams: [{ name: "nextcloud-web", port: 80 }],
+      },
     }],
-  });
-  if (invalid.success) throw new Error("tailnet fields were accepted");
+  }));
+  const servers = config.apps.http.servers;
+  if (JSON.stringify(servers.ingressTailnet.listen) !== '[":18080"]') {
+    throw new Error("tailnet listener is not the shared internal port");
+  }
+  if (servers.ingressTailnet.automatic_https.disable !== true) {
+    throw new Error("tailnet listener enabled automatic HTTPS");
+  }
+  if (JSON.stringify(servers.ingressTailnetHttp.listen) !== '[":18081"]') {
+    throw new Error("tailnet HTTP listener is not the redirect port");
+  }
+  const redirect = servers.ingressTailnetHttp.routes[0];
+  if (redirect.handle[0].status_code !== "308") {
+    throw new Error("tailnet HTTP listener did not redirect");
+  }
+  if (
+    redirect.handle[0].headers.Location[0] !==
+      "https://{http.request.host}{http.request.uri}"
+  ) {
+    throw new Error("tailnet redirect target is not HTTPS");
+  }
+  const tailnetRoute = servers.ingressTailnet.routes[0];
+  if (tailnetRoute.match[0].host[0] !== "nextcloud.tail351aa.ts.net") {
+    throw new Error("tailnet route does not match the Service hostname");
+  }
+  if (tailnetRoute.handle[0].upstreams[0].dial !== "nextcloud-web:80") {
+    throw new Error("tailnet route upstream was not rendered");
+  }
+  if (
+    servers.ingressHttps.routes[0].match[0].host[0] !== "nextcloud.example.test"
+  ) {
+    throw new Error("public route changed while adding tailnet routing");
+  }
+  const bareRedirect = servers.ingressTailnet.routes[1];
+  if (bareRedirect.match[0].host[0] !== "nextcloud") {
+    throw new Error("tailnet listener has no bare-name redirect route");
+  }
+  if (bareRedirect.handle[0].status_code !== "308") {
+    throw new Error("bare-name HTTPS route did not redirect");
+  }
+  if (
+    bareRedirect.handle[0].headers.Location[0] !==
+      "https://nextcloud.tail351aa.ts.net{http.request.uri}"
+  ) {
+    throw new Error("bare-name HTTPS redirect is not the full Service FQDN");
+  }
+  const bareHttpRedirect = servers.ingressTailnetHttp.routes[1];
+  if (bareHttpRedirect.match[0].host[0] !== "nextcloud") {
+    throw new Error("tailnet HTTP listener has no bare-name redirect route");
+  }
+  if (
+    bareHttpRedirect.handle[0].headers.Location[0] !==
+      "https://nextcloud.tail351aa.ts.net{http.request.uri}"
+  ) {
+    throw new Error("bare-name HTTP redirect is not the full Service FQDN");
+  }
+
   const duplicateHosts = InventorySchema.safeParse({
     sites: [
       {
         name: "one",
-        public: {
-          host: "Example.test",
+        tailnet: {
+          host: "Example.tail351aa.ts.net",
           upstreams: [{ name: "one-web", port: 80 }],
         },
       },
       {
         name: "two",
-        public: {
-          host: "example.test",
+        tailnet: {
+          host: "example.tail351aa.ts.net",
           upstreams: [{ name: "two-web", port: 80 }],
         },
       },
     ],
   });
   if (duplicateHosts.success) {
-    throw new Error("duplicate public hosts were accepted");
+    throw new Error("duplicate tailnet hosts were accepted");
+  }
+});
+
+Deno.test("tailnet hosts must be Tailscale Service FQDNs", () => {
+  const rejected = (host: string) =>
+    !InventorySchema.safeParse({
+      sites: [{
+        name: "grafana",
+        tailnet: {
+          host,
+          upstreams: [{ name: "grafana", port: 3000 }],
+        },
+      }],
+    }).success;
+  if (!rejected("grafana.tail351aa.example.com")) {
+    throw new Error("a non-ts.net host was accepted");
+  }
+  if (!rejected("grafana.ts.net")) {
+    throw new Error("a three-label ts.net host was accepted");
+  }
+  if (!rejected("ts.net")) {
+    throw new Error("the registry suffix itself was accepted");
+  }
+  if (!rejected("grafana.west.tail351aa.ts.net")) {
+    throw new Error(
+      "a five-label ts.net host was accepted despite failing Tailscale cert issuance",
+    );
+  }
+  if (
+    !InventorySchema.safeParse({
+      sites: [{
+        name: "grafana",
+        tailnet: {
+          host: "grafana.tail351aa.ts.net",
+          upstreams: [{ name: "grafana", port: 3000 }],
+        },
+      }],
+    }).success
+  ) {
+    throw new Error("a valid Service FQDN was rejected");
   }
 });
 

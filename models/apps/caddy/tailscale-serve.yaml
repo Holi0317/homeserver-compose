@@ -1,0 +1,44 @@
+type: '@holi0317/systemd/unit'
+typeVersion: 2026.09.04.1
+id: 63f5d60a-96d8-4ca6-89da-2075cbda1d59
+name: tailscale-serve
+version: 1
+tags: {}
+globalArguments:
+  remote:
+    fleet: athena
+    host: athena
+    sudo: true
+  unitName: tailscale-serve.service
+  content: |
+    [Unit]
+    Description=Advertise Grafana through the shared Caddy listeners
+    Wants=caddy.service
+    After=caddy.service
+    Requires=caddy.service
+
+    [Service]
+    Type=oneshot
+    RemainAfterExit=yes
+    ExecStartPre=-/usr/bin/tailscale serve drain svc:grafana
+    ExecStartPre=-/usr/bin/tailscale serve clear svc:grafana
+    ExecStart=/usr/bin/tailscale serve --service=svc:grafana --https=443 127.0.0.1:18080
+    ExecStart=/usr/bin/tailscale serve --service=svc:grafana --http=80 127.0.0.1:18081
+    ExecStartPost=/usr/bin/tailscale serve status --json
+    ExecReload=-/usr/bin/tailscale serve drain svc:grafana
+    ExecReload=-/usr/bin/tailscale serve clear svc:grafana
+    ExecReload=/usr/bin/tailscale serve --service=svc:grafana --https=443 127.0.0.1:18080
+    ExecReload=/usr/bin/tailscale serve --service=svc:grafana --http=80 127.0.0.1:18081
+    ExecReload=/usr/bin/tailscale serve status --json
+    ExecStop=-/usr/bin/tailscale serve drain svc:grafana
+    ExecStop=-/usr/bin/tailscale serve clear svc:grafana
+
+    [Install]
+    WantedBy=multi-user.target
+  userMode: system
+  enabled: true
+  state: running
+methods:
+  apply:
+    arguments:
+      allowRecreate: false

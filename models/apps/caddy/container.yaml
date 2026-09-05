@@ -25,6 +25,8 @@ globalArguments:
     Network=ingress.network
     PublishPort=80:80
     PublishPort=443:443
+    PublishPort=127.0.0.1:18080:18080
+    PublishPort=127.0.0.1:18081:18081
     Volume=/srv/persistent/caddy/data:/data:Z
     Volume=/srv/persistent/caddy/config:/etc/caddy:ro,Z
     Exec=caddy run --config /etc/caddy/caddy.json

@@ -1,6 +1,6 @@
 manifestVersion: 1
 name: "@holi0317/caddy"
-version: "2026.09.04.1"
+version: "2026.09.05.2"
 description: "Render and deploy Caddy ingress with Dynamic DNS"
 repository: https://github.com/holi0317/homeserver-compose
 paths:

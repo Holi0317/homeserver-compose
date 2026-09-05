@@ -12,10 +12,9 @@ globalArguments:
   unitName: grafana.container
   content: |
     [Unit]
-    Description=Grafana dashboards
-    Wants=metrics.network postgres-network.service grafana-data-dir.service
-    After=metrics.network postgres.service grafana-data-dir.service
-    Requires=metrics.network postgres.service grafana-data-dir.service
+    Wants=metrics.network postgres-network.service ingress.network grafana-data-dir.service
+    After=metrics.network postgres.service ingress.network grafana-data-dir.service
+    Requires=metrics.network postgres.service ingress.network grafana-data-dir.service
 
     [Container]
     Image=docker.io/grafana/grafana:13.0.7
@@ -23,6 +22,7 @@ globalArguments:
     User=65534:65534
     Network=metrics.network
     Network=postgres.network
+    Network=ingress.network
     PublishPort=127.0.0.1:3000:3000
     Volume=/var/lib/grafana:/var/lib/grafana:Z
     Volume=/etc/grafana/provisioning:/etc/grafana/provisioning:ro,Z

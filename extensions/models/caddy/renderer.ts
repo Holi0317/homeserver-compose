@@ -17,6 +17,16 @@ const Hostname = z.string().min(1).max(253).regex(
   "must be an ASCII DNS hostname without a scheme, port, or path",
 );
 
+const TsNetServiceHostname = Hostname.refine(
+  (host) => {
+    const labels = host.split(".").map((label) => label.toLowerCase());
+    return labels.length === 4 &&
+      labels[2] === "ts" &&
+      labels[3] === "net";
+  },
+  "must be a <service>.<tailnet>.ts.net Tailscale Service FQDN; deeper names fail Tailscale HTTPS certificate issuance",
+);
+
 const Duration = z.string().regex(
   /^\d+(?:ms|s|m|h)(?:\d+(?:ms|s|m|h))*$/,
   "must be a Caddy duration such as 5s or 1m30s",
@@ -186,17 +196,55 @@ const PublicSiteSchema = z.strictObject({
   }
 });
 
+export const TailnetSiteSchema = z.strictObject({
+  host: TsNetServiceHostname,
+  upstreams: UpstreamsSchema.optional(),
+  routes: z.array(RouteSchema).min(1).optional(),
+  middleware: MiddlewareSchema.optional(),
+  forwardedHeaders: HeaderValues.optional(),
+  healthChecks: HealthChecksSchema.optional(),
+  loadBalancing: LoadBalancingSchema.optional(),
+}).superRefine((site, context) => {
+  if (site.upstreams === undefined && site.routes === undefined) {
+    context.addIssue({
+      code: "custom",
+      path: ["upstreams"],
+      message: "configure upstreams or path-specific routes",
+    });
+  }
+  if (site.upstreams !== undefined && site.routes !== undefined) {
+    context.addIssue({
+      code: "custom",
+      path: ["routes"],
+      message: "configure either upstreams or path-specific routes, not both",
+    });
+  }
+  const routePaths = new Set<string>();
+  for (const route of site.routes ?? []) {
+    if (routePaths.has(route.path)) {
+      context.addIssue({
+        code: "custom",
+        path: ["routes"],
+        message: `duplicate route path ${route.path}`,
+      });
+    }
+    routePaths.add(route.path);
+  }
+});
+
 export const SiteSchema = z.strictObject({
   name: Identifier,
   enabled: z.boolean().default(true),
   public: PublicSiteSchema.optional(),
+  tailnet: TailnetSiteSchema.optional(),
 });
 
 export const InventorySchema = z.strictObject({
   sites: z.array(SiteSchema).default([]),
 }).superRefine((inventory, context) => {
   const names = new Set<string>();
-  const hosts = new Set<string>();
+  const publicHosts = new Set<string>();
+  const tailnetHosts = new Set<string>();
   for (const site of inventory.sites) {
     if (names.has(site.name)) {
       context.addIssue({
@@ -208,14 +256,25 @@ export const InventorySchema = z.strictObject({
     names.add(site.name);
     if (site.enabled && site.public !== undefined) {
       const host = site.public.host.toLowerCase();
-      if (hosts.has(host)) {
+      if (publicHosts.has(host)) {
         context.addIssue({
           code: "custom",
           path: ["sites"],
           message: `duplicate public host ${site.public.host}`,
         });
       }
-      hosts.add(host);
+      publicHosts.add(host);
+    }
+    if (site.enabled && site.tailnet !== undefined) {
+      const host = site.tailnet.host.toLowerCase();
+      if (tailnetHosts.has(host)) {
+        context.addIssue({
+          code: "custom",
+          path: ["sites"],
+          message: `duplicate tailnet host ${site.tailnet.host}`,
+        });
+      }
+      tailnetHosts.add(host);
     }
   }
 });
@@ -306,7 +365,9 @@ function renderHealthChecks(
 
 function renderProxy(
   upstreams: z.infer<typeof UpstreamsSchema>,
-  publicSite: z.infer<typeof PublicSiteSchema>,
+  publicSite:
+    | z.infer<typeof PublicSiteSchema>
+    | z.infer<typeof TailnetSiteSchema>,
 ): CaddyHandler {
   const firstUpstream = upstreams[0];
   const reverseProxy: CaddyHandler = {
@@ -407,6 +468,83 @@ function renderSite(
   };
 }
 
+function renderTailnetSite(
+  site: Inventory["sites"][number],
+): CaddyHandler | null {
+  if (!site.enabled || site.tailnet === undefined) return null;
+
+  const tailnetSite = site.tailnet;
+  const routes = tailnetSite.routes !== undefined
+    ? [...tailnetSite.routes].sort((left, right) =>
+      right.path.length - left.path.length ||
+      left.path.localeCompare(right.path)
+    )
+    : [{ path: "/", upstreams: tailnetSite.upstreams! }];
+  if (tailnetSite.routes === undefined) {
+    return {
+      match: [{ host: [tailnetSite.host] }],
+      handle: [
+        ...renderMiddleware(tailnetSite.middleware ?? {}),
+        renderProxy(tailnetSite.upstreams!, tailnetSite),
+      ],
+      terminal: true,
+    };
+  }
+  return {
+    match: [{ host: [tailnetSite.host] }],
+    handle: [{
+      handler: "subroute",
+      routes: routes.map((route) => ({
+        match: [{ path: [route.path === "/" ? "/*" : `${route.path}*`] }],
+        handle: [
+          ...renderMiddleware(tailnetSite.middleware ?? {}),
+          renderProxy(route.upstreams, tailnetSite),
+        ],
+        terminal: true,
+      })),
+    }],
+    terminal: true,
+  };
+}
+function renderTailnetRedirectSite(
+  site: Inventory["sites"][number],
+): CaddyHandler | null {
+  if (!site.enabled || site.tailnet === undefined) return null;
+
+  return {
+    match: [{ host: [site.tailnet.host] }],
+    handle: [{
+      handler: "static_response",
+      status_code: "308",
+      headers: {
+        Location: ["https://{http.request.host}{http.request.uri}"],
+      },
+    }],
+    terminal: true,
+  };
+}
+function renderTailnetBareNameRedirectSite(
+  site: Inventory["sites"][number],
+): CaddyHandler | null {
+  if (!site.enabled || site.tailnet === undefined) return null;
+
+  const host = site.tailnet.host;
+  const bareName = host.split(".")[0];
+  if (bareName === host) return null;
+
+  return {
+    match: [{ host: [bareName] }],
+    handle: [{
+      handler: "static_response",
+      status_code: "308",
+      headers: {
+        Location: [`https://${host}{http.request.uri}`],
+      },
+    }],
+    terminal: true,
+  };
+}
+
 type DynamicDnsConfig = {
   tokenEnv: string;
   domains: Record<string, string[]>;
@@ -432,6 +570,15 @@ export function renderInventory(
   const httpsRoutes = publicSites
     .map((site) => renderSite(site, "https"))
     .filter((site): site is CaddyHandler => site !== null);
+  const tailnetRoutes = orderedSites
+    .map((site) => renderTailnetSite(site))
+    .filter((site): site is CaddyHandler => site !== null);
+  const tailnetBareNameRoutes = orderedSites
+    .map((site) => renderTailnetBareNameRedirectSite(site))
+    .filter((site): site is CaddyHandler => site !== null);
+  const tailnetHttpRoutes = orderedSites
+    .map((site) => renderTailnetRedirectSite(site))
+    .filter((site): site is CaddyHandler => site !== null);
   const healthRoute: CaddyHandler = {
     match: [{ path: ["/healthz"] }],
     handle: [{
@@ -451,6 +598,20 @@ export function renderInventory(
     servers.ingressHttps = {
       listen: [":443"],
       routes: httpsRoutes,
+    };
+  }
+  if (tailnetRoutes.length > 0) {
+    servers.ingressTailnet = {
+      listen: [":18080"],
+      automatic_https: { disable: true },
+      routes: [...tailnetRoutes, ...tailnetBareNameRoutes],
+    };
+  }
+  if (tailnetHttpRoutes.length > 0) {
+    servers.ingressTailnetHttp = {
+      listen: [":18081"],
+      automatic_https: { disable: true },
+      routes: [...tailnetHttpRoutes, ...tailnetBareNameRoutes],
     };
   }
 
@@ -587,7 +748,7 @@ function remotePath(directory: string, filename: string): string {
 }
 export const model = {
   type: "@holi0317/caddy/config",
-  version: "2026.09.04.1",
+  version: "2026.09.05.2",
   globalArguments: ConfigGlobalArgumentsSchema,
   resources: {
     config: {
@@ -620,9 +781,11 @@ export const model = {
         );
         const digest = await sha256(json);
         const siteNames = globalArguments.inventory.sites
-          .filter((site) => site.enabled && site.public !== undefined)
-          .map((site) => site.name)
-          .sort();
+          .filter((site) =>
+            site.enabled &&
+            (site.public !== undefined || site.tailnet !== undefined)
+          )
+          .map((site) => site.name);
         const config = { digest, json, siteNames };
         const digestHandle = await context.writeResource(
           "config",
