@@ -1,0 +1,31 @@
+type: '@holi0317/systemd/unit'
+typeVersion: 2026.09.04.1
+id: dddc230d-4aab-43b7-969f-cf2213e30d8a
+name: valkey-ready
+version: 1
+tags: {}
+globalArguments:
+  remote:
+    fleet: athena
+    host: athena
+    sudo: true
+  unitName: valkey-ready.service
+  content: |
+    [Unit]
+    Description=Valkey readiness check
+    Wants=valkey.service
+    After=valkey.service
+    Requires=valkey.service
+
+    [Service]
+    Type=oneshot
+    Environment=VALKEY_ADMIN_PASSWORD=${{ vault.get(homelab, valkey.admin-password) }}
+    ExecStart=/bin/sh -c 'podman exec valkey valkey-cli --no-auth-warning -a "$VALKEY_ADMIN_PASSWORD" ping | grep -qx PONG'
+    RemainAfterExit=yes
+  userMode: system
+  enabled: true
+  state: running
+methods:
+  apply:
+    arguments:
+      allowRecreate: false

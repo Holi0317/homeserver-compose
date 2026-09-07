@@ -35,6 +35,23 @@ jobs:
           type: succeeded
     weight: 0
 
+  - name: shared
+    description: Deploy the shared Valkey cache service.
+    steps:
+      - name: machine-shared
+        description: Run the shared services domain workflow.
+        task:
+          type: workflow
+          workflowIdOrName: machine-shared
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+    dependsOn:
+      - job: storage
+        condition:
+          type: succeeded
+    weight: 0
+
   - name: ingress
     description: Deploy the public Caddy ingress edge.
     steps:
@@ -64,7 +81,7 @@ jobs:
         weight: 0
         allowFailure: false
     dependsOn:
-      - job: storage
+      - job: shared
         condition:
           type: succeeded
 

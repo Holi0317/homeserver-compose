@@ -1,0 +1,23 @@
+type: '@holi0317/systemd/quadlet'
+typeVersion: 2026.09.04.1
+id: e348ffc9-2a7b-4340-805f-1b791ffcbbac
+name: valkey-network
+version: 1
+tags: {}
+globalArguments:
+  remote:
+    fleet: athena
+    host: athena
+    sudo: true
+  unitName: valkey.network
+  content: |
+    [Network]
+    Driver=bridge
+    Subnet=172.33.0.0/16
+    Gateway=172.33.0.1
+  enabled: true
+  state: running
+methods:
+  apply:
+    arguments:
+      allowRecreate: false

@@ -41,9 +41,9 @@ retention is required.
   managed by the custom `@holi0317/systemd/quadlet` model. Custom raw systemd
   resources use `@holi0317/systemd/unit`; `@adam/cfgmgmt/systemd` remains the
   behavioral starting point and is used where its contract fits.
-- **Shared Valkey.** One Redis-compatible Valkey instance with virtual-host
-  separation (separate logical databases or ACL users) for caching/session
-  needs.
+- **Shared Valkey.** One Redis-compatible Valkey instance on a private
+  network, with per-consumer ACL users (vault-backed passwords) as the
+  isolation boundary for caching/session needs.
 - **Monitoring from day one.** Node-level and service-level metrics/logs flow
   into VictoriaMetrics / VictoriaLogs and are visualized in Grafana, with
   alerting.
@@ -128,8 +128,7 @@ not duplicated.
 | Machine convergence root | `workflows/workflow-machine.yaml` | ✅ Done | Canonical root workflow that composes the machine domain workflows |
 | Bootstrap machine | `workflows/workflow-machine-bootstrap.yaml` | ✅ Done | Base packages (+ncdu, tailscale), dynamic tailscale repo from `/etc/os-release`, journald 512MB cap, apt autoclean, coredump 1GB cap, mirror.gcr.io for docker.io, weekly podman image prune |
 | Storage + Postgres | `workflows/workflow-machine-storage.yaml` | ✅ Done | Native `srv-persistent.mount` unit, Postgres quadlet |
-| Monitoring | `workflows/workflow-machine-monitoring.yaml` | ⬜ Not started | VictoriaMetrics, VictoriaLogs, Grafana, node_exporter, alerting |
-| Shared services | `workflows/workflow-machine-shared.yaml` | ⬜ Not started | Valkey |
+| Shared services | `workflows/workflow-machine-shared.yaml` | ✅ Done | Valkey with per-consumer ACL-user isolation |
 | Public ingress + Cloudflare DNS | `workflows/workflow-machine-ingress-public.yaml` | ✅ Done | Caddy public edge, Cloudflare DDNS, public ACME, and Zitadel route |
 | Tailnet services | `workflows/workflow-machine-ingress-tailnet.yaml` | ⬜ Deferred | Tailscale Service-host exposure after the public ingress phase |
 | Applications | `workflows/workflow-machine-apps.yaml` | ⬜ In progress | Nextcloud and Grafana resources remain; Zitadel foundation is deployed |
@@ -146,7 +145,7 @@ service is deployed, reachable, monitored, and backed up (where applicable).
 - [x] Persistent block storage mount (`/srv/persistent`)
 - [x] Storage blow-up mitigations (journald, apt, coredump, podman prune, docker.io → mirror.gcr.io)
 - [x] PostgreSQL 16 on `/srv/persistent/postgres/16`
-- [ ] Valkey (shared Redis-compatible cache)
+- [x] Valkey (shared Redis-compatible cache, per-consumer ACL users)
 - [ ] Cron script deployment + failure monitoring
 - [x] Cloudflare DNS and DDNS for public hostnames
 
@@ -198,6 +197,17 @@ service is deployed, reachable, monitored, and backed up (where applicable).
   are routed through `mirror.gcr.io` via `/etc/containers/registries.conf.d`.
   Application-level log rotation inside containers still needs to be handled
   per app.
+- **Valkey:** deployed as the shared cache/session service on `valkey.network`
+  (172.33.0.0/16, no published ports; netavark blocks cross-bridge traffic).
+  Application isolation is per-consumer ACL users (`@holi0317/valkey/user`)
+  with vault-backed passwords, each allocated one logical database (0 is the
+  platform/admin user; consumers take 1-15) recorded in the user model's
+  state; persistence is AOF `everysec` plus an RDB snapshot, capped at
+  `maxmemory 512mb` (`allkeys-lru`) and `MemoryMax=768M`.
+  Rotating `valkey.admin-password`: rotate the vault secret, delete
+  `/srv/persistent/valkey/data/users.acl`, re-apply `valkey-data-dir`, restart
+  `valkey.service`, then reconverge `machine-shared`. Quadlet on this host
+  does not support `Command=`; container commands must use `Exec=`.
 
 ## 9. Next recommended steps
 
@@ -205,7 +215,8 @@ service is deployed, reachable, monitored, and backed up (where applicable).
    credentials, then converge their database models.
 2. Mount the Hetzner Storage Box at `/srv/media` using the selected SMB/CIFS
    boundary.
-3. Deploy Valkey as a shared private service.
+3. Allocate Valkey ACL namespaces for each application consumer as they
+   deploy (Nextcloud first, lab-6td.1.1).
 4. Deploy the remaining applications (Nextcloud / Jellyfin / Immich first) and
    register each relying application with Zitadel OIDC.
 5. Add Tailscale Services exposure after the public ingress phase is stable.

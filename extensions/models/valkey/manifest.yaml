@@ -1,0 +1,13 @@
+manifestVersion: 1
+name: "@holi0317/valkey"
+version: "2026.09.07.2"
+description: "Manage Valkey ACL users inside a Podman container over SSH"
+repository: https://github.com/holi0317/homeserver-compose
+paths:
+  base: manifest
+models:
+  - user.ts
+additionalFiles: []
+platforms: []
+dependencies:
+  - "@swamp/ssh"

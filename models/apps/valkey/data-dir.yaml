@@ -1,0 +1,34 @@
+type: '@holi0317/systemd/unit'
+typeVersion: 2026.09.04.1
+id: 96f0559d-3d8a-4e71-9884-44be5c697cb8
+name: valkey-data-dir
+version: 1
+tags: {}
+globalArguments:
+  remote:
+    fleet: athena
+    host: athena
+    sudo: true
+  unitName: valkey-data-dir.service
+  content: |
+    [Unit]
+    Description=Prepare Valkey persistent data directory
+    RequiresMountsFor=/srv/persistent
+    Before=valkey.service
+
+    [Service]
+    Type=oneshot
+    Environment=VALKEY_ADMIN_PASSWORD=${{ vault.get(homelab, valkey.admin-password) }}
+    ExecStart=/usr/bin/install -d -o 999 -g 1000 -m 0750 /srv/persistent/valkey/data
+    ExecStart=/bin/sh -c 'if [ ! -e /srv/persistent/valkey/data/users.acl ]; then hash=$(printf %%s "$VALKEY_ADMIN_PASSWORD" | sha256sum | cut -d" " -f1); printf "user default on #%%s ~* &* +@all\n" "$hash" > /srv/persistent/valkey/data/users.acl; fi; chown 999:1000 /srv/persistent/valkey/data/users.acl; chmod 600 /srv/persistent/valkey/data/users.acl'
+    RemainAfterExit=yes
+
+    [Install]
+    WantedBy=multi-user.target
+  userMode: system
+  enabled: true
+  state: running
+methods:
+  apply:
+    arguments:
+      allowRecreate: false

@@ -320,6 +320,49 @@ role passwords are converged by the PostgreSQL role model.
 Database replacement or destruction can destroy data. Destructive methods are
 gated explicitly, and role destruction does not implicitly drop owned objects.
 
+## Valkey model family
+
+The shared Valkey instance is platform infrastructure owned by the
+`models/apps/valkey/` resources: a data directory with an ACL bootstrap, the
+private `valkey.network` bridge, the container, and a readiness probe. They
+converge through the `machine-shared` workflow.
+
+`@holi0317/valkey/user` owns one ACL user of the shared instance. Per-consumer
+ACL users are the application isolation boundary: each consumer gets its own
+username and vault-backed password (`~*` keys, `&*` channels, `+@all`
+commands by default, overridable per instance). Passwords converge as SHA-256
+hashes, so plaintext secrets never appear in remote command arguments, state
+resources, or `users.acl`. The model authenticates over the container-local
+Unix socket as the default user, mirroring how `postgres/role` uses the
+container's local socket.
+
+The default user carries the administrative credential (`valkey.admin-password`
+in the vault) and is converged by the `valkey-default-user` model. Rotating it
+follows the documented runbook: rotate the vault secret, delete
+`/srv/persistent/valkey/data/users.acl`, re-apply `valkey-data-dir`, restart
+`valkey.service`, then reconverge `machine-shared`. The bootstrap writes only
+the password hash; the socket path still requires an authenticated ACL
+connection, so there is no credential-free management path.
+
+Each consumer is also allocated one logical database (Valkey's default 16
+`SELECT` slots): 0 is reserved for the default/administrative user, consumers
+take 1-15. The allocation is a declared field on the user model recorded in
+its state resource; application wiring must connect to that index
+(`redis://.../N`, `REDIS_DB`, `DBINDEX`, and so on). The server cannot pin a
+user to a database — `SELECT` permission is all-or-nothing per user — so this
+is a keyspace separation convention, not an enforcement boundary. It prevents
+key collisions between consumers, scopes `FLUSHDB` to one consumer, and gives
+per-database key counts in `INFO`. The ACL password remains the actual
+isolation boundary.
+
+Rejected alternative: separating consumers only by logical database numbers
+behind one shared password (the legacy Ansible `redis`/`redict` role
+approach). Any consumer holding that single credential could then read or
+`FLUSHALL` every other consumer's keyspace, and rotation would couple all
+consumers at once. Per-user ACLs keep rotation and blast radius per
+application; logical databases layer keyspace separation on top of it.
+
+
 ## Definition of done for a new model type
 
 - The type name identifies a stable resource contract.

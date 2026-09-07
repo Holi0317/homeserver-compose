@@ -1,0 +1,24 @@
+type: '@holi0317/valkey/user'
+typeVersion: 2026.09.07.1
+id: a5bc0f2e-7149-4470-a8be-448518ad65d0
+name: valkey-default-user
+version: 1
+tags: {}
+globalArguments:
+  sshModel: athena
+  host: athena
+  sudo: true
+  containerName: valkey
+  userName: default
+  enabled: true
+  keyPatterns:
+    - "~*"
+  channelPatterns:
+    - "&*"
+  commands:
+    - "+@all"
+  password: '${{ vault.get(homelab, valkey.admin-password) }}'
+  adminPassword: '${{ vault.get(homelab, valkey.admin-password) }}'
+methods:
+  apply:
+    arguments: {}

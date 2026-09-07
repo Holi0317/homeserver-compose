@@ -1,0 +1,46 @@
+type: '@holi0317/systemd/quadlet'
+typeVersion: 2026.09.04.1
+id: 16be9bdd-1efa-4e19-b242-dcfb7ffb9c3a
+name: valkey-container
+version: 1
+tags: {}
+globalArguments:
+  remote:
+    fleet: athena
+    host: athena
+    sudo: true
+  unitName: valkey.container
+  content: |
+    [Unit]
+    Description=Shared Valkey cache
+    Wants=valkey-network.service
+    After=valkey-network.service valkey-data-dir.service
+    Requires=valkey-data-dir.service
+    RequiresMountsFor=/srv/persistent/valkey
+
+    [Container]
+    Image=docker.io/valkey/valkey:9.1.2-alpine
+    ContainerName=valkey
+    User=999:1000
+    Volume=/srv/persistent/valkey/data:/data:Z
+    Network=valkey.network
+    HealthCmd=valkey-cli --no-auth-warning -a ${{ vault.get(homelab, valkey.admin-password) }} ping
+    Exec=--dir /data --appendonly yes --appendfsync everysec --save 900 1 --maxmemory 512mb --maxmemory-policy allkeys-lru --aclfile /data/users.acl --unixsocket /data/valkey.sock --unixsocketperm 700
+    HealthTimeout=5s
+    HealthRetries=5
+    HealthStartPeriod=15s
+
+    [Service]
+    MemoryMax=768M
+    Restart=always
+    RestartSec=5
+
+    [Install]
+    WantedBy=default.target
+  userMode: system
+  enabled: true
+  state: running
+methods:
+  apply:
+    arguments:
+      allowRecreate: false
