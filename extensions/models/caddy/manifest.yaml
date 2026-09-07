@@ -6,7 +6,7 @@ repository: https://github.com/holi0317/homeserver-compose
 paths:
   base: manifest
 models:
-  - renderer.ts
+  - model.ts
 platforms: []
 dependencies:
   - "@swamp/ssh"

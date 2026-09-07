@@ -1,4 +1,5 @@
-import { InventorySchema, renderInventory } from "./renderer.ts";
+import { renderInventory } from "./render.ts";
+import { InventorySchema } from "./schema.ts";
 
 Deno.test("empty inventory renders private admin and health endpoint", () => {
   const config = JSON.parse(renderInventory({ sites: [] }));
