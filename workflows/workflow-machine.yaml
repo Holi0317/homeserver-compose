@@ -69,6 +69,23 @@ jobs:
           type: succeeded
     weight: 0
 
+  - name: oidc-apps
+    description: Register relying-party OIDC applications in Zitadel.
+    steps:
+      - name: zitadel-oidc-apps
+        description: Run the Zitadel OIDC application registration workflow.
+        task:
+          type: workflow
+          workflowIdOrName: zitadel-oidc-apps
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+    dependsOn:
+      - job: ingress
+        condition:
+          type: succeeded
+    weight: 0
+
   - name: apps
     description: Deploy shared services and applications.
     steps:

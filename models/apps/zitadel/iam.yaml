@@ -1,0 +1,10 @@
+type: '@thomas/zitadel'
+typeVersion: 2026.06.24.1
+id: 8d827aee-1fc6-4bf2-ab20-10b24b3780db
+name: zitadel-iam
+version: 1
+tags: {}
+globalArguments:
+  apiUrl: 'https://auth.holi0317.net'
+  keyJson: '${{ vault.get(homelab, zitadel.admin-service-key) }}'
+methods: {}

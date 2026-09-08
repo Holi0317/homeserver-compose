@@ -38,7 +38,14 @@ These keys are required before convergence:
 - `postgres.zitadel.password` — dedicated database role password;
 - `zitadel.master-key` — exactly 32 characters and immutable after first setup;
 - `zitadel.admin-password` — initial `zitadel-admin` organization owner
-  password.
+  password;
+- `zitadel.admin-service-key` — machine-user JSON key for the `swamp-iam`
+  service account (ORG_OWNER); the credential the OIDC registration model
+  authenticates with;
+- OIDC client secrets are minted once by `oidc_app_ensure` and auto-stored in
+  the `homelab` vault by swamp; model data carries them only as `vault.get`
+  CEL references. Consumers resolve `clientSecret` through model data
+  (`data.latest(...)`), never as a plaintext key name.
 
 The initial admin password is configured with
 `ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD` and is only consumed on first
@@ -58,20 +65,27 @@ material. The issuer is:
 https://auth.holi0317.net
 ```
 
-The first operational relying-party check is the Zitadel Console login at
-`/ui/console`, which exercises the public Login V2 and API routing. Application
-workloads should add their OIDC client registration and vault-backed client
-credentials as part of their own deployment issue. No Authentik resources or
-migration data remain in this repository; the replacement is a clean Zitadel
-foundation rather than an Authentik database migration.
+Relying-party registrations are declarative: the `zitadel-iam` model
+(models/apps/zitadel/iam.yaml, type `@thomas/zitadel`) holds the service-account
+connection, and the `zitadel-oidc-apps` workflow ensures each application's
+project, roles, and OIDC client idempotently — re-running convergence reports
+`unchanged`. Per-app client secrets are vault-backed, and user role assignment
+stays manual in the Console. The first registered relying party is Grafana;
+other applications (Nextcloud, Immich, the git forge) add steps to the same
+workflow. No Authentik resources or migration data remain in this repository;
+the replacement is a clean Zitadel foundation rather than an Authentik
+database migration.
 
 ## Managed resources
 
 `models/apps/zitadel/` contains the role, database, protected state directory,
-private network, API Quadlet, and Login V2 Quadlet. `machine-apps` provisions
-the database and starts both containers. The root `machine` workflow converges
-applications before `machine-ingress-public`, so Caddy only activates the
-public route after the upstream services exist.
+private network, API Quadlet, Login V2 Quadlet, and the `zitadel-iam` OIDC
+registration connection. `machine-apps` provisions the database and starts both
+containers. The root `machine` workflow converges applications before
+`machine-ingress-public`, so Caddy only activates the public route after the
+upstream services exist. A final `oidc-apps` machine job runs
+`zitadel-oidc-apps` after ingress, because the Management API is reachable only
+through the Caddy-published `auth.holi0317.net` route.
 
 The Caddy model supports path-specific subroutes and h2c upstreams for this
 split API/Login topology while retaining the existing single-upstream site

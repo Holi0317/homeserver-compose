@@ -119,5 +119,19 @@
     "checksum": "3fa176818ba13f735da17216042862a408ec45ff0e2a231f5f5e2c19cc03ffc0",
     "filesChecksum": "079787d04a9aa915da317f50dc0ffaef2f665ddf454c2d737fe80651f0398b95",
     "serverUrl": "https://swamp-club.com"
+  },
+  "@thomas/zitadel": {
+    "version": "2026.06.24.1",
+    "pulledAt": "2026-09-07T21:55:46.967Z",
+    "files": [
+      ".swamp/bundles/9bd2d0c7/zitadel.js",
+      ".swamp/pulled-extensions/@thomas/zitadel/files/LICENSE.txt",
+      ".swamp/pulled-extensions/@thomas/zitadel/files/README.md",
+      ".swamp/pulled-extensions/@thomas/zitadel/manifest.yaml",
+      ".swamp/pulled-extensions/@thomas/zitadel/models/zitadel.ts"
+    ],
+    "checksum": "9b9f075b33170d3742d6228faea36e00330cc0914abb20b18c531d743ebc3c37",
+    "filesChecksum": "4f3b4739e792b5801794f25cea836976d23a09b3d4e3371258beefa428d4e3fe",
+    "serverUrl": "https://swamp-club.com"
   }
 }
