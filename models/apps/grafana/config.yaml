@@ -1,0 +1,63 @@
+type: '@adam/cfgmgmt/file'
+typeVersion: 2026.03.18.1
+id: ad080bce-48fe-4357-a87a-763998f05631
+name: grafana-config
+version: 1
+tags: {}
+globalArguments:
+  path: /etc/grafana/grafana.ini
+  ensure: present
+  content: |
+    ; Grafana main configuration, rendered by grafana-config and mounted
+    ; read-only into the container at /etc/grafana/grafana.ini. Takes effect on
+    ; container start; operational settings stay in the Quadlet environment.
+    [paths]
+    data = /var/lib/grafana
+    logs = /var/log/grafana
+    plugins = /var/lib/grafana/plugins
+    provisioning = /etc/grafana/provisioning
+
+    [server]
+    ; Public URL through Tailscale Serve + Caddy; must match the redirect URI
+    ; registered for the Zitadel OIDC application.
+    root_url = https://grafana.tail351aa.ts.net/
+
+    [auth.generic_oauth]
+    enabled = true
+    name = Zitadel
+    icon = signin
+    ; JIT-provision users on first login; [users] allow_sign_up stays false so
+    ; only OAuth users holding a Zitadel Grafana role can be created.
+    allow_sign_up = true
+    client_id = ${{ data.latest("zitadel-iam", "389927371592957967").attributes.clientId }}
+    scopes = openid profile email
+    auth_url = https://auth.holi0317.net/oauth/v2/authorize
+    token_url = https://auth.holi0317.net/oauth/v2/token
+    api_url = https://auth.holi0317.net/oidc/v1/userinfo
+    signout_redirect_url = https://auth.holi0317.net/oidc/v1/end_session
+    ; PKCE-only public client: the Zitadel app's authentication method is
+    ; none, so there is no client secret. PKCE (S256) binds the authorization
+    ; code to this browser session and protects against code interception;
+    ; the registered redirect URI plus project roleCheck gate redemption.
+    use_pkce = true
+    ; Role assertion puts project role keys under urn:zitadel:iam:org:project:roles
+    ; as {"<role>": {"<orgId>": "<domain>"}}. Map the admin key to GrafanaAdmin:
+    ; with allow_assign_grafana_admin = true this grants BOTH the server
+    ; administrator role and the org Admin role; everything else falls back to
+    ; Viewer (or a missing role claim).
+    ; allowed_domains is intentionally unset: project roleCheck already gates
+    ; who may authenticate at the Zitadel side.
+    role_attribute_path = contains(keys("urn:zitadel:iam:org:project:roles"), 'admin') && 'GrafanaAdmin' || 'Viewer'
+    allow_assign_grafana_admin = true
+    ; Bypass the login form and go straight to Zitadel. The local fallback
+    ; form stays reachable at /login?disableAutoLogin for recovery.
+    auto_login = true
+  owner: '65534'
+  group: '65534'
+  mode: '0600'
+  nodeHost: '${{ data.latest("athena", "host-athena").attributes.address }}'
+  nodeUser: '${{ data.latest("athena", "host-athena").attributes.user }}'
+  nodePort: '${{ data.latest("athena", "host-athena").attributes.port }}'
+  become: true
+  becomeUser: root
+methods: {}

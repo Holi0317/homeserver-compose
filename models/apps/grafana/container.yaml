@@ -26,6 +26,7 @@ globalArguments:
     PublishPort=127.0.0.1:3000:3000
     Volume=/var/lib/grafana:/var/lib/grafana:Z
     Volume=/etc/grafana/provisioning:/etc/grafana/provisioning:ro,Z
+    Volume=/etc/grafana/grafana.ini:/etc/grafana/grafana.ini:ro,Z
     Volume=/etc/grafana/dashboards:/etc/grafana/dashboards:ro,Z
     Environment=GF_SECURITY_ADMIN_USER=admin
     Environment=GF_SECURITY_ADMIN_PASSWORD=${{ vault.get(homelab, grafana.admin-password) }}

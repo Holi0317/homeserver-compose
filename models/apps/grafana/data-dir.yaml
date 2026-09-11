@@ -20,6 +20,10 @@ globalArguments:
     # Grafana state lives on the local NVMe root filesystem per the master
     # plan; it is acceptable to lose on a rebuild.
     ExecStart=/usr/bin/install -d -o root -g root -m 0755 /etc/grafana /etc/grafana/provisioning /etc/grafana/provisioning/datasources /etc/grafana/provisioning/dashboards /etc/grafana/provisioning/alerting /etc/grafana/provisioning/plugins /etc/grafana/dashboards
+    # The Quadlet bind-mounts grafana.ini as a single file; podman would
+    # auto-create a directory if it were missing on a fresh boot, so ensure a
+    # plain (empty) file exists. Convergence fills it via grafana-config.
+    ExecStart=/usr/bin/touch /etc/grafana/grafana.ini
     RemainAfterExit=yes
 
     [Install]

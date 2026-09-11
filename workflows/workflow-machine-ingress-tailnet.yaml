@@ -40,6 +40,15 @@ jobs:
               type: succeeded
         weight: 0
         allowFailure: false
+      - name: grafana-config
+        description: Render Grafana's Zitadel OIDC configuration before the container mounts it
+        task:
+          type: model_method
+          modelIdOrName: grafana-config
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
       - name: grafana-container
         description: Apply Grafana's private ingress network definition
         task:
@@ -48,6 +57,9 @@ jobs:
           methodName: apply
         dependsOn:
           - step: ingress-config-apply
+            condition:
+              type: succeeded
+          - step: grafana-config
             condition:
               type: succeeded
         weight: 0

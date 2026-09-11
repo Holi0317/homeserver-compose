@@ -42,10 +42,19 @@ These keys are required before convergence:
 - `zitadel.admin-service-key` — machine-user JSON key for the `swamp-iam`
   service account (ORG_OWNER); the credential the OIDC registration model
   authenticates with;
-- OIDC client secrets are minted once by `oidc_app_ensure` and auto-stored in
-  the `homelab` vault by swamp; model data carries them only as `vault.get`
-  CEL references. Consumers resolve `clientSecret` through model data
-  (`data.latest(...)`), never as a plaintext key name.
+- For confidential clients, OIDC client secrets are minted once by
+  `oidc_app_ensure` and auto-stored in the `homelab` vault by swamp.
+  Consumers reference the vault key directly:
+  `vault.get(homelab, 'thomas-zitadel-<modelId>-oidc_app_ensure-app-credential-<appId>-clientSecret')`.
+  The key name is stable across `app_secret_rotate`. Resolving the secret
+  through model data does NOT work — the `clientSecret` attribute stores a
+  nested `vault.get` CEL string that never re-resolves (probed 2026-09-08).
+  Public `clientId` values resolve fine through model data
+  (`data.latest("zitadel-iam", "<appId>").attributes.clientId`).
+  Grafana's app is a PKCE-only public client (authentication method `none`,
+  switched 2026-09-11), so it consumes no client secret; the vault key minted
+  for its earlier confidential registration (`…-app-credential-389927371592957967-clientSecret`)
+  is inert but retained.
 
 The initial admin password is configured with
 `ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD` and is only consumed on first
@@ -75,6 +84,31 @@ other applications (Nextcloud, Immich, the git forge) add steps to the same
 workflow. No Authentik resources or migration data remain in this repository;
 the replacement is a clean Zitadel foundation rather than an Authentik
 database migration.
+
+Grafana consumes its registration declaratively: `grafana-config`
+(models/apps/grafana/config.yaml, type `@adam/cfgmgmt/file`) renders
+`/etc/grafana/grafana.ini` with the `[auth.generic_oauth]` block —
+authorize/token/userinfo endpoints under the issuer, `root_url` matching the
+Tailscale hostname, JIT user provisioning, PKCE-only client authentication
+(the Zitadel app's authentication method is `none` — no client secret; the
+PKCE S256 verifier plus the exact redirect URI and project roleCheck gate
+code redemption), and `role_attribute_path` mapping
+the asserted Zitadel `admin` project role to `GrafanaAdmin` (with
+`allow_assign_grafana_admin = true` this grants both the server administrator
+role and the org Admin role) with a Viewer fallback. `auto_login = true`
+bypasses the Grafana login form for Zitadel; the local recovery form stays at
+`/login?disableAutoLogin`. Grafana runs as a single organization (Main Org.,
+id 1): every provisioned user auto-joins it, no org mapping is configured,
+and no additional orgs are created. The Quadlet mounts the file read-only
+into the container, and `machine-ingress-tailnet` applies the file before
+starting Grafana so the mount source always exists. Two operational caveats:
+SSO settings saved through Grafana's admin UI/API live in the database and
+override the ini — keep that store clear or the rendered config never
+applies; the Zitadel back-channel logout URI is intentionally left empty
+(Grafana does not implement the OIDC Back-Channel Logout spec, so it has no
+endpoint to receive logout tokens); and the local vault-backed `admin`
+account stays the recovery login (`isExternallySynced` false, unaffected by
+Zitadel role changes).
 
 ## Managed resources
 
