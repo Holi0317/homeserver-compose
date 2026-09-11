@@ -141,12 +141,12 @@ service is deployed, reachable, monitored, and backed up (where applicable).
 ### Core infrastructure
 
 - [x] Tailscale networking
-- [x] Base packages (podman, cron, neovim, ncdu, tailscale)
+- [x] Base packages (podman, neovim, ncdu, tailscale)
 - [x] Persistent block storage mount (`/srv/persistent`)
 - [x] Storage blow-up mitigations (journald, apt, coredump, podman prune, docker.io → mirror.gcr.io)
 - [x] PostgreSQL 16 on `/srv/persistent/postgres/16`
 - [x] Valkey (shared Redis-compatible cache, per-consumer ACL users)
-- [ ] Cron script deployment + failure monitoring
+- [ ] Systemd timer failure monitoring + alerting
 - [x] Cloudflare DNS and DDNS for public hostnames
 
 ### Observability

@@ -1,0 +1,26 @@
+type: '@holi0317/systemd/unit'
+typeVersion: 2026.09.04.1
+id: 6112d9f4-6e08-4487-9957-7eb078954bd3
+name: bootstrap-podman-prune-timer
+version: 1
+tags: {}
+globalArguments:
+  remote:
+    fleet: athena
+    host: athena
+    sudo: true
+  unitName: podman-image-prune.timer
+  content: |
+    [Unit]
+    Description=Weekly prune of dangling Podman images
+
+    [Timer]
+    OnCalendar=Sun *-*-* 04:00:00
+    Persistent=true
+
+    [Install]
+    WantedBy=timers.target
+  userMode: system
+  enabled: true
+  state: running
+methods: {}

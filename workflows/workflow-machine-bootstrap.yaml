@@ -29,7 +29,7 @@ jobs:
         allowFailure: false
 
       - name: base-packages
-        description: Install podman, cron, neovim, ncdu, and tailscale
+        description: Install podman, neovim, ncdu, and tailscale
         task:
           type: model_method
           modelIdOrName: apt-base
@@ -136,14 +136,26 @@ jobs:
               type: succeeded
         allowFailure: false
 
-      - name: podman-prune-cron
-        description: Schedule weekly prune of dangling container images
+      - name: podman-prune-service
+        description: Install oneshot unit to prune dangling container images
         task:
           type: model_method
-          modelIdOrName: bootstrap-podman-prune-cron
+          modelIdOrName: bootstrap-podman-prune-service
           methodName: apply
         dependsOn:
           - step: base-packages
+            condition:
+              type: succeeded
+        allowFailure: false
+
+      - name: podman-prune-timer
+        description: Schedule weekly prune of dangling container images
+        task:
+          type: model_method
+          modelIdOrName: bootstrap-podman-prune-timer
+          methodName: apply
+        dependsOn:
+          - step: podman-prune-service
             condition:
               type: succeeded
         allowFailure: false

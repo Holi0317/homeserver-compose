@@ -1,0 +1,23 @@
+type: '@holi0317/systemd/unit'
+typeVersion: 2026.09.04.1
+id: 2b316621-1e09-4c04-a8d8-710043824721
+name: bootstrap-podman-prune-service
+version: 1
+tags: {}
+globalArguments:
+  remote:
+    fleet: athena
+    host: athena
+    sudo: true
+  unitName: podman-image-prune.service
+  content: |
+    [Unit]
+    Description=Prune dangling Podman images
+
+    [Service]
+    Type=oneshot
+    ExecStart=/usr/bin/podman image prune -f
+  userMode: system
+  enabled: false
+  state: stopped
+methods: {}

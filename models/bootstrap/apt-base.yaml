@@ -8,7 +8,6 @@ globalArguments:
   packages:
     - podman
     - aardvark-dns
-    - cron
     - neovim
     - ncdu
     - tailscale
