@@ -1,0 +1,83 @@
+id: 5bf9142d-9722-4244-93ef-8083008b9385
+name: app-victoriametrics
+version: 1
+description: Deploy VictoriaMetrics metrics store with its node exporter and scrape config.
+tags: {}
+jobs:
+  - name: metrics
+    description: Provision the metrics network, VictoriaMetrics, and node exporter
+    steps:
+      - name: metrics-network
+        description: Apply the shared metrics container network
+        task:
+          type: model_method
+          modelIdOrName: metrics-network
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+
+      - name: victoriametrics-data-dir
+        description: Prepare the local NVMe VictoriaMetrics data directory
+        task:
+          type: model_method
+          modelIdOrName: victoriametrics-data-dir
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+
+      - name: victoriametrics-config-dir
+        description: Apply the VictoriaMetrics configuration directory
+        task:
+          type: model_method
+          modelIdOrName: victoriametrics-config-dir
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+
+      - name: victoriametrics-scrape-config
+        description: Render the promscrape configuration for self and node exporter
+        task:
+          type: model_method
+          modelIdOrName: victoriametrics-scrape-config
+          methodName: apply
+        dependsOn:
+          - step: victoriametrics-config-dir
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false
+
+      - name: victoriametrics-container
+        description: Deploy the VictoriaMetrics single-node container
+        task:
+          type: model_method
+          modelIdOrName: victoriametrics-container
+          methodName: apply
+        dependsOn:
+          - step: metrics-network
+            condition:
+              type: succeeded
+          - step: victoriametrics-data-dir
+            condition:
+              type: succeeded
+          - step: victoriametrics-scrape-config
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false
+
+      - name: victoriametrics-node-exporter
+        description: Deploy the host metrics node exporter container
+        task:
+          type: model_method
+          modelIdOrName: victoriametrics-node-exporter
+          methodName: apply
+        dependsOn:
+          - step: metrics-network
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false

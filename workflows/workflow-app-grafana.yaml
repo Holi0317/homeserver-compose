@@ -1,0 +1,166 @@
+id: 0aafdad9-c47c-4291-9252-b74052006efa
+name: app-grafana
+version: 1
+description: Deploy Grafana with its PostgreSQL database, Zitadel OIDC app, and tailnet exposure.
+tags: {}
+jobs:
+  - name: db
+    description: Provision the Grafana PostgreSQL role and database
+    steps:
+      - name: grafana-role
+        description: Provision the Grafana PostgreSQL login role
+        task:
+          type: model_method
+          modelIdOrName: grafana-role
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+
+      - name: grafana-database
+        description: Provision the Grafana PostgreSQL database
+        task:
+          type: model_method
+          modelIdOrName: grafana-database
+          methodName: apply
+        dependsOn:
+          - step: grafana-role
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false
+
+  - name: iam
+    description: Ensure the Zitadel project, roles, and OIDC application for Grafana
+    steps:
+      - name: grafana-project
+        description: Ensure the per-app Grafana project
+        task:
+          type: model_method
+          modelIdOrName: zitadel-iam
+          methodName: project_ensure
+          inputs:
+            name: Grafana
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+
+      - name: grafana-role-admin
+        description: Ensure the Grafana admin project role
+        task:
+          type: model_method
+          modelIdOrName: zitadel-iam
+          methodName: role_ensure
+          inputs:
+            project: Grafana
+            key: admin
+            displayName: Grafana Admin
+        dependsOn:
+          - step: grafana-project
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false
+
+      - name: grafana-role-viewer
+        description: Ensure the Grafana viewer project role
+        task:
+          type: model_method
+          modelIdOrName: zitadel-iam
+          methodName: role_ensure
+          inputs:
+            project: Grafana
+            key: viewer
+            displayName: Grafana Viewer
+        dependsOn:
+          - step: grafana-project
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false
+
+      - name: grafana-app
+        description: Ensure the Grafana OIDC application (PKCE-only public client)
+        task:
+          type: model_method
+          modelIdOrName: zitadel-iam
+          methodName: oidc_app_ensure
+          inputs:
+            project: Grafana
+            name: grafana
+            appType: web
+            authMethod: none
+            devMode: false
+            redirectUris:
+              - https://grafana.tail351aa.ts.net/login/generic_oauth
+        dependsOn:
+          - step: grafana-project
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false
+
+      - name: grafana-authz
+        description: Require a Grafana role to authenticate and assert roles into tokens
+        task:
+          type: model_method
+          modelIdOrName: zitadel-iam
+          methodName: project_authz_set
+          inputs:
+            project: Grafana
+            roleAssertion: true
+            roleCheck: true
+        dependsOn:
+          - step: grafana-project
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false
+
+  - name: runtime
+    description: Render config, deploy the container, and advertise the tailnet endpoint
+    steps:
+      - name: grafana-config
+        description: Render Grafana's Zitadel OIDC configuration before the container mounts it
+        task:
+          type: model_method
+          modelIdOrName: grafana-config
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+
+      - name: grafana-container
+        description: Deploy the Grafana container unit
+        task:
+          type: model_method
+          modelIdOrName: grafana-container
+          methodName: apply
+        dependsOn:
+          - step: grafana-config
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false
+
+      - name: grafana-container-restart
+        description: Restart Grafana to pick up config and network changes
+        task:
+          type: model_method
+          modelIdOrName: grafana-container
+          methodName: restart
+        dependsOn:
+          - step: grafana-container
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false
+
+    dependsOn:
+      - job: db
+        condition:
+          type: succeeded
+      - job: iam
+        condition:
+          type: succeeded
+    weight: 0

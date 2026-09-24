@@ -1,0 +1,88 @@
+id: e27515b0-1add-4030-94bc-1eb003342ecc
+name: app-zitadel
+version: 1
+description: Deploy Zitadel identity on PostgreSQL behind the shared ingress.
+tags: {}
+jobs:
+  - name: db
+    description: Provision the Zitadel PostgreSQL role and database
+    steps:
+      - name: zitadel-role
+        description: Provision the Zitadel PostgreSQL login role
+        task:
+          type: model_method
+          modelIdOrName: zitadel-role
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+
+      - name: zitadel-database
+        description: Provision the Zitadel PostgreSQL database
+        task:
+          type: model_method
+          modelIdOrName: zitadel-database
+          methodName: apply
+        dependsOn:
+          - step: zitadel-role
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false
+
+  - name: state
+    description: Prepare Zitadel persistent state and private network
+    steps:
+      - name: zitadel-data-dir
+        description: Prepare protected persistent Zitadel bootstrap state
+        task:
+          type: model_method
+          modelIdOrName: zitadel-data-dir
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+
+      - name: zitadel-network
+        description: Apply the private Zitadel container network
+        task:
+          type: model_method
+          modelIdOrName: zitadel-network
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+
+  - name: runtime
+    description: Start the Zitadel API and Login UI
+    steps:
+      - name: zitadel-api
+        description: Start the Zitadel API and initialize its instance
+        task:
+          type: model_method
+          modelIdOrName: zitadel-api
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+
+      - name: zitadel-login
+        description: Start the Zitadel Login UI after the API is ready
+        task:
+          type: model_method
+          modelIdOrName: zitadel-login
+          methodName: apply
+        dependsOn:
+          - step: zitadel-api
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false
+    dependsOn:
+      - job: db
+        condition:
+          type: succeeded
+      - job: state
+        condition:
+          type: succeeded
+    weight: 0

@@ -1,11 +1,11 @@
-id: 8d80fdfc-aadf-4016-a96d-ee16f4d07a81
-name: machine-shared
+id: bfb2757b-142a-4345-bd9e-31b45a72d0af
+name: app-valkey
 version: 1
-description: Deploy the shared Valkey cache service.
+description: Converge the shared Valkey cache service and its ACL boundary.
 tags: {}
 jobs:
-  - name: shared
-    description: Provision the shared Valkey cache and its ACL boundary.
+  - name: valkey
+    description: Provision the shared Valkey cache and its ACL boundary
     steps:
       - name: valkey-data-dir
         description: Prepare the persistent Valkey data directory and ACL bootstrap

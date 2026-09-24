@@ -5,7 +5,7 @@ description: Converge the Athena machine to its declared desired state.
 tags: {}
 jobs:
   - name: bootstrap
-    description: Bootstrap the machine with base OS configuration.
+    description: Bootstrap the machine with base OS configuration and persistent storage.
     steps:
       - name: machine-bootstrap
         description: Run the machine bootstrap domain workflow.
@@ -18,14 +18,14 @@ jobs:
     dependsOn: []
     weight: 0
 
-  - name: storage
-    description: Deploy persistent storage and PostgreSQL.
+  - name: caddy
+    description: Converge the shared Caddy ingress edge.
     steps:
-      - name: machine-storage
-        description: Run the storage and PostgreSQL domain workflow.
+      - name: app-caddy
+        description: Run the Caddy app workflow.
         task:
           type: workflow
-          workflowIdOrName: machine-storage
+          workflowIdOrName: app-caddy
         dependsOn: []
         weight: 0
         allowFailure: false
@@ -35,71 +35,133 @@ jobs:
           type: succeeded
     weight: 0
 
-  - name: shared
-    description: Deploy the shared Valkey cache service.
+  - name: postgres
+    description: Deploy PostgreSQL on the persistent volume.
     steps:
-      - name: machine-shared
-        description: Run the shared services domain workflow.
+      - name: app-postgres
+        description: Run the Postgres app workflow.
         task:
           type: workflow
-          workflowIdOrName: machine-shared
+          workflowIdOrName: app-postgres
         dependsOn: []
         weight: 0
         allowFailure: false
     dependsOn:
-      - job: storage
+      - job: bootstrap
         condition:
           type: succeeded
     weight: 0
 
-  - name: ingress
-    description: Deploy the public Caddy ingress edge.
+  - name: valkey
+    description: Deploy the shared Valkey cache.
     steps:
-      - name: machine-ingress-public
-        description: Run the public ingress domain workflow.
+      - name: app-valkey
+        description: Run the Valkey app workflow.
         task:
           type: workflow
-          workflowIdOrName: machine-ingress-public
+          workflowIdOrName: app-valkey
         dependsOn: []
         weight: 0
         allowFailure: false
     dependsOn:
-      - job: apps
+      - job: bootstrap
         condition:
           type: succeeded
     weight: 0
 
-  - name: oidc-apps
-    description: Register relying-party OIDC applications in Zitadel.
+  - name: victoriametrics
+    description: Deploy the VictoriaMetrics metrics store.
     steps:
-      - name: zitadel-oidc-apps
-        description: Run the Zitadel OIDC application registration workflow.
+      - name: app-victoriametrics
+        description: Run the VictoriaMetrics app workflow.
         task:
           type: workflow
-          workflowIdOrName: zitadel-oidc-apps
+          workflowIdOrName: app-victoriametrics
         dependsOn: []
         weight: 0
         allowFailure: false
     dependsOn:
-      - job: ingress
+      - job: bootstrap
         condition:
           type: succeeded
     weight: 0
 
-  - name: apps
-    description: Deploy shared services and applications.
+  - name: zitadel
+    description: Deploy Zitadel identity behind the shared ingress.
     steps:
-      - name: machine-apps
-        description: Run the applications domain workflow.
+      - name: app-zitadel
+        description: Run the Zitadel app workflow.
         task:
           type: workflow
-          workflowIdOrName: machine-apps
+          workflowIdOrName: app-zitadel
         dependsOn: []
         weight: 0
         allowFailure: false
     dependsOn:
-      - job: shared
+      - job: caddy
         condition:
           type: succeeded
+      - job: postgres
+        condition:
+          type: succeeded
+    weight: 0
 
+  - name: victorialogs
+    description: Deploy the VictoriaLogs store and Vector shipper.
+    steps:
+      - name: app-victorialogs
+        description: Run the VictoriaLogs app workflow.
+        task:
+          type: workflow
+          workflowIdOrName: app-victorialogs
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+    dependsOn:
+      - job: victoriametrics
+        condition:
+          type: succeeded
+    weight: 0
+
+  - name: nextcloud
+    description: Provision Nextcloud database objects and secret.
+    steps:
+      - name: app-nextcloud
+        description: Run the Nextcloud app workflow.
+        task:
+          type: workflow
+          workflowIdOrName: app-nextcloud
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+    dependsOn:
+      - job: postgres
+        condition:
+          type: succeeded
+    weight: 0
+
+  - name: grafana
+    description: Deploy Grafana with database, OIDC app, and tailnet exposure.
+    steps:
+      - name: app-grafana
+        description: Run the Grafana app workflow.
+        task:
+          type: workflow
+          workflowIdOrName: app-grafana
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+    dependsOn:
+      - job: caddy
+        condition:
+          type: succeeded
+      - job: postgres
+        condition:
+          type: succeeded
+      - job: victoriametrics
+        condition:
+          type: succeeded
+      - job: zitadel
+        condition:
+          type: succeeded
     weight: 0

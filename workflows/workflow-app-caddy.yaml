@@ -1,10 +1,22 @@
-id: 6780899b-1519-48f2-82ff-a5f6e96eca86
-name: machine-ingress-public
+id: f3c3a749-905b-4026-92c6-c7f5d1b3f6c4
+name: app-caddy
+version: 1
+description: Converge the shared Caddy ingress edge (public and tailnet listeners).
 tags: {}
 jobs:
   - name: ingress
-    description: Build and deploy public Caddy ingress
+    description: Build and deploy Caddy with the centralized site configuration
     steps:
+      - name: ingress-network
+        description: Apply the shared ingress network that published apps join
+        task:
+          type: model_method
+          modelIdOrName: ingress-network
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+
       - name: caddy-data-dir
         description: Prepare persistent Caddy data and build directories
         task:
@@ -14,6 +26,7 @@ jobs:
         dependsOn: []
         weight: 0
         allowFailure: false
+
       - name: caddy-cloudflare-secret
         description: Provision the vault-backed Cloudflare API token secret
         task:
@@ -23,6 +36,20 @@ jobs:
         dependsOn: []
         weight: 0
         allowFailure: false
+
+      - name: caddy-config-dir
+        description: Apply the persistent Caddy configuration directory
+        task:
+          type: model_method
+          modelIdOrName: caddy-config-dir
+          methodName: apply
+        dependsOn:
+          - step: caddy-data-dir
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false
+
       - name: caddy-build-context
         description: Stage the pinned xcaddy Containerfile on Athena
         task:
@@ -40,6 +67,7 @@ jobs:
               type: succeeded
         weight: 0
         allowFailure: false
+
       - name: caddy-build-context-install
         description: Install the Caddy build context with root ownership
         task:
@@ -59,27 +87,7 @@ jobs:
               type: succeeded
         weight: 0
         allowFailure: false
-      - name: ingress-network
-        description: Apply the shared public ingress network
-        task:
-          type: model_method
-          modelIdOrName: ingress-network
-          methodName: apply
-        dependsOn: []
-        weight: 0
-        allowFailure: false
-      - name: caddy-config-dir
-        description: Apply the persistent Caddy configuration directory
-        task:
-          type: model_method
-          modelIdOrName: caddy-config-dir
-          methodName: apply
-        dependsOn:
-          - step: caddy-data-dir
-            condition:
-              type: succeeded
-        weight: 0
-        allowFailure: false
+
       - name: caddy-image-build
         description: Build the pinned Caddy Dynamic DNS image with xcaddy
         task:
@@ -92,6 +100,7 @@ jobs:
               type: succeeded
         weight: 0
         allowFailure: false
+
       - name: caddy-image-refresh
         description: Rebuild the custom Caddy image after copying its Containerfile
         task:
@@ -106,7 +115,7 @@ jobs:
         allowFailure: false
 
       - name: ingress-config-render
-        description: Render deterministic Caddy JSON including Dynamic DNS
+        description: Render the centralized Caddy JSON site inventory
         task:
           type: model_method
           modelIdOrName: ingress-config
@@ -114,6 +123,7 @@ jobs:
         dependsOn: []
         weight: 0
         allowFailure: false
+
       - name: ingress-config-apply
         description: Validate and atomically activate Caddy configuration
         task:
@@ -134,8 +144,9 @@ jobs:
               type: succeeded
         weight: 0
         allowFailure: false
+
       - name: caddy-container
-        description: Start Caddy after image and configuration are ready
+        description: Start Caddy after image, network, and configuration are ready
         task:
           type: model_method
           modelIdOrName: caddy-container
@@ -155,6 +166,29 @@ jobs:
               type: succeeded
         weight: 0
         allowFailure: false
-    dependsOn: []
-    weight: 0
-version: 1
+
+      - name: tailscale-serve
+        description: Advertise the Grafana tailnet endpoint through the shared listeners
+        task:
+          type: model_method
+          modelIdOrName: tailscale-serve
+          methodName: apply
+        dependsOn:
+          - step: caddy-container
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false
+
+      - name: tailscale-serve-reload
+        description: Drain, reapply, advertise, and record HTTPS Serve status
+        task:
+          type: model_method
+          modelIdOrName: tailscale-serve
+          methodName: reload
+        dependsOn:
+          - step: tailscale-serve
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false

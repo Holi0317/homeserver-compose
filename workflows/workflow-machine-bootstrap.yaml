@@ -38,6 +38,14 @@ jobs:
           - step: tailscale-repo
             condition:
               type: succeeded
+
+      - name: persistent-mount
+        description: Manage the native systemd mount for /srv/persistent
+        task:
+          type: model_method
+          modelIdOrName: persistent-mount
+          methodName: apply
+        dependsOn: []
         allowFailure: false
 
       - name: apt-autoclean
@@ -48,6 +56,30 @@ jobs:
           methodName: apply
         dependsOn:
           - step: base-packages
+            condition:
+              type: succeeded
+        allowFailure: false
+
+      - name: podman-conf-dir
+        description: Ensure the podman containers.conf drop-in directory exists
+        task:
+          type: model_method
+          modelIdOrName: bootstrap-podman-conf-dir
+          methodName: apply
+        dependsOn:
+          - step: base-packages
+            condition:
+              type: succeeded
+        allowFailure: false
+
+      - name: podman-journald-logging
+        description: Route container stdout/stderr into journald for log shipping
+        task:
+          type: model_method
+          modelIdOrName: bootstrap-podman-journald-logging
+          methodName: apply
+        dependsOn:
+          - step: podman-conf-dir
             condition:
               type: succeeded
         allowFailure: false

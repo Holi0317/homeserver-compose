@@ -1,0 +1,70 @@
+id: 62c67d9d-917c-4d5f-9285-a852325cb45c
+name: app-victorialogs
+version: 1
+description: Deploy VictoriaLogs log store and the Vector journald log shipper.
+tags: {}
+jobs:
+  - name: logs
+    description: Provision VictoriaLogs and its Vector log shipper
+    steps:
+      - name: victorialogs-data-dir
+        description: Prepare the local NVMe VictoriaLogs data directory
+        task:
+          type: model_method
+          modelIdOrName: victorialogs-data-dir
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+
+      - name: victorialogs-vector-config-dir
+        description: Apply the Vector configuration directory
+        task:
+          type: model_method
+          modelIdOrName: victorialogs-vector-config-dir
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+
+      - name: victorialogs-vector-config
+        description: Render the journald-to-VictoriaLogs Vector pipeline
+        task:
+          type: model_method
+          modelIdOrName: victorialogs-vector-config
+          methodName: apply
+        dependsOn:
+          - step: victorialogs-vector-config-dir
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false
+
+      - name: victorialogs-container
+        description: Deploy the VictoriaLogs single-node container
+        task:
+          type: model_method
+          modelIdOrName: victorialogs-container
+          methodName: apply
+        dependsOn:
+          - step: victorialogs-data-dir
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false
+
+      - name: victorialogs-vector-container
+        description: Deploy the Vector log shipper container
+        task:
+          type: model_method
+          modelIdOrName: victorialogs-vector-container
+          methodName: apply
+        dependsOn:
+          - step: victorialogs-container
+            condition:
+              type: succeeded
+          - step: victorialogs-vector-config
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false

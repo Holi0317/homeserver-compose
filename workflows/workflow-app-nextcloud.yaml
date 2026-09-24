@@ -1,0 +1,44 @@
+id: f8a9aa91-2cb4-41b9-b5ba-0f9ae0603a2a
+name: app-nextcloud
+version: 1
+description: Provision Nextcloud's PostgreSQL role, database, and database secret.
+tags: {}
+jobs:
+  - name: nextcloud
+    description: Provision Nextcloud database objects and its Podman secret
+    steps:
+      - name: nextcloud-role
+        description: Provision the Nextcloud PostgreSQL login role
+        task:
+          type: model_method
+          modelIdOrName: nextcloud-role
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+
+      - name: nextcloud-database
+        description: Provision the Nextcloud PostgreSQL database
+        task:
+          type: model_method
+          modelIdOrName: nextcloud-database
+          methodName: apply
+        dependsOn:
+          - step: nextcloud-role
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false
+
+      - name: nextcloud-db-secret
+        description: Provision the Nextcloud database Podman secret
+        task:
+          type: model_method
+          modelIdOrName: nextcloud-db-secret
+          methodName: apply
+        dependsOn:
+          - step: nextcloud-database
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false

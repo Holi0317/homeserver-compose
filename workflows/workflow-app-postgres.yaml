@@ -1,33 +1,20 @@
-id: 6ac691dc-bb7e-439f-a9bc-ed07e1d94d99
-name: machine-storage
+id: 26b1bf10-2fad-450a-ae07-1a26740e3096
+name: app-postgres
 version: 1
-description: Mount persistent storage and deploy Postgres on it.
+description: Deploy PostgreSQL on the persistent volume and adopt its bootstrap objects.
 tags: {}
 jobs:
-  - name: storage
-    description: Prepare /srv/persistent and move Postgres onto it
-    weight: 0
-    dependsOn: []
+  - name: postgres
+    description: Provision the PostgreSQL server and its bootstrap role and database
     steps:
-      - name: persistent-mount
-        description: Manage the native systemd mount for /srv/persistent
-        task:
-          type: model_method
-          modelIdOrName: persistent-mount
-          methodName: apply
-        dependsOn: []
-        allowFailure: false
-
       - name: postgres-data-dir
         description: Deploy the systemd unit that prepares the Postgres data directory
         task:
           type: model_method
           modelIdOrName: postgres-data-dir
           methodName: apply
-        dependsOn:
-          - step: persistent-mount
-            condition:
-              type: succeeded
+        dependsOn: []
+        weight: 0
         allowFailure: false
 
       - name: postgres-network
@@ -36,10 +23,8 @@ jobs:
           type: model_method
           modelIdOrName: apps-postgres-network
           methodName: apply
-        dependsOn:
-          - step: postgres-data-dir
-            condition:
-              type: succeeded
+        dependsOn: []
+        weight: 0
         allowFailure: false
 
       - name: postgres-container
@@ -49,9 +34,13 @@ jobs:
           modelIdOrName: apps-postgres-container
           methodName: apply
         dependsOn:
+          - step: postgres-data-dir
+            condition:
+              type: succeeded
           - step: postgres-network
             condition:
               type: succeeded
+        weight: 0
         allowFailure: false
 
       - name: postgres-ready
@@ -64,6 +53,7 @@ jobs:
           - step: postgres-container
             condition:
               type: succeeded
+        weight: 0
         allowFailure: false
 
       - name: postgres-role
@@ -76,6 +66,7 @@ jobs:
           - step: postgres-ready
             condition:
               type: succeeded
+        weight: 0
         allowFailure: false
 
       - name: postgres-database
@@ -88,4 +79,5 @@ jobs:
           - step: postgres-role
             condition:
               type: succeeded
+        weight: 0
         allowFailure: false
