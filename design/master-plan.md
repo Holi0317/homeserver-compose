@@ -186,11 +186,20 @@ service is deployed, reachable, monitored, and backed up (where applicable).
 - **Quadlet enablement:** the current `@holi0317/systemd` extension enables
   Quadlet units by creating `.wants/` symlinks because `systemctl enable`
   refuses generated units on this Debian/systemd version.
-- **Storage Box mount:** not yet implemented. Storage Boxes offer **no NFS**
-  (FTP/SFTP/rsync/Borg/SMB/WebDAV only), so the earlier NFSv4.1 plan is not
-  viable; SMB/CIFS is the mount option (no extended attributes — unsuitable
-  for application state, fine for media). Found during lab-6td.6; see
-  `design/opencloud-vs-nextcloud.md`.
+- **Storage Box mount:** implemented as `srv-media.mount` (CIFS/SMB 3.1.1
+  with `seal` encryption) mounting `//<user>.your-storagebox.de/backup` at
+  `/srv/media`. Storage Boxes offer **no NFS** (FTP/SFTP/rsync/Borg/SMB/WebDAV
+  only), so the earlier NFSv4.1 plan was not viable; SMB/CIFS is the mount
+  option (no extended attributes — unsuitable for application state, fine for
+  media). The share presents `file_mode=0777,dir_mode=0777` and Hetzner SMB
+  offers no unix extensions, so local mode bits are cosmetic — real access is
+  gated by the SMB session credentials. Vault keys
+  `hetzner.storagebox.user`/`.password` render the `0600` credentials file at
+  `/etc/cifs/storagebox.creds` via `storagebox-credentials`; the mount is
+  converged by `machine-storage` (workflow) between bootstrap and the apps
+  (`nextcloud` job depends on it). Backups (lab-qc4.12) target the box over
+  SFTP without a mount; a dedicated sub-account is recommended there.
+  Found during lab-6td.6; see `design/opencloud-vs-nextcloud.md`.
 - **Storage management:** journald is capped at 512 MB, apt cache is
   auto-cleaned weekly, systemd-coredump is capped at 1 GB, and dangling
   container images are pruned weekly. Container image pulls for `docker.io`
@@ -213,8 +222,9 @@ service is deployed, reachable, monitored, and backed up (where applicable).
 
 1. Authenticate 1Password CLI and provision remaining application database
    credentials, then converge their database models.
-2. Mount the Hetzner Storage Box at `/srv/media` using the selected SMB/CIFS
-   boundary.
+2. Grow the Storage Box consumers: Nextcloud datadir (lab-6td.1.2), Jellyfin
+   and Immich libraries (lab-6td.2.1, lab-6td.3.3) against the converged
+   `/srv/media` CIFS mount.
 3. Allocate Valkey ACL namespaces for each application consumer as they
    deploy (Nextcloud first, lab-6td.1.1).
 4. Deploy the remaining applications (Nextcloud / Jellyfin / Immich first) and

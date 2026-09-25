@@ -11,6 +11,7 @@ globalArguments:
     - neovim
     - ncdu
     - tailscale
+    - cifs-utils
   ensure: present
   nodeHost: ${{ data.latest("athena", "host-athena").attributes.address }}
   nodeUser: ${{ data.latest("athena", "host-athena").attributes.user }}

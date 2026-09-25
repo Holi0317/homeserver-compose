@@ -15,7 +15,23 @@ jobs:
         dependsOn: []
         weight: 0
         allowFailure: false
-    dependsOn: []
+    weight: 0
+
+  - name: storage
+    description: Converge the Hetzner Storage Box CIFS media mount.
+    steps:
+      - name: machine-storage
+        description: Run the Storage Box storage workflow.
+        task:
+          type: workflow
+          workflowIdOrName: machine-storage
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+    dependsOn:
+      - job: bootstrap
+        condition:
+          type: succeeded
     weight: 0
 
   - name: caddy
@@ -138,7 +154,11 @@ jobs:
       - job: postgres
         condition:
           type: succeeded
+      - job: storage
+        condition:
+          type: succeeded
     weight: 0
+
 
   - name: grafana
     description: Deploy Grafana with database, OIDC app, and tailnet exposure.

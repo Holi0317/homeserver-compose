@@ -1,0 +1,39 @@
+type: "@holi0317/systemd/unit"
+typeVersion: 2026.08.16.2
+id: 6a2dcb4b-fc52-4c67-8a02-41582590e1e8
+name: storagebox-media-mount
+version: 1
+tags: {}
+globalArguments:
+  remote:
+    fleet: athena
+    host: athena
+    sudo: true
+  unitName: srv-media.mount
+  content: |
+    [Unit]
+    Description=Hetzner Storage Box media mount (CIFS)
+    # WAN network route must exist before systemd attempts the mount
+    Wants=network-online.target
+    After=network-online.target
+
+    [Mount]
+    # The box hostname is the main-account username: //uXXXXXX.your-storagebox.de/backup
+    What=//${{ vault.get(homelab, hetzner.storagebox.user) }}.your-storagebox.de/backup
+    Where=/srv/media
+    Type=cifs
+    # uid-agnostic 0777 presentation: the mount is shared by containers with
+    # distinct UIDs (Nextcloud www-data, Jellyfin, Immich); Hetzner SMB has no
+    # unix extensions, so real access is gated by the SMB session, not local
+    # mode bits.
+    Options=rw,seal,mfsymlinks,noserverino,cache=loose,actimeo=30,iocharset=utf8,credentials=/etc/cifs/storagebox.creds,file_mode=0777,dir_mode=0777
+
+    [Install]
+    WantedBy=local-fs.target
+  userMode: system
+  enabled: true
+  state: running
+methods:
+  apply:
+    arguments:
+      allowRecreate: false

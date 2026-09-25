@@ -1,0 +1,43 @@
+id: caded86c-d149-4c44-ac8d-dac255758605
+name: machine-storage
+tags: {}
+jobs:
+  - name: main
+    description: Converge the Hetzner Storage Box CIFS mount for media and app data.
+    steps:
+      - name: base-packages
+        description: Install base packages including cifs-utils
+        task:
+          type: model_method
+          modelIdOrName: apt-base
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+      - name: storagebox-credentials
+        description: Render CIFS credentials file from vault
+        task:
+          type: model_method
+          modelIdOrName: storagebox-credentials
+          methodName: apply
+        dependsOn:
+          - step: base-packages
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false
+      - name: media-mount
+        description: Mount the Storage Box share at /srv/media
+        task:
+          type: model_method
+          modelIdOrName: storagebox-media-mount
+          methodName: apply
+        dependsOn:
+          - step: storagebox-credentials
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false
+    dependsOn: []
+    weight: 0
+version: 1
