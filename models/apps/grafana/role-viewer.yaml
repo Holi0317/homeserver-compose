@@ -1,0 +1,15 @@
+type: '@holi0317/zitadel/role'
+typeVersion: 2026.09.25.2
+id: 11f4561b-9239-4d39-b092-0bdbade2d646
+name: grafana-role-viewer
+version: 1
+tags: {}
+globalArguments:
+  apiUrl: 'https://auth.holi0317.net'
+  keyJson: '${{ vault.get(homelab, zitadel.admin-service-key) }}'
+  project: Grafana
+  key: viewer
+  displayName: Grafana Viewer
+methods:
+  apply:
+    arguments: {}

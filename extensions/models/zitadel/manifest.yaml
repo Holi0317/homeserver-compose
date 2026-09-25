@@ -1,0 +1,22 @@
+manifestVersion: 1
+name: "@holi0317/zitadel"
+version: "2026.09.25.2"
+description: >-
+  Resource-oriented Zitadel administration over the Management API (v1 REST).
+  Each model instance is ONE Zitadel resource (terraform-style): project,
+  project role, OIDC app, API app, machine user, machine key, or user grant.
+  Declarative check/apply/destroy lifecycle with natural state reconciliation.
+repository: https://github.com/holi0317/homeserver-compose
+paths:
+  base: manifest
+models:
+  - project.ts
+  - role.ts
+  - oidc_app.ts
+  - api_app.ts
+  - machine_user.ts
+  - machine_key.ts
+  - grant.ts
+additionalFiles: []
+platforms: []
+dependencies: []

@@ -1,0 +1,15 @@
+type: '@holi0317/zitadel/project'
+typeVersion: 2026.09.25.2
+id: 8bfdad82-698d-4ca3-a469-2c05dc9eae52
+name: grafana-project
+version: 1
+tags: {}
+globalArguments:
+  apiUrl: 'https://auth.holi0317.net'
+  keyJson: '${{ vault.get(homelab, zitadel.admin-service-key) }}'
+  name: Grafana
+  roleAssertion: true
+  roleCheck: true
+methods:
+  apply:
+    arguments: {}

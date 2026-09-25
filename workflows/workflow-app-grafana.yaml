@@ -31,30 +31,24 @@ jobs:
         allowFailure: false
 
   - name: iam
-    description: Ensure the Zitadel project, roles, and OIDC application for Grafana
+    description: Provision the Zitadel project, roles, OIDC app, and grant for Grafana
     steps:
       - name: grafana-project
-        description: Ensure the per-app Grafana project
+        description: Provision the per-app Grafana project with role assertion and check
         task:
           type: model_method
-          modelIdOrName: zitadel-iam
-          methodName: project_ensure
-          inputs:
-            name: Grafana
+          modelIdOrName: grafana-project
+          methodName: apply
         dependsOn: []
         weight: 0
         allowFailure: false
 
       - name: grafana-role-admin
-        description: Ensure the Grafana admin project role
+        description: Provision the Grafana admin project role
         task:
           type: model_method
-          modelIdOrName: zitadel-iam
-          methodName: role_ensure
-          inputs:
-            project: Grafana
-            key: admin
-            displayName: Grafana Admin
+          modelIdOrName: grafana-role-admin
+          methodName: apply
         dependsOn:
           - step: grafana-project
             condition:
@@ -63,15 +57,11 @@ jobs:
         allowFailure: false
 
       - name: grafana-role-viewer
-        description: Ensure the Grafana viewer project role
+        description: Provision the Grafana viewer project role
         task:
           type: model_method
-          modelIdOrName: zitadel-iam
-          methodName: role_ensure
-          inputs:
-            project: Grafana
-            key: viewer
-            displayName: Grafana Viewer
+          modelIdOrName: grafana-role-viewer
+          methodName: apply
         dependsOn:
           - step: grafana-project
             condition:
@@ -79,59 +69,34 @@ jobs:
         weight: 0
         allowFailure: false
 
-      - name: grafana-app
-        description: Ensure the Grafana OIDC application (PKCE-only public client)
+      - name: grafana-oidc-app
+        description: Provision the Grafana OIDC application (PKCE-only public client)
         task:
           type: model_method
-          modelIdOrName: zitadel-iam
-          methodName: oidc_app_ensure
-          inputs:
-            project: Grafana
-            name: grafana
-            appType: web
-            authMethod: none
-            devMode: false
-            redirectUris:
-              - https://grafana.tail351aa.ts.net/login/generic_oauth
+          modelIdOrName: grafana-oidc-app
+          methodName: apply
         dependsOn:
           - step: grafana-project
             condition:
               type: succeeded
+        weight: 0
+        allowFailure: false
+
       - name: grafana-grant-admin
         description: Grant the admin role for Grafana to the owner login
         task:
           type: model_method
-          modelIdOrName: zitadel-iam
-          methodName: grant_ensure
-          inputs:
-            user: hollis.wu
-            project: Grafana
-            roleKeys:
-              - admin
+          modelIdOrName: grafana-grant-admin
+          methodName: apply
         dependsOn:
+          - step: grafana-role-admin
+            condition:
+              type: succeeded
           - step: grafana-role-viewer
             condition:
               type: succeeded
         weight: 0
         allowFailure: false
-
-      - name: grafana-authz
-        description: Require a Grafana role to authenticate and assert roles into tokens
-        task:
-          type: model_method
-          modelIdOrName: zitadel-iam
-          methodName: project_authz_set
-          inputs:
-            project: Grafana
-            roleAssertion: true
-            roleCheck: true
-        dependsOn:
-          - step: grafana-project
-            condition:
-              type: succeeded
-        weight: 0
-        allowFailure: false
-
   - name: runtime
     description: Render config, deploy the container, and advertise the tailnet endpoint
     steps:

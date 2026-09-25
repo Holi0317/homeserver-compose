@@ -1,0 +1,14 @@
+{
+  "name": "@holi0317/zitadel",
+  "version": "0.1.0",
+  "exports": {
+    "./project": "./project.ts",
+    "./role": "./role.ts",
+    "./oidc-app": "./oidc_app.ts",
+    "./api-app": "./api_app.ts",
+    "./machine-user": "./machine_user.ts",
+    "./machine-key": "./machine_key.ts",
+    "./grant": "./grant.ts",
+    "./_lib": "./_lib.ts"
+  }
+}

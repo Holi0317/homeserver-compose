@@ -29,7 +29,9 @@ globalArguments:
     ; JIT-provision users on first login; [users] allow_sign_up stays false so
     ; only OAuth users holding a Zitadel Grafana role can be created.
     allow_sign_up = true
-    client_id = ${{ data.latest("zitadel-iam", "392258941683236867").attributes.clientId }}
+    ; Bound to the grafana-oidc-app resource model's observed state — the
+    ; instance name is the stable handle (survives Zitadel app-id churn).
+    client_id = ${{ data.latest("grafana-oidc-app", "current").attributes.clientId }}
     scopes = openid profile email
     auth_url = https://auth.holi0317.net/oauth/v2/authorize
     token_url = https://auth.holi0317.net/oauth/v2/token

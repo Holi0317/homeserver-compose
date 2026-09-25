@@ -1,12 +1,25 @@
 {
-  "workspace": ["extensions/models/systemd", "extensions/models/postgres", "extensions/models/valkey", "extensions/models/podman", "extensions/models/caddy", "packages/remote-ssh"],
+  "workspace": [
+    "extensions/models/systemd",
+    "extensions/models/postgres",
+    "extensions/models/valkey",
+    "extensions/models/podman",
+    "extensions/models/caddy",
+    "packages/remote-ssh",
+    "extensions/models/zitadel"
+  ],
   "imports": {
     "zod": "npm:zod@4"
   },
-  "exclude": [".git/", ".swamp/"],
+  "exclude": [
+    ".git/",
+    ".swamp/"
+  ],
   "lint": {
     "rules": {
-      "exclude": ["no-slow-types"]
+      "exclude": [
+        "no-slow-types"
+      ]
     }
   },
   "lock": false

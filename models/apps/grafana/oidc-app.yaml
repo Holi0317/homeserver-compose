@@ -1,0 +1,26 @@
+type: '@holi0317/zitadel/oidc-app'
+typeVersion: 2026.09.25.2
+id: 9b89706f-2851-4844-af34-4b132785713d
+name: grafana-oidc-app
+version: 1
+tags: {}
+globalArguments:
+  apiUrl: 'https://auth.holi0317.net'
+  keyJson: '${{ vault.get(homelab, zitadel.admin-service-key) }}'
+  project: Grafana
+  name: grafana
+  appType: web
+  authMethod: none
+  redirectUris:
+    - https://grafana.tail351aa.ts.net/login/generic_oauth
+  postLogoutUris: []
+  grantTypes:
+    - authorization_code
+    - refresh_token
+  responseTypes:
+    - code
+  accessTokenType: bearer
+  devMode: false
+methods:
+  apply:
+    arguments: {}

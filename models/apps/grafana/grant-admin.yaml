@@ -1,0 +1,16 @@
+type: '@holi0317/zitadel/grant'
+typeVersion: 2026.09.25.2
+id: 3ffd2c70-26f6-48ff-a4dc-01aef8c84edc
+name: grafana-grant-admin
+version: 1
+tags: {}
+globalArguments:
+  apiUrl: 'https://auth.holi0317.net'
+  keyJson: '${{ vault.get(homelab, zitadel.admin-service-key) }}'
+  user: hollis.wu
+  project: Grafana
+  roleKeys:
+    - admin
+methods:
+  apply:
+    arguments: {}

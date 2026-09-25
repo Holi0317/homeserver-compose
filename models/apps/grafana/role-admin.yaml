@@ -1,0 +1,15 @@
+type: '@holi0317/zitadel/role'
+typeVersion: 2026.09.25.2
+id: 6b4fcc85-8d4f-4ca8-805a-63a57c77b9d4
+name: grafana-role-admin
+version: 1
+tags: {}
+globalArguments:
+  apiUrl: 'https://auth.holi0317.net'
+  keyJson: '${{ vault.get(homelab, zitadel.admin-service-key) }}'
+  project: Grafana
+  key: admin
+  displayName: Grafana Admin
+methods:
+  apply:
+    arguments: {}
