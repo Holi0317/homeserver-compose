@@ -13,9 +13,9 @@ globalArguments:
   content: |
     [Unit]
     Description=Vector log shipper (journald to VictoriaLogs)
-    Wants=metrics.network victorialogs-vector-config-dir.service
-    After=metrics.network
-    Requires=metrics.network
+    Wants=metrics-network.service victorialogs-vector-config-dir.service
+    After=metrics-network.service
+    Requires=metrics-network.service
 
     [Container]
     Image=docker.io/timberio/vector:0.57.0-debian

@@ -13,9 +13,9 @@ globalArguments:
   content: |
     [Unit]
     Description=Zitadel Login UI
-    Wants=zitadel.network zitadel-api.service ingress.network
-    After=zitadel.network zitadel-api.service ingress.network
-    Requires=zitadel.network zitadel-api.service ingress.network
+    Wants=zitadel-network.service zitadel-api.service ingress-network.service
+    After=zitadel-network.service zitadel-api.service ingress-network.service
+    Requires=zitadel-network.service zitadel-api.service ingress-network.service
     RequiresMountsFor=/srv/persistent/zitadel
 
     [Container]

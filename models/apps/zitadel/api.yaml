@@ -13,9 +13,9 @@ globalArguments:
   content: |
     [Unit]
     Description=Zitadel identity API
-    Wants=zitadel.network postgres.service zitadel-data-dir.service ingress.network
-    After=zitadel.network postgres.service zitadel-data-dir.service ingress.network
-    Requires=zitadel.network postgres.service zitadel-data-dir.service ingress.network
+    Wants=zitadel-network.service postgres.service zitadel-data-dir.service ingress-network.service
+    After=zitadel-network.service postgres.service zitadel-data-dir.service ingress-network.service
+    Requires=zitadel-network.service postgres.service zitadel-data-dir.service ingress-network.service
     RequiresMountsFor=/srv/persistent/zitadel
 
     [Container]
@@ -49,6 +49,12 @@ globalArguments:
     Environment=ZITADEL_OIDC_DEFAULTLOGOUTURLV2=https://auth.holi0317.net/ui/v2/login/logout?post_logout_redirect=
     Environment=ZITADEL_SAML_DEFAULTLOGINURLV2=https://auth.holi0317.net/ui/v2/login/login?samlRequest=
     Environment=ZITADEL_LOGSTORE_ACCESS_STDOUT_ENABLED=true
+    # Single-replica Zitadel: in-process cache for instance/org lookups.
+    # Valkey distributed cache was evaluated and rejected (no consistency
+    # benefit for one replica; memory is faster) - decision on lab-vep.2.
+    Environment=ZITADEL_CACHES_CONNECTORS_MEMORY_ENABLED=true
+    Environment=ZITADEL_CACHES_INSTANCE_CONNECTOR=memory
+    Environment=ZITADEL_CACHES_ORGANIZATION_CONNECTOR=memory
     # The v4 image is distroless and Quadlet HealthCmd uses /bin/sh -c;
     # readiness is verified through the public API and console smoke checks.
     HealthCmd=none

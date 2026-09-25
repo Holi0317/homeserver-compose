@@ -13,8 +13,8 @@ globalArguments:
   content: |
     [Unit]
     Description=VictoriaLogs single-node log database
-    After=metrics.network victorialogs-data-dir.service
-    Requires=metrics.network victorialogs-data-dir.service
+    After=metrics-network.service victorialogs-data-dir.service
+    Requires=metrics-network.service victorialogs-data-dir.service
 
     [Container]
     Image=docker.io/victoriametrics/victoria-logs:v1.52.0

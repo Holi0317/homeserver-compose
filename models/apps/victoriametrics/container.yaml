@@ -13,9 +13,9 @@ globalArguments:
   content: |
     [Unit]
     Description=VictoriaMetrics single-node metrics database
-    Wants=metrics.network victoriametrics-data-dir.service
-    After=metrics.network victoriametrics-data-dir.service
-    Requires=metrics.network victoriametrics-data-dir.service
+    Wants=metrics-network.service victoriametrics-data-dir.service
+    After=metrics-network.service victoriametrics-data-dir.service
+    Requires=metrics-network.service victoriametrics-data-dir.service
 
     [Container]
     Image=docker.io/victoriametrics/victoria-metrics:v1.150.0

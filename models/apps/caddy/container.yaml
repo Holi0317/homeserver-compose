@@ -13,9 +13,9 @@ globalArguments:
   content: |
     [Unit]
     Description=Caddy public ingress
-    Wants=ingress.network caddy-data-dir.service caddy-config-dir.service caddy-cloudflare-ddns-build.service
-    After=ingress.network caddy-data-dir.service caddy-config-dir.service caddy-cloudflare-ddns-build.service
-    Requires=ingress.network caddy-data-dir.service caddy-config-dir.service caddy-cloudflare-ddns-build.service
+    Wants=ingress-network.service caddy-data-dir.service caddy-config-dir.service caddy-cloudflare-ddns-build.service
+    After=ingress-network.service caddy-data-dir.service caddy-config-dir.service caddy-cloudflare-ddns-build.service
+    Requires=ingress-network.service caddy-data-dir.service caddy-config-dir.service caddy-cloudflare-ddns-build.service
     RequiresMountsFor=/srv/persistent/caddy
 
     [Container]

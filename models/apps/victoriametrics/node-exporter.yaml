@@ -13,9 +13,9 @@ globalArguments:
   content: |
     [Unit]
     Description=Prometheus node exporter for host metrics
-    Wants=metrics.network
-    After=metrics.network
-    Requires=metrics.network
+    Wants=metrics-network.service
+    After=metrics-network.service
+    Requires=metrics-network.service
 
     [Container]
     Image=quay.io/prometheus/node-exporter:v1.12.1
