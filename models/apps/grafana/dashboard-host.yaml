@@ -1,90 +1,13 @@
-type: '@adam/cfgmgmt/file'
+type: '@adam/cfgmgmt/copy_file'
 typeVersion: 2026.03.18.1
 id: 88183faf-4145-47e5-9ec9-878a94fb5b92
 name: grafana-dashboard-host
 version: 1
 tags: {}
 globalArguments:
+  source: files/grafana/host-overview.json
   path: /etc/grafana/dashboards/host-overview.json
   ensure: present
-  content: |
-    {
-      "annotations": { "list": [] },
-      "editable": true,
-      "refresh": "30s",
-      "schemaVersion": 39,
-      "tags": ["host"],
-      "templating": { "list": [] },
-      "time": { "from": "now-6h", "to": "now" },
-      "title": "Host overview",
-      "uid": "host-overview",
-      "version": 1,
-      "panels": [
-        {
-          "type": "timeseries",
-          "title": "CPU usage",
-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
-          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
-          "fieldConfig": { "defaults": { "unit": "percent", "max": 100 }, "overrides": [] },
-          "targets": [
-            {
-              "refId": "A",
-              "expr": "100 - avg(irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100",
-              "legendFormat": "cpu"
-            }
-          ]
-        },
-        {
-          "type": "timeseries",
-          "title": "Memory available",
-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
-          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
-          "fieldConfig": { "defaults": { "unit": "percent", "max": 100 }, "overrides": [] },
-          "targets": [
-            {
-              "refId": "A",
-              "expr": "node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100",
-              "legendFormat": "available"
-            }
-          ]
-        },
-        {
-          "type": "timeseries",
-          "title": "Filesystem used",
-          "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
-          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
-          "fieldConfig": { "defaults": { "unit": "percent", "max": 100 }, "overrides": [] },
-          "targets": [
-            {
-              "refId": "A",
-              "expr": "(node_filesystem_size_bytes{fstype!~\"tmpfs|overlay\"} - node_filesystem_free_bytes{fstype!~\"tmpfs|overlay\"}) / node_filesystem_size_bytes{fstype!~\"tmpfs|overlay\"} * 100",
-              "legendFormat": "{{mountpoint}}"
-            }
-          ]
-        },
-        {
-          "type": "timeseries",
-          "title": "Load average",
-          "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
-          "datasource": { "type": "prometheus", "uid": "victoriametrics" },
-          "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
-          "targets": [
-            { "refId": "A", "expr": "node_load1", "legendFormat": "1m" },
-            { "refId": "B", "expr": "node_load5", "legendFormat": "5m" },
-            { "refId": "C", "expr": "node_load15", "legendFormat": "15m" }
-          ]
-        },
-        {
-          "type": "logs",
-          "title": "Recent logs (all services)",
-          "gridPos": { "h": 10, "w": 24, "x": 0, "y": 16 },
-          "datasource": { "type": "victoriametrics-logs-datasource", "uid": "victorialogs" },
-          "targets": [
-            { "refId": "A", "expr": "*", "queryType": "instant" }
-          ]
-        }
-      ]
-    }
   owner: root
   group: root
   mode: '0644'

@@ -20,7 +20,7 @@ globalArguments:
             settings:
               bottoken: '${{ vault.get(homelab, telegram.bot-token) }}'
               chatid: '${{ vault.get(homelab, telegram.chat-id) }}'
-              message: '{{ template "default.message" . }}'
+              message: '${{ "{" + "{" }} template "default.message" . }}'
   owner: '65534'
   group: '65534'
   mode: '0600'

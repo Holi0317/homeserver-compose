@@ -97,6 +97,21 @@ jobs:
           - step: grafana-project
             condition:
               type: succeeded
+      - name: grafana-grant-admin
+        description: Grant the admin role for Grafana to the owner login
+        task:
+          type: model_method
+          modelIdOrName: zitadel-iam
+          methodName: grant_ensure
+          inputs:
+            user: hollis.wu
+            project: Grafana
+            roleKeys:
+              - admin
+        dependsOn:
+          - step: grafana-role-viewer
+            condition:
+              type: succeeded
         weight: 0
         allowFailure: false
 
@@ -120,13 +135,100 @@ jobs:
   - name: runtime
     description: Render config, deploy the container, and advertise the tailnet endpoint
     steps:
+      - name: grafana-data-dir
+        description: Ensure the Grafana persistent data directory unit exists
+        task:
+          type: model_method
+          modelIdOrName: grafana-data-dir
+          methodName: apply
+        dependsOn: []
+      - name: grafana-datasources
+        description: Provision the VictoriaMetrics and VictoriaLogs datasources
+        task:
+          type: model_method
+          modelIdOrName: grafana-datasources
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+
+      - name: grafana-dashboard-provider
+        description: Provision the file-based dashboard provider
+        task:
+          type: model_method
+          modelIdOrName: grafana-dashboard-provider
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+      - name: grafana-dashboard-host
+        description: Provision the host-overview dashboard JSON
+        task:
+          type: model_method
+          modelIdOrName: grafana-dashboard-host
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+
+      - name: grafana-alert-rules
+        description: Provision the Grafana alert rule groups
+        task:
+          type: model_method
+          modelIdOrName: grafana-alert-rules
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+
+      - name: grafana-alert-policy
+        description: Provision the Grafana notification policy tree
+        task:
+          type: model_method
+          modelIdOrName: grafana-alert-policy
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+
+      - name: grafana-alert-contact-point
+        description: Provision the Telegram contact point
+        task:
+          type: model_method
+          modelIdOrName: grafana-alert-contact-point
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+
       - name: grafana-config
         description: Render Grafana's Zitadel OIDC configuration before the container mounts it
         task:
           type: model_method
           modelIdOrName: grafana-config
           methodName: apply
-        dependsOn: []
+        dependsOn:
+          - step: grafana-alert-rules
+            condition:
+              type: succeeded
+          - step: grafana-alert-policy
+            condition:
+              type: succeeded
+          - step: grafana-alert-contact-point
+            condition:
+              type: succeeded
+          - step: grafana-dashboard-host
+            condition:
+              type: succeeded
+          - step: grafana-datasources
+            condition:
+              type: succeeded
+          - step: grafana-dashboard-provider
+            condition:
+              type: succeeded
+          - step: grafana-data-dir
+            condition:
+              type: succeeded
         weight: 0
         allowFailure: false
 

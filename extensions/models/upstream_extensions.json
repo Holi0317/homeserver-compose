@@ -133,5 +133,28 @@
     "checksum": "9b9f075b33170d3742d6228faea36e00330cc0914abb20b18c531d743ebc3c37",
     "filesChecksum": "4f3b4739e792b5801794f25cea836976d23a09b3d4e3371258beefa428d4e3fe",
     "serverUrl": "https://swamp-club.com"
+  },
+  "@webframp/cloudflare": {
+    "version": "2026.09.18.1",
+    "pulledAt": "2026-09-25T01:24:42.804Z",
+    "files": [
+      ".swamp/bundles/360873dd/cloudflare/cache.js",
+      ".swamp/bundles/360873dd/cloudflare/dns.js",
+      ".swamp/bundles/360873dd/cloudflare/waf.js",
+      ".swamp/bundles/360873dd/cloudflare/worker.js",
+      ".swamp/bundles/360873dd/cloudflare/zone.js",
+      ".swamp/pulled-extensions/@webframp/cloudflare/files/LICENSE.md",
+      ".swamp/pulled-extensions/@webframp/cloudflare/files/README.md",
+      ".swamp/pulled-extensions/@webframp/cloudflare/manifest.yaml",
+      ".swamp/pulled-extensions/@webframp/cloudflare/models/cloudflare/_lib/api.ts",
+      ".swamp/pulled-extensions/@webframp/cloudflare/models/cloudflare/cache.ts",
+      ".swamp/pulled-extensions/@webframp/cloudflare/models/cloudflare/dns.ts",
+      ".swamp/pulled-extensions/@webframp/cloudflare/models/cloudflare/waf.ts",
+      ".swamp/pulled-extensions/@webframp/cloudflare/models/cloudflare/worker.ts",
+      ".swamp/pulled-extensions/@webframp/cloudflare/models/cloudflare/zone.ts"
+    ],
+    "checksum": "5fb633c6b65c83d72d26087efd7d9a03dffe292b3a1a9b1e31d8e03e57aea2cb",
+    "filesChecksum": "c37d489ffec176d9898ae1396335e15949e43f5cec910714763639b52b500298",
+    "serverUrl": "https://swamp-club.com"
   }
 }
