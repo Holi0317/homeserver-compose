@@ -739,6 +739,8 @@ export interface OidcDesired {
   responseTypes: string[];
   accessTokenType: string;
   devMode: boolean;
+  idTokenRoleAssertion: boolean;
+  idTokenUserinfoAssertion: boolean;
 }
 
 /** Desired config mapped to wire (Zitadel enum) values — the PUT/create body. */
@@ -758,6 +760,8 @@ export function desiredOidcWire(d: OidcDesired): Json {
       "accessTokenType",
     ),
     devMode: d.devMode,
+    idTokenRoleAssertion: d.idTokenRoleAssertion,
+    idTokenUserinfoAssertion: d.idTokenUserinfoAssertion,
   };
 }
 
@@ -783,6 +787,12 @@ export function observedOidcWire(oidc: Json): Json {
       ? oidc.accessTokenType
       : "OIDC_TOKEN_TYPE_BEARER",
     devMode: typeof oidc.devMode === "boolean" ? oidc.devMode : false,
+    idTokenRoleAssertion: typeof oidc.idTokenRoleAssertion === "boolean"
+      ? oidc.idTokenRoleAssertion
+      : false,
+    idTokenUserinfoAssertion: typeof oidc.idTokenUserinfoAssertion === "boolean"
+      ? oidc.idTokenUserinfoAssertion
+      : false,
   };
 }
 
@@ -841,6 +851,16 @@ export function oidcDrift(desired: Json, observed: Json): string[] {
     observed.accessTokenType,
   );
   cmp("devMode", desired.devMode, observed.devMode);
+  cmp(
+    "idTokenRoleAssertion",
+    desired.idTokenRoleAssertion,
+    observed.idTokenRoleAssertion,
+  );
+  cmp(
+    "idTokenUserinfoAssertion",
+    desired.idTokenUserinfoAssertion,
+    observed.idTokenUserinfoAssertion,
+  );
   return drifted;
 }
 
@@ -862,5 +882,7 @@ export function observedOidcFriendly(oidc: Json): Record<string, unknown> {
     grantTypes: friendlyEnumArr(wire.grantTypes, GRANT_TYPE_REV),
     responseTypes: friendlyEnumArr(wire.responseTypes, RESPONSE_TYPE_REV),
     devMode: wire.devMode,
+    idTokenRoleAssertion: wire.idTokenRoleAssertion,
+    idTokenUserinfoAssertion: wire.idTokenUserinfoAssertion,
   };
 }

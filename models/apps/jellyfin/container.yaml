@@ -1,0 +1,71 @@
+type: '@holi0317/systemd/quadlet'
+typeVersion: 2026.09.04.1
+id: 5b1af1c0-1a89-4a76-be8c-6b1b76f0a3b5
+name: jellyfin-container
+version: 1
+globalArguments:
+  remote:
+    fleet: athena
+    host: athena
+    sudo: true
+  unitName: jellyfin.container
+  content: |
+    [Unit]
+    Description=Jellyfin media server (tailnet-only)
+    Wants=ingress-network.service jellyfin-data-dir.service
+    After=ingress-network.service jellyfin-data-dir.service
+    Requires=ingress-network.service jellyfin-data-dir.service
+    RequiresMountsFor=/srv/persistent/jellyfin /srv/media
+
+    [Container]
+    Image=docker.io/jellyfin/jellyfin:12.1.20260915-010956
+    ContainerName=jellyfin
+    Network=ingress.network
+    Volume=/srv/persistent/jellyfin/config:/config:Z
+    Volume=/srv/persistent/jellyfin/cache:/cache:Z
+    Volume=/var/tmp/jellyfin-transcodes:/transcodes:Z
+    # Read-only media from this app's owned namespace on the Storage Box;
+    # the container sees only /srv/media/jellyfin. No SELinux relabel on CIFS.
+    Volume=/srv/media/jellyfin:/media:ro
+    Environment=JELLYFIN_PublishedServerUrl=https://jellyfin.tail351aa.ts.net
+    # SSO plugin provider config (config-as-code; read once at server start).
+    # The env source owns the provider "zitadel" WHOLE — every field must be
+    # declared here or it falls back to its default.
+    Environment=JELLYFIN_SSO_CONFIG__OidConfigs__zitadel__OidEndpoint=https://auth.holi0317.net/.well-known/openid-configuration
+    Environment=JELLYFIN_SSO_CONFIG__OidConfigs__zitadel__OidClientId=${{ data.latest("jellyfin-oidc-app", "current").attributes.clientId }}
+    Environment=JELLYFIN_SSO_CONFIG__OidConfigs__zitadel__OidSecret=${{ data.latest("jellyfin-oidc-app", "credential").attributes.clientSecret }}
+    Environment=JELLYFIN_SSO_CONFIG__OidConfigs__zitadel__Enabled=true
+    Environment=JELLYFIN_SSO_CONFIG__OidConfigs__zitadel__EnableAuthorization=true
+    Environment=JELLYFIN_SSO_CONFIG__OidConfigs__zitadel__EnableAllFolders=true
+    Environment=JELLYFIN_SSO_CONFIG__OidConfigs__zitadel__RoleClaim=urn:zitadel:iam:org:project:roles
+    Environment=JELLYFIN_SSO_CONFIG__OidConfigs__zitadel__RoleClaimIsObjectMap=true
+    Environment=JELLYFIN_SSO_CONFIG__OidConfigs__zitadel__BaseUrlOverride=https://jellyfin.tail351aa.ts.net
+    Environment=JELLYFIN_SSO_CONFIG__OidConfigs__zitadel__Roles__0=access
+    Environment=JELLYFIN_SSO_CONFIG__OidConfigs__zitadel__AdminRoles__0=admin
+    # No PublishPort: reachable only through Caddy on the shared ingress network.
+    HealthCmd=curl -fsS http://127.0.0.1:8096/health
+    HealthInterval=30s
+    HealthTimeout=5s
+    HealthRetries=5
+    HealthStartPeriod=60s
+
+    [Service]
+    # Software-transcoding posture: athena has no GPU and shares 2 vCPU /
+    # 4 GB with the rest of the stack, so Jellyfin is capped at 1.5 cores and
+    # 2 GB. Expect at most one concurrent 1080p software transcode; direct
+    # play is the intended path.
+    MemoryMax=2G
+    CPUQuota=150%
+    Restart=always
+    RestartSec=5
+    TimeoutStartSec=900
+
+    [Install]
+    WantedBy=multi-user.target
+  userMode: system
+  enabled: true
+  state: running
+methods:
+  apply:
+    arguments:
+      allowRecreate: false

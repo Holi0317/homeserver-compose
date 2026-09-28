@@ -1,0 +1,15 @@
+type: '@holi0317/zitadel/role'
+typeVersion: 2026.09.28.1
+id: e72a7218-17ef-45f2-ad92-ef13d2bd6d0d
+name: jellyfin-role-admin
+version: 1
+tags: {}
+globalArguments:
+  apiUrl: 'https://auth.holi0317.net'
+  keyJson: '${{ vault.get(homelab, zitadel.admin-service-key) }}'
+  project: Jellyfin
+  key: admin
+  displayName: Jellyfin Admin
+methods:
+  apply:
+    arguments: {}

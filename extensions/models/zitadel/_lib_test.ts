@@ -18,6 +18,8 @@ const DESIRED: OidcDesired = {
   responseTypes: ["code"],
   accessTokenType: "bearer",
   devMode: false,
+  idTokenRoleAssertion: false,
+  idTokenUserinfoAssertion: false,
 };
 
 Deno.test("desiredOidcWire maps friendly values to Zitadel enums", () => {
@@ -50,6 +52,30 @@ Deno.test("observedOidcWire fills proto3-omitted OIDC defaults", () => {
   const drift = oidcDrift(desiredOidcWire(DESIRED), observed);
   if (drift.length !== 0) {
     throw new Error(`expected no drift, got: ${drift.join(", ")}`);
+  }
+});
+
+Deno.test("oidc token assertion toggles pass through wire and report drift", () => {
+  const desired = desiredOidcWire({
+    ...DESIRED,
+    idTokenRoleAssertion: true,
+    idTokenUserinfoAssertion: true,
+  });
+  if (desired.idTokenRoleAssertion !== true || desired.idTokenUserinfoAssertion !== true) {
+    throw new Error("assertions not passed through to the wire body");
+  }
+  // Zitadel returns enabled toggles as-is: an exact match is no-drift.
+  const driftNone = oidcDrift(desired, observedOidcWire({ ...desired }));
+  if (driftNone.length !== 0) {
+    throw new Error(`expected no drift, got: ${driftNone.join(", ")}`);
+  }
+  // A toggle turned off at the provider drifts and converges on apply.
+  const driftOn = oidcDrift(
+    desired,
+    observedOidcWire({ ...desired, idTokenRoleAssertion: false }),
+  );
+  if (JSON.stringify(driftOn) !== '["idTokenRoleAssertion"]') {
+    throw new Error(`unexpected drift: ${driftOn.join(", ")}`);
   }
 });
 

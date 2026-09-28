@@ -1,0 +1,37 @@
+type: '@holi0317/systemd/unit'
+typeVersion: 2026.09.04.1
+id: 37082f04-931d-4ee2-b7f4-50ecd6ab3f25
+name: jellyfin-data-dir
+version: 1
+globalArguments:
+  remote:
+    fleet: athena
+    host: athena
+    sudo: true
+  unitName: jellyfin-data-dir.service
+  content: |
+    [Unit]
+    Description=Prepare Jellyfin persistent directories and media namespace
+    RequiresMountsFor=/srv/persistent /srv/media
+    Before=jellyfin.service
+
+    [Service]
+    Type=oneshot
+    # Config and cache live on the persistent block volume; the software
+    # transcode workspace is ephemeral NVMe by design (heavy-write, safe to
+    # lose). Media stays on the read-only /srv/media CIFS mount; the
+    # jellyfin/ subdirectory is this app's owned namespace on the shared box
+    # (Nextcloud and Immich get their own siblings).
+    ExecStart=/usr/bin/install -d -m 0755 /srv/persistent/jellyfin/config /srv/persistent/jellyfin/cache /var/tmp/jellyfin-transcodes
+    ExecStart=/usr/bin/install -d -m 0777 /srv/media/jellyfin/movies /srv/media/jellyfin/series /srv/media/jellyfin/music
+    RemainAfterExit=yes
+
+    [Install]
+    WantedBy=multi-user.target
+  userMode: system
+  enabled: true
+  state: running
+methods:
+  apply:
+    arguments:
+      allowRecreate: false

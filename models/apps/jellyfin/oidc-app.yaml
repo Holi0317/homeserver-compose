@@ -1,0 +1,33 @@
+type: '@holi0317/zitadel/oidc-app'
+typeVersion: 2026.09.28.1
+id: c2306758-6382-479a-a427-46e57eca51b7
+name: jellyfin-oidc-app
+version: 1
+tags: {}
+globalArguments:
+  apiUrl: 'https://auth.holi0317.net'
+  keyJson: '${{ vault.get(homelab, zitadel.admin-service-key) }}'
+  project: Jellyfin
+  name: jellyfin
+  appType: web
+  # Confidential client (Basic auth): the SSO plugin authenticates to the
+  # token endpoint with the client secret. Secret is delivered to the plugin
+  # via the jellyfin.oidc-client-secret vault key.
+  authMethod: basic
+  redirectUris:
+    # Provider name "zitadel" in the SSO plugin config must match this path.
+    - https://jellyfin.tail351aa.ts.net/sso/OID/redirect/zitadel
+  postLogoutUris: []
+  grantTypes:
+    - authorization_code
+  responseTypes:
+    - code
+  accessTokenType: bearer
+  devMode: false
+  # Token settings required by the plugin's Zitadel template: roles (and user
+  # info) inside the ID token, so the plugin can read the project role map.
+  idTokenRoleAssertion: true
+  idTokenUserinfoAssertion: true
+methods:
+  apply:
+    arguments: {}

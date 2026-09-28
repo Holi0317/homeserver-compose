@@ -71,6 +71,12 @@ const GlobalArgumentsSchema = z.object({
   responseTypes: jsonArray(z.enum(["code", "id_token", "id_token_token"]))
     .default(["code"]),
   accessTokenType: z.enum(["bearer", "jwt"]).default("bearer"),
+  idTokenRoleAssertion: boolArg(false).describe(
+    "Include project role claims in the ID token (Zitadel app token setting; the SSO plugin reads roles from the ID token)",
+  ),
+  idTokenUserinfoAssertion: boolArg(false).describe(
+    "Include profile/email claims in the ID token (Zitadel app token setting; required by the SSO plugin's Zitadel template)",
+  ),
   devMode: boolArg(false).describe(
     "Relax redirect-URI checks (non-https/localhost). Test only.",
   ),
@@ -95,6 +101,8 @@ const AppStateSchema = z.object({
   grantTypes: z.array(z.string()).optional(),
   responseTypes: z.array(z.string()).optional(),
   devMode: z.boolean().optional(),
+  idTokenRoleAssertion: z.boolean().optional(),
+  idTokenUserinfoAssertion: z.boolean().optional(),
   observedAt: z.iso.datetime(),
 });
 

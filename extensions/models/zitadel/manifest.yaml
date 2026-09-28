@@ -1,6 +1,6 @@
 manifestVersion: 1
 name: "@holi0317/zitadel"
-version: "2026.09.25.2"
+version: "2026.09.28.1"
 description: >-
   Resource-oriented Zitadel administration over the Management API (v1 REST).
   Each model instance is ONE Zitadel resource (terraform-style): project,

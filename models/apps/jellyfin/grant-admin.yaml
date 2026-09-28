@@ -1,0 +1,19 @@
+type: '@holi0317/zitadel/grant'
+typeVersion: 2026.09.28.1
+id: a3652835-7058-4f55-8e73-b9a887be5727
+name: jellyfin-grant-admin
+version: 1
+tags: {}
+globalArguments:
+  apiUrl: 'https://auth.holi0317.net'
+  keyJson: '${{ vault.get(homelab, zitadel.admin-service-key) }}'
+  user: hollis.wu
+  project: Jellyfin
+  # Both roles: admin gates the Jellyfin administrator surface, access is the
+  # login gate for everyone (AdminRoles does not bypass the Roles check).
+  roleKeys:
+    - admin
+    - access
+methods:
+  apply:
+    arguments: {}
