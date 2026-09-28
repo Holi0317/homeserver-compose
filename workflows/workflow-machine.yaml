@@ -33,6 +33,25 @@ jobs:
         condition:
           type: succeeded
     weight: 0
+  - name: jellyfin
+    description: Deploy Jellyfin media server on persistent storage and read-only media.
+    steps:
+      - name: app-jellyfin
+        description: Run the Jellyfin app workflow.
+        task:
+          type: workflow
+          workflowIdOrName: app-jellyfin
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+    dependsOn:
+      - job: caddy
+        condition:
+          type: succeeded
+      - job: storage
+        condition:
+          type: succeeded
+    weight: 0
 
   - name: caddy
     description: Converge the shared Caddy ingress edge.

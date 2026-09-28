@@ -29,6 +29,13 @@ globalArguments:
           upstreams:
             - name: grafana
               port: 3000
+      - name: jellyfin
+        enabled: true
+        tailnet:
+          host: jellyfin.tail351aa.ts.net
+          upstreams:
+            - name: jellyfin
+              port: 8096
   dynamicDns:
     domains:
       holi0317.net:
