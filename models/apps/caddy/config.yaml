@@ -36,6 +36,13 @@ globalArguments:
           upstreams:
             - name: jellyfin
               port: 8096
+      - name: httpbin
+        enabled: true
+        tailnet:
+          host: httpbin.tail351aa.ts.net
+          upstreams:
+            - name: httpbin
+              port: 8080
   dynamicDns:
     domains:
       holi0317.net:

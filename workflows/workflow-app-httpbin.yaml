@@ -1,0 +1,72 @@
+id: 706b9dd0-ac76-4ac2-b8c6-d939e9437636
+name: app-httpbin
+version: 1
+description: Deploy the httpbin test service exposed to the tailnet through Caddy.
+tags: {}
+jobs:
+  - name: expose
+    description: Run httpbin on the ingress network, publish the tailnet route, and advertise svc:httpbin
+    steps:
+      - name: httpbin-container
+        description: Deploy the stateless httpbin container on the ingress network
+        task:
+          type: model_method
+          modelIdOrName: httpbin-container
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+
+      - name: ingress-config-render
+        description: Render the centralized Caddy JSON site inventory with the httpbin tailnet site
+        task:
+          type: model_method
+          modelIdOrName: ingress-config
+          methodName: render
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+
+      - name: ingress-config-apply
+        description: Validate and atomically activate Caddy configuration, reloading Caddy
+        task:
+          type: model_method
+          modelIdOrName: ingress-config
+          methodName: apply
+          inputs:
+            configName: current
+        dependsOn:
+          - step: ingress-config-render
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false
+
+      - name: tailscale-serve
+        description: Advertise the httpbin tailnet endpoint through the shared listeners
+        task:
+          type: model_method
+          modelIdOrName: tailscale-serve
+          methodName: apply
+        dependsOn:
+          - step: httpbin-container
+            condition:
+              type: succeeded
+          - step: ingress-config-apply
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false
+
+      - name: tailscale-serve-reload
+        description: Drain, reapply, advertise, and record HTTPS Serve status for all services
+        task:
+          type: model_method
+          modelIdOrName: tailscale-serve
+          methodName: reload
+        dependsOn:
+          - step: tailscale-serve
+            condition:
+              type: succeeded
+        weight: 0
+        allowFailure: false

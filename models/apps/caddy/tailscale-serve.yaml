@@ -12,7 +12,7 @@ globalArguments:
   unitName: tailscale-serve.service
   content: |
     [Unit]
-    Description=Advertise Grafana and Jellyfin through the shared Caddy listeners
+    Description=Advertise Grafana, Jellyfin, and httpbin through the shared Caddy listeners
     Wants=caddy.service
     After=caddy.service
     Requires=caddy.service
@@ -24,11 +24,14 @@ globalArguments:
     ExecStartPre=-/usr/bin/tailscale serve clear svc:grafana
     ExecStartPre=-/usr/bin/tailscale serve drain svc:jellyfin
     ExecStartPre=-/usr/bin/tailscale serve clear svc:jellyfin
+    ExecStartPre=-/usr/bin/tailscale serve drain svc:httpbin
+    ExecStartPre=-/usr/bin/tailscale serve clear svc:httpbin
     ExecStart=/usr/bin/tailscale serve --service=svc:grafana --https=443 127.0.0.1:18080
     ExecStart=/usr/bin/tailscale serve --service=svc:grafana --http=80 127.0.0.1:18081
-    ExecStartPost=/usr/bin/tailscale serve status --json
     ExecStart=/usr/bin/tailscale serve --service=svc:jellyfin --https=443 127.0.0.1:18080
     ExecStart=/usr/bin/tailscale serve --service=svc:jellyfin --http=80 127.0.0.1:18081
+    ExecStart=/usr/bin/tailscale serve --service=svc:httpbin --https=443 127.0.0.1:18080
+    ExecStart=/usr/bin/tailscale serve --service=svc:httpbin --http=80 127.0.0.1:18081
     ExecStartPost=/usr/bin/tailscale serve status --json
     ExecReload=-/usr/bin/tailscale serve drain svc:grafana
     ExecReload=-/usr/bin/tailscale serve clear svc:grafana
@@ -38,11 +41,17 @@ globalArguments:
     ExecReload=-/usr/bin/tailscale serve clear svc:jellyfin
     ExecReload=/usr/bin/tailscale serve --service=svc:jellyfin --https=443 127.0.0.1:18080
     ExecReload=/usr/bin/tailscale serve --service=svc:jellyfin --http=80 127.0.0.1:18081
+    ExecReload=-/usr/bin/tailscale serve drain svc:httpbin
+    ExecReload=-/usr/bin/tailscale serve clear svc:httpbin
+    ExecReload=/usr/bin/tailscale serve --service=svc:httpbin --https=443 127.0.0.1:18080
+    ExecReload=/usr/bin/tailscale serve --service=svc:httpbin --http=80 127.0.0.1:18081
     ExecReload=/usr/bin/tailscale serve status --json
     ExecStop=-/usr/bin/tailscale serve drain svc:grafana
     ExecStop=-/usr/bin/tailscale serve clear svc:grafana
     ExecStop=-/usr/bin/tailscale serve drain svc:jellyfin
     ExecStop=-/usr/bin/tailscale serve clear svc:jellyfin
+    ExecStop=-/usr/bin/tailscale serve drain svc:httpbin
+    ExecStop=-/usr/bin/tailscale serve clear svc:httpbin
 
     [Install]
     WantedBy=multi-user.target

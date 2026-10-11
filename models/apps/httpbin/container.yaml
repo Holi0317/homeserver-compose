@@ -1,0 +1,42 @@
+type: '@holi0317/systemd/quadlet'
+typeVersion: 2026.08.16.2
+id: 75bd7da8-809f-4a52-a81c-bacd391d737d
+name: httpbin-container
+version: 1
+tags: {}
+globalArguments:
+  remote:
+    fleet: athena
+    host: athena
+    sudo: true
+  unitName: httpbin.container
+  content: |
+    [Unit]
+    Description=httpbin test service on the tailnet
+    Wants=ingress-network.service
+    After=ingress-network.service
+    Requires=ingress-network.service
+
+    [Container]
+    Image=docker.io/mccutchen/go-httpbin:2.25.0
+    ContainerName=httpbin
+    Network=ingress.network
+    # No PublishPort: reachable only through Caddy on the shared ingress network.
+
+    # Scratch-based image: no shell/curl for a health probe.
+
+    [Service]
+    MemoryMax=128M
+    Restart=always
+    RestartSec=5
+    TimeoutStartSec=300
+
+    [Install]
+    WantedBy=multi-user.target
+  userMode: system
+  enabled: true
+  state: running
+methods:
+  apply:
+    arguments:
+      allowRecreate: false
