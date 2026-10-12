@@ -1,0 +1,16 @@
+type: '@adam/cfgmgmt/line'
+id: fbc7a47a-8458-4b15-bef2-e1f24b02a115
+name: jellyfin-metrics-enable
+version: 1
+tags: {}
+globalArguments:
+  path: /srv/persistent/jellyfin/config/config/system.xml
+  regexp: '<EnableMetrics>false</EnableMetrics>'
+  line: '<EnableMetrics>true</EnableMetrics>'
+  ensure: present
+  nodeHost: '${{ data.latest("athena", "host-athena").attributes.address }}'
+  nodeUser: '${{ data.latest("athena", "host-athena").attributes.user }}'
+  nodePort: '${{ data.latest("athena", "host-athena").attributes.port }}'
+  become: true
+  becomeUser: root
+methods: {}

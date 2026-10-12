@@ -12,15 +12,18 @@ globalArguments:
   content: |
     [Unit]
     Description=Jellyfin media server (tailnet-only)
-    Wants=ingress-network.service jellyfin-data-dir.service
-    After=ingress-network.service jellyfin-data-dir.service
-    Requires=ingress-network.service jellyfin-data-dir.service
+    Wants=ingress-network.service metrics-network.service jellyfin-data-dir.service
+    After=ingress-network.service metrics-network.service jellyfin-data-dir.service
+    Requires=ingress-network.service metrics-network.service jellyfin-data-dir.service
     RequiresMountsFor=/srv/persistent/jellyfin /srv/media
 
     [Container]
     Image=docker.io/jellyfin/jellyfin:12.1.20260915-010956
     ContainerName=jellyfin
     Network=ingress.network
+    # Joins the metrics plane so VictoriaMetrics can scrape this container
+    # by DNS name (same pattern as grafana and the node exporter).
+    Network=metrics.network
     Volume=/srv/persistent/jellyfin/config:/config:Z
     Volume=/srv/persistent/jellyfin/cache:/cache:Z
     Volume=/var/tmp/jellyfin-transcodes:/transcodes:Z

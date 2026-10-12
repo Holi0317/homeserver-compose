@@ -85,6 +85,16 @@ jobs:
         weight: 0
         allowFailure: false
 
+      - name: jellyfin-metrics-enable
+        description: Flip EnableMetrics=true in the Jellyfin system.xml for the Prometheus /metrics endpoint
+        task:
+          type: model_method
+          modelIdOrName: jellyfin-metrics-enable
+          methodName: apply
+        dependsOn: []
+        weight: 0
+        allowFailure: false
+
       - name: jellyfin-container
         description: Deploy the Jellyfin container unit on the ingress network
         task:
@@ -93,6 +103,9 @@ jobs:
           methodName: apply
         dependsOn:
           - step: jellyfin-data-dir
+            condition:
+              type: succeeded
+          - step: jellyfin-metrics-enable
             condition:
               type: succeeded
         weight: 0
